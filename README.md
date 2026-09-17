@@ -39,7 +39,7 @@ The integration lowers playing kitchen Sonos speakers during voice activity on e
 
 The **Echo Home** conversation agent is a separate subentry of the existing local model provider. The **Echo Home** pipeline copies Whisper, Kokoro and the Emma voice from `spark-vllm-8001`. Existing conversation agents and pipeline definitions remain available.
 
-`www/echo-experience.js` is a dependency-free custom Lovelace card. There is no assistant conversation state in a global dashboard helper. A profile is chosen explicitly by each dashboard view. Unknown device IDs receive no Echo-specific control tools; unknown profiles fail closed. Timer changes verify the timer belongs to the profile's device. Music targets are restricted to its configured speaker list.
+`www/echo-experience.js` is a dependency-free custom Lovelace card. There is no assistant conversation state in a global dashboard helper. A profile is chosen explicitly by each dashboard view. Unknown device IDs receive no Echo-specific control tools; unknown profiles fail closed. Timer changes verify the timer belongs to the profile's device. Music targets are restricted to its configured speaker list. Tracks, artists and albums are resolved before playback; see [music matching](MUSIC_MATCHING.md) for supported aliases, ambiguity handling and validation.
 
 The integration reacts to `voice_satellite_chat` and `voice_satellite_timer`. It does not infer control actions from spoken replies. Source lookups and tools publish structured results, while conversation events add the actual spoken answer. Namespaced tool names are normalised. Native Voice Satellite owns timer alarms and dismissal; this integration never creates a second alarm.
 
@@ -65,6 +65,7 @@ Example profile (replace all IDs with actual entities):
   "satellite": "assist_satellite.bedroom_echo",
   "device_id": "VOICE_SATELLITE_DEVICE_ID",
   "music_player": "media_player.bedroom_echo",
+  "music_assistant_entry": "MUSIC_ASSISTANT_CONFIG_ENTRY_ID",
   "weather": "weather.met_office_weoley_castle",
   "dashboard": "echo-home/bedroom_echo",
   "kiosk_navigation": "select.bedroom_echo_dashboard_view",

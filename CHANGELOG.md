@@ -1,5 +1,14 @@
 # Changes
 
+## 0.3.2 — music title resolution
+
+- Resolve tracks, artists and albums before queuing the exact Music Assistant URI.
+- Tolerate punctuation, accents, known spoken aliases (Guns and Roses, Sweet Child of Mine) and trailing album numbers in digits, words or Roman numerals.
+- Match requested artist, album and version; ask for clarification when multiple matching items remain. Never fall back to an unchecked first result.
+- Add read-only music search for diagnostics and voice queries. Radio, playlist and podcast playback keep their existing Music Assistant path.
+- Validate 45 Python tests and 11 frontend assertions, plus live library resolution of five previously problematic phrases.
+
+
 ## 0.3.1 — 2026-09-17
 
 - Remove the manual converter and redundant close button from the answer view; enlarge question, answer and conversion text for the 8-inch screen.

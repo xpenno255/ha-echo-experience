@@ -68,7 +68,7 @@ class EchoExperienceCard extends HTMLElement {
   }
   async action(action,args={}){
     if(this.busy)return;this.busy=true;this.error='';this.touched=Date.now();this.render();
-    try{const result=await this._hass.callWS({type:'echo_experience/action',device:this.config.device,action,args});if(result?.timers)this.data.timers=result.timers;}
+    try{const result=await this._hass.callWS({type:'echo_experience/action',device:this.config.device,action,args});if(result?.timers)this.data.timers=result.timers;if(['needs_clarification','not_found'].includes(result?.status))this.error=result.question||result.message;}
     catch(err){this.error=err.message||'That action could not be completed';}
     finally{this.busy=false;this.render();}
   }
