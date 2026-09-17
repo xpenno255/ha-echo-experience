@@ -47,7 +47,15 @@ The old kitchen ducking automation remains disabled to prevent double restoratio
 Unit tests cover overlapping satellites, room isolation, all voice phases, delayed
 state acknowledgements, playback beginning during speech, manual volume changes,
 idle grace periods, disconnects, timeouts, failed volume calls, offline recovery and
-integration unload. Live validation is recorded separately in the private audit.
+integration unload. All 30 Python tests and 11 frontend assertions pass locally.
+
+Live validation on 17 September 2026 used an actual announcement through the Echo
+while the Sonos group played quietly. Kitchen/Dining/Move dropped from 18%/12%/15%
+to 2%/1%/1%, then returned to exactly 18%/12%/15% after the satellite became idle.
+The test stopped playback and restored the preceding speaker volumes. Detailed
+event timings are retained only in the private audit. Listening/processing phases
+and overlapping satellites are covered by automated tests; an acoustic wake-word
+check remains useful on the physical devices.
 
 To test acoustically, play music and ask the Echo for the weather. Music should drop
 as the Echo starts listening, stay quiet through its answer and return afterwards.
