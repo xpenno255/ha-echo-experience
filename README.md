@@ -1,4 +1,4 @@
-# Echo Experience
+# ha-echo-experience
 
 Private source: https://github.com/xpenno255/ha-echo-experience
 
