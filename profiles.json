@@ -1,0 +1,46 @@
+{
+  "devices": [
+    {
+      "id": "echo_show_8",
+      "name": "Kitchen Echo",
+      "satellite": "assist_satellite.echo_show_8",
+      "device_id": "3cbf784cee34a3c4249e1cd03060b6dc",
+      "music_player": "media_player.kitchen_sonos_group_ma",
+      "music_assistant_entry": "01JFSPTJYGV580720DYSKY6CRK",
+      "weather": "weather.met_office_weoley_castle",
+      "dashboard": "echo-home/echo_show_8",
+      "kiosk_navigation": "select.amzn_echo_show_8_dashboard_view",
+      "kiosk_now_playing": "switch.amzn_echo_show_8_now_playing",
+      "kiosk_screensaver": "switch.amzn_echo_show_8_screensaver_active",
+      "kiosk_hold": "switch.amzn_echo_show_8_hold_mode",
+      "speakers": [
+        {
+          "entity_id": "media_player.kitchen_sonos_group_ma",
+          "name": "Kitchen Sonos"
+        }
+      ],
+      "controls": [
+        "light.kitchen_diner_lights_all",
+        "light.kitchen_spot_lights",
+        "light.kitchen_lamp_lights",
+        "light.kitchen_wall_lights",
+        "climate.kitchen",
+        "climate.living_room"
+      ],
+      "ducking": {
+        "enabled": true,
+        "players": [
+          "media_player.kitchen_sonos",
+          "media_player.dining_room_sonos",
+          "media_player.move_sonos"
+        ],
+        "additional_satellites": [
+          "assist_satellite.home_assistant_voice_kitchen_assist_satellite"
+        ],
+        "volume_factor": 0.1,
+        "restore_delay": 1,
+        "max_duration": 120
+      }
+    }
+  ]
+}

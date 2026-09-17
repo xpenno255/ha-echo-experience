@@ -1,0 +1,85 @@
+# Retired reference only. Integration ducking replaces this automation.
+- id: '1757851334471'
+  alias: Duck Sonos Audio When Voice Assistant Active
+  description: Reduces volume by 40% on kitchen Sonos devices when voice assistant
+    is not idle
+  triggers:
+  - entity_id: assist_satellite.home_assistant_voice_kitchen_assist_satellite
+    from: idle
+    to:
+    - listening
+    - thinking
+    - speaking
+    id: voice_active
+    trigger: state
+  - entity_id: assist_satellite.home_assistant_voice_kitchen_assist_satellite
+    to: idle
+    id: voice_idle
+    trigger: state
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: voice_active
+      sequence:
+      - target:
+          entity_id: input_number.kitchen_sonos_original_volume
+        data:
+          value: '{{ states.media_player.kitchen_sonos.attributes.volume_level | float(0.5)
+            }}'
+        action: input_number.set_value
+      - target:
+          entity_id: input_number.dining_room_sonos_original_volume
+        data:
+          value: '{{ states.media_player.dining_room_sonos.attributes.volume_level
+            | float(0.5) }}'
+        action: input_number.set_value
+      - target:
+          entity_id: input_number.move_sonos_original_volume
+        data:
+          value: '{{ states.media_player.move_sonos.attributes.volume_level | float(0.5)
+            }}'
+        action: input_number.set_value
+      - target:
+          entity_id: media_player.kitchen_sonos
+        data:
+          volume_level: '{{ (states.media_player.kitchen_sonos.attributes.volume_level
+            | float(0.5)) * 0.1 }}'
+        action: media_player.volume_set
+      - target:
+          entity_id: media_player.dining_room_sonos
+        data:
+          volume_level: '{{ (states.media_player.dining_room_sonos.attributes.volume_level
+            | float(0.5)) * 0.1 }}'
+        action: media_player.volume_set
+      - target:
+          entity_id: media_player.move_sonos
+        data:
+          volume_level: '{{ (states.media_player.move_sonos.attributes.volume_level
+            | float(0.5)) * 0.1 }}'
+        action: media_player.volume_set
+    - conditions:
+      - condition: trigger
+        id: voice_idle
+      sequence:
+      - target:
+          entity_id: media_player.kitchen_sonos
+        data:
+          volume_level: '{{ states.input_number.kitchen_sonos_original_volume.state
+            | float(0.5) }}'
+        action: media_player.volume_set
+      - target:
+          entity_id: media_player.dining_room_sonos
+        data:
+          volume_level: '{{ states.input_number.dining_room_sonos_original_volume.state
+            | float(0.5) }}'
+        action: media_player.volume_set
+      - target:
+          entity_id: media_player.move_sonos
+        data:
+          volume_level: '{{ states.input_number.move_sonos_original_volume.state |
+            float(0.5) }}'
+        action: media_player.volume_set
+  mode: restart
+  initial_state: false

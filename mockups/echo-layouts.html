@@ -1,0 +1,109 @@
+<div id="echo-layout-study">
+  <h3>A · Big tiles</h3>
+  <div class="echo-screen" id="echo-design-a" aria-label="Big tiles design"></div>
+  <h3>B · One thing at a time</h3>
+  <div class="echo-screen echo-focus" id="echo-design-b" aria-label="Focus design"></div>
+  <div class="text-small text-muted">Interactive concepts · Sample content · 8-inch landscape proportions</div>
+</div>
+<style>
+#echo-layout-study { display:grid; gap:12px; max-width:736px; margin-inline:auto; }
+#echo-layout-study h3 { margin:8px 0 0; }
+#echo-layout-study .echo-screen { --echo-bg:#121a1c; --echo-surface:#213034; --echo-text:#f6f4ec; --echo-muted:#bccac8; --echo-accent:#c4d9b1; container-type:inline-size; color:var(--echo-text); background:var(--echo-bg); border-radius:20px; padding:3%; font-family:Arial,sans-serif; min-width:0; box-sizing:border-box; position:relative; overflow:hidden; }
+#echo-layout-study .echo-screen * { box-sizing:border-box; }
+#echo-layout-study .echo-top { display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:clamp(16px,2.5cqw,24px); color:var(--echo-muted); margin-bottom:2.5cqw; }
+#echo-layout-study .echo-top button { min-height:44px; padding:6px 12px; font-size:inherit; }
+#echo-layout-study button { cursor:pointer; background:var(--echo-surface); color:var(--echo-text); border:0; border-radius:16px; font-family:inherit; font-weight:400; }
+#echo-layout-study button:hover { background:#314548; }
+#echo-layout-study .echo-welcome { display:flex; justify-content:space-between; align-items:center; margin-bottom:3cqw; }
+#echo-layout-study .echo-clock { font-size:clamp(44px,10cqw,94px); letter-spacing:-.06em; line-height:1; }
+#echo-layout-study .echo-weather { font-size:clamp(22px,3.8cqw,36px); text-align:right; }
+#echo-layout-study .echo-sub { display:block; font-size:clamp(16px,2.4cqw,23px); line-height:1.35; color:var(--echo-muted); margin-top:6px; }
+#echo-layout-study .echo-grid { display:grid; grid-template-columns:1fr 1fr; gap:2cqw; }
+#echo-layout-study .echo-tile { padding:2.6cqw; min-height:14cqw; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; text-align:left; }
+#echo-layout-study .echo-tile .echo-title { font-size:clamp(24px,4.1cqw,39px); }
+#echo-layout-study .echo-tile:first-child { background:var(--echo-accent); color:#1d3024; }
+#echo-layout-study .echo-tile:first-child .echo-sub { color:#354e3b; }
+#echo-layout-study .echo-links { display:flex; gap:2cqw; margin-top:2cqw; }
+#echo-layout-study .echo-links button { flex:1; min-height:56px; padding:12px; font-size:clamp(18px,2.8cqw,27px); }
+#echo-layout-study .echo-main { min-height:36cqw; display:flex; flex-direction:column; justify-content:center; }
+#echo-layout-study .echo-kicker { font-size:clamp(20px,3cqw,29px); color:var(--echo-accent); }
+#echo-layout-study .echo-digits { font-size:clamp(70px,19cqw,180px); line-height:1.05; font-weight:400; letter-spacing:-.055em; font-variant-numeric:tabular-nums; }
+#echo-layout-study .echo-detail-title { font-size:clamp(30px,5.4cqw,52px); margin:12px 0; line-height:1.15; }
+#echo-layout-study .echo-focus { --echo-bg:#132426; --echo-surface:#233c3e; --echo-accent:#d1e2bc; }
+#echo-layout-study .echo-focus .echo-main { text-align:center; min-height:38cqw; }
+#echo-layout-study .echo-focus .echo-links button[aria-pressed="true"] { background:var(--echo-accent); color:#1d3024; }
+#echo-layout-study .echo-voice { border-top:3px solid var(--echo-accent); display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:3cqw; min-height:54px; padding:12px 4px 0; font-size:clamp(18px,2.7cqw,26px); }
+#echo-layout-study .echo-voice button { font-size:inherit; padding:10px 18px; min-height:44px; }
+#echo-layout-study .echo-row { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 0; font-size:clamp(22px,3.6cqw,34px); border-bottom:1px solid #405655; }
+#echo-layout-study .echo-options { display:flex; flex-wrap:wrap; gap:12px; margin:14px 0; }
+#echo-layout-study .echo-options button { padding:16px 22px; font-size:clamp(20px,3cqw,29px); min-height:60px; }
+#echo-layout-study .echo-radio { display:flex; gap:4cqw; align-items:center; }
+#echo-layout-study .echo-art { flex:0 0 26cqw; aspect-ratio:1; display:grid; place-items:center; border-radius:20px; color:#efe7fd; background:linear-gradient(140deg,#724f8d,#322740); font-size:clamp(24px,5cqw,48px); letter-spacing:-.06em; }
+#echo-layout-study .echo-weather-days { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:20px; font-size:clamp(22px,3.8cqw,36px); }
+#echo-layout-study .echo-weather-days span { padding:16px; background:var(--echo-surface); border-radius:14px; }
+@media(max-width:460px) { #echo-layout-study .echo-screen { padding:18px; } #echo-layout-study .echo-grid { gap:10px; } #echo-layout-study .echo-tile { padding:16px 12px; min-height:115px; } #echo-layout-study .echo-main { min-height:260px; } #echo-layout-study .echo-top { flex-wrap:wrap; } #echo-layout-study .echo-links { flex-wrap:wrap; } #echo-layout-study .echo-links button { flex-basis:30%; } #echo-layout-study .echo-weather-days { gap:6px; } #echo-layout-study .echo-weather-days span { padding:10px; } #echo-layout-study .echo-voice { align-items:flex-start; } }
+
+@media(min-width:600px) {
+ #echo-layout-study .echo-screen { aspect-ratio:8/5; display:flex; flex-direction:column; gap:12px; padding:3%; }
+ #echo-layout-study .echo-top { margin:0; min-height:32px; font-size:2.5cqw; }
+ #echo-layout-study .echo-top button { min-height:32px; }
+ #echo-layout-study .echo-grid { flex:1; gap:12px; }
+ #echo-layout-study .echo-tile { min-height:0; padding:2cqw; }
+ #echo-layout-study .echo-tile .echo-title { font-size:4cqw; }
+ #echo-layout-study .echo-sub { font-size:2.4cqw; }
+ #echo-layout-study .echo-links { margin:0; gap:12px; }
+ #echo-layout-study .echo-links button { min-height:44px; padding:10px; font-size:2.8cqw; }
+ #echo-layout-study .echo-voice { margin:0; padding:8px 0 0; min-height:44px; font-size:2.7cqw; }
+ #echo-layout-study .echo-voice button { min-height:36px; padding:8px 14px; }
+ #echo-layout-study .echo-main, #echo-layout-study .echo-focus .echo-main { flex:1; min-height:0; }
+ #echo-layout-study .echo-digits { font-size:17cqw; }
+ #echo-layout-study .echo-detail-title { font-size:5cqw; }
+ #echo-layout-study .echo-options button { font-size:2.8cqw; min-height:44px; }
+}
+</style>
+<script>
+(() => {
+  const root=document.getElementById('echo-layout-study');
+  const devices=['Kitchen Echo','Bedroom Echo'];
+  function init(id,focus) {
+    const el=root.querySelector('#'+id);
+    const state={view:focus?'Timers':'Home',voice:'Ready',room:'Kitchen Echo',paused:false,playing:true,seconds:522};
+    const button=(label,action,cls='')=>`<button type="button" class="${cls}" data-action="${action}">${label}</button>`;
+    const tile=(name,sub)=>button(`<span class="echo-title">${name}</span><span class="echo-sub">${sub}</span>`,name,'echo-tile');
+    function render() {
+      let main='';
+      if(state.view==='Home') main=`<div class="echo-grid">${tile('Timers','Pasta · 08:42')}${tile('Music','Absolute Radio')}${tile('Weather','Your next few days')}${tile('HomeGuide','Appliances & manuals')}</div><div class="echo-links">${button('Conversions','Conversions')}${button('Home controls','Controls')}</div>`;
+      if(state.view==='Timers') main=`<div class="echo-main"><div class="echo-kicker">Pasta · ${state.paused?'Paused':state.room.replace(' Echo','')+' timer'}</div><div class="echo-digits">${String(Math.floor(state.seconds/60)).padStart(2,'0')}:${String(state.seconds%60).padStart(2,'0')}</div><div class="echo-sub">Of 12 minutes</div></div><div class="echo-links">${button(state.paused?'Resume':'Pause','pause')}${button('+1 minute','minute')}${button('Done','Home')}</div>`;
+      if(state.view==='Music') main=`<div class="echo-main"><div class="echo-radio"><div class="echo-art">absolute</div><div><div class="echo-kicker">${state.room} speaker</div><div class="echo-detail-title">Absolute Radio</div><div class="echo-sub">${state.playing?'Now playing':'Paused'}</div></div></div></div><div class="echo-links">${button(state.playing?'Pause':'Play','play')}${button('Choose music','stations')}</div>`;
+      if(state.view==='Weather') main=`<div class="echo-main"><div class="echo-kicker">This evening</div><div class="echo-digits">18°</div><div class="echo-sub">Cloudy · Feels like 17°</div><div class="echo-weather-days"><span>Fri<span class="echo-sub">19° / 12°</span></span><span>Sat<span class="echo-sub">17° / 11°</span></span><span>Sun<span class="echo-sub">18° / 12°</span></span></div></div>`;
+      if(state.view==='HomeGuide') main=`<div class="echo-main"><div class="echo-kicker">HomeGuide</div><div class="echo-detail-title">Know your appliances.</div><div class="echo-sub">“How do I defrost food in my microwave?”</div><div class="echo-options">${button('Microwave','appliance')}${button('Air fryer','appliance')}${button('Coffee machine','appliance')}</div></div>`;
+      if(state.view==='Conversions') main=`<div class="echo-main"><div class="echo-kicker">Temperature conversion</div><div class="echo-detail-title">350°F equals</div><div class="echo-digits">176.7°C</div><div class="echo-sub">“What is 350 Fahrenheit in Celsius?”</div></div>`;
+      if(state.view==='Controls') main=`<div class="echo-main"><div class="echo-kicker">${state.room.replace(' Echo','')}</div><div class="echo-detail-title">Home controls</div><div class="echo-options">${button('Lights · Off','lights')}${button('Good night','scene')}</div><div class="echo-sub">“Turn off the kitchen lights.”</div></div>`;
+      if(state.view==='stations') main=`<div class="echo-main"><div class="echo-kicker">Choose music</div><div class="echo-options">${button('Absolute Radio','Music')}${button('BBC Radio 2','Music')}${button('Favourites','Music')}</div></div>`;
+      const nav=focus?`<div class="echo-links">${['Timers','Music','Home'].map(n=>`<button type="button" data-action="${n}" aria-pressed="${state.view===n}">${n==='Home'?'All tasks':n}</button>`).join('')}</div>`:'';
+      const voice=state.voice==='Listening'?'Listening…':state.voice==='Answering'?'Your pasta timer has 8 minutes left.':'Ready when you are';
+      el.innerHTML=`<div class="echo-top"><span>${state.room}</span>${state.view!=='Home'?button('‹ Home','Home'):'<span>18:42 · 18°</span>'}</div>${main}${nav}<div class="echo-voice" aria-live="polite"><span>${voice}</span>${button(state.voice==='Ready'?'Try voice':'Close','voice')}</div>`;
+    }
+    el.addEventListener('click',e=>{
+      const b=e.target.closest('[data-action]');if(!b)return;
+      const a=b.dataset.action;
+      if(a==='pause')state.paused=!state.paused;
+      else if(a==='play')state.playing=!state.playing;
+      else if(a==='voice')state.voice=state.voice==='Ready'?'Listening':'Ready';
+      else if(a==='minute'){state.seconds+=60;state.voice='Answering';render();el.querySelector('.echo-voice span').textContent='One minute added to your pasta timer.';return;}
+      else if(a==='appliance'){state.voice='Listening';}
+      else if(a==='lights'){b.textContent=b.textContent.includes('Off')?'Lights · On':'Lights · Off';return;}
+      else if(a==='scene'){state.voice='Answering';render();el.querySelector('.echo-voice span').textContent='Good night scene selected.';return;}
+      else {state.view=a;state.voice='Ready';}
+      render();
+    });
+    render();
+    if(globalThis.Tweak) {
+      const t=new Tweak({container:el,onChange:render});
+      t.addSelect(state,'voice',{label:'Voice state',options:['Ready','Listening','Answering']});
+      t.addSelect(state,'room',{label:'Echo',options:devices});
+    }
+  }
+  init('echo-design-a',false);init('echo-design-b',true);
+})();
+</script>

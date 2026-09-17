@@ -1,0 +1,17 @@
+const fs=require('node:fs');const vm=require('node:vm');const assert=require('node:assert/strict');
+const sandbox={HTMLElement:class{attachShadow(){this.shadowRoot={querySelectorAll:()=>[],activeElement:null};}},customElements:{get:()=>false,define(){}},window:{},console,Date,Math,String,Number,Set,Map,CSS:{escape:x=>x},setInterval,clearInterval};
+vm.createContext(sandbox);vm.runInContext(fs.readFileSync(process.argv[2],'utf8')+'\nthis.Card=EchoExperienceCard;this.escapeText=esc;',sandbox);
+let a=new sandbox.Card();a.config={device:'kitchen'};a.data={timers:[]};a.render=()=>{};a.refresh=()=>{};
+a.receive({device:'bedroom',result:{view:'guide',payload:{speech:'Private bedroom reply'}}});assert.equal(a.view,'home');assert.equal(a.result,undefined);
+a.receive({device:'kitchen',result:{view:'answer',payload:{equation:'1 kg = 1000 g'}}});assert.equal(a.view,'answer');
+assert.equal(a.remaining({is_active:false,seconds_left:417,sampled_at:0}),417);
+assert.equal(sandbox.escapeText('<img src=x onerror=alert(1)>'),'&lt;img src=x onerror=alert(1)&gt;');
+a.receive({device:'kitchen',timers:[{id:'one'}]});assert.equal(a.data.timers.length,1);
+let playback=new sandbox.Card();playback.config={device:'kitchen'};playback.data={profile:{music_player:'media_player.kitchen'},timers:[]};playback._hass={states:{'media_player.kitchen':{state:'idle'},'media_player.bedroom':{state:'playing'}}};
+playback.syncPlayback();assert.equal(playback.view,'home','Other rooms must not open music');
+playback._hass.states['media_player.kitchen'].state='playing';playback.syncPlayback();assert.equal(playback.view,'music');
+playback._hass.states['media_player.kitchen'].state='paused';playback.syncPlayback();assert.equal(playback.view,'music','Pause retains artwork');
+playback._hass.states['media_player.kitchen'].state='idle';playback.syncPlayback();assert.equal(playback.view,'home');
+playback.view='guide';playback._hass.states['media_player.kitchen'].state='playing';playback.syncPlayback();assert.equal(playback.view,'guide','Playback must not cover a guide');
+let ambient=new sandbox.Card();ambient.config={device:'kitchen',ambient:true};ambient.data=playback.data;ambient._hass=playback._hass;ambient.render=()=>{};ambient.syncPlayback();ambient.receive({device:'kitchen',result:{view:'music'}});assert.equal(ambient.view,'home','Screensaver stays on the clock');
+console.log('11 frontend behaviour assertions passed');

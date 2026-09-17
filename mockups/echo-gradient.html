@@ -1,0 +1,158 @@
+<div id="echo-quiet-study">
+  <div class="viz-controls">
+    <label class="form-label">Preview state
+      <select class="form-select" id="eq-preview-state">
+        <option value="idle">Everyday view</option>
+        <option value="listening">Listening</option>
+        <option value="timer">Timer running</option>
+        <option value="music">Music playing</option>
+        <option value="radio">Radio playing</option>
+        <option value="weather">Weather forecast</option><option value="ambient">Dim screensaver</option>
+      </select>
+    </label>
+    <span class="text-small text-muted">Concept · Sample artwork and track details</span>
+  </div>
+  <section id="eq-screen" aria-label="Minimal clock and weather dashboard">
+    <div class="eq-landscape" aria-hidden="true"></div>
+    <button type="button" id="eq-weather-button" aria-label="Open weather forecast"><span aria-hidden="true">☁</span></button>
+    <div class="eq-clock-block">
+      <div class="eq-date"><span aria-label="Cloudy, 16 degrees">☁ 16°</span><span style="opacity:.55; margin:0 12px">|</span>THU 17 SEP</div>
+      <time class="eq-clock">17:42</time>
+    </div>
+    <div id="eq-forecast-panel" hidden>
+      <div class="eq-forecast-heading"><span>Weather</span><button type="button" id="eq-close-weather">Close</button></div>
+      <div class="eq-current-weather">16° <span>Cloudy</span></div>
+      <div class="eq-forecast-rows"><div><span>Tonight</span><span>Light rain</span><span>12°</span></div><div><span>Tomorrow</span><span>Mostly cloudy</span><span>19° / 12°</span></div><div><span>Saturday</span><span>Sunny spells</span><span>17° / 11°</span></div></div>
+      <div class="eq-weather-source">Met Office · Sample forecast</div>
+    </div>
+    <div id="eq-now-playing" hidden>
+      <div class="eq-music-header"><span id="eq-music-source">Now playing</span><time>17:42</time></div>
+      <div class="eq-music-layout">
+        <div class="eq-art" id="eq-art" role="img" aria-label="Illustrative album artwork">
+          <div class="eq-art-orb"></div><div class="eq-art-caption"><span id="eq-art-name">NORTHERN<br>LIGHTS</span><span id="eq-art-kind">AFTER HOURS</span></div>
+        </div>
+        <div class="eq-track"><div class="eq-song" id="eq-song">A little closer</div><div class="eq-artist" id="eq-artist">Northern Lights</div><div class="eq-album" id="eq-album">After Hours</div></div>
+      </div>
+    </div>
+    <div class="eq-activity" id="eq-activity" aria-live="polite" hidden></div>
+    <button type="button" id="eq-menu-button" aria-label="Open touch controls" aria-expanded="false">•••</button>
+    <div id="eq-menu" hidden>
+      <div class="eq-menu-heading"><span>Touch controls</span><button type="button" id="eq-close">Close</button></div>
+      <div class="eq-menu-options"><button type="button" data-activity="timer">Timers</button><button type="button" data-activity="music">Music</button><button type="button" data-activity="listening">Ask a question</button></div>
+    </div>
+  </section>
+</div>
+<style>
+#echo-quiet-study { max-width:960px; margin-inline:auto; display:grid; gap:16px; }
+#eq-screen { --eq-bg:#121a1c; --eq-text:#f4f2e9; --eq-soft:#b1bfbb; --eq-accent:#c5d7f0; container-type:inline-size; background:var(--eq-bg); color:var(--eq-text); font-family:Inter,Arial,sans-serif; border-radius:20px; aspect-ratio:8/5; position:relative; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:32px; box-sizing:border-box; }
+#eq-screen * { box-sizing:border-box; }
+#eq-screen { isolation:isolate; overflow:hidden; color:#fff; }
+#eq-screen .eq-landscape { position:absolute; inset:0; z-index:-1; background:linear-gradient(135deg,#263b48 0%,#253642 38%,#303345 72%,#403749 100%); }
+#eq-screen .eq-clock-block { text-align:left; position:absolute; left:5%; bottom:6%; text-shadow:0 2px 22px #07101c66; }
+#eq-screen .eq-clock { display:block; font-size:23cqw; font-weight:400; letter-spacing:-.055em; line-height:1; font-variant-numeric:tabular-nums; }
+#eq-screen .eq-date { color:#fff; font-size:3.1cqw; margin-bottom:1.8cqw; letter-spacing:.02em; }
+#eq-screen #eq-weather-button { position:absolute; top:5%; right:5%; display:flex; align-items:center; gap:10px; padding:12px 18px; background:#ffffff12; color:#fff; border-radius:30px; font-size:3cqw; }
+#eq-screen #eq-weather-button svg { width:26px; height:26px; }
+#eq-screen[data-music="true"] .eq-landscape, #eq-screen[data-music="true"] #eq-weather-button { display:none; }
+#eq-screen #eq-forecast-panel { position:absolute; z-index:2; inset:5%; padding:4%; background:#263443; border-radius:18px; display:flex; flex-direction:column; justify-content:space-between; color:var(--eq-text); }
+#eq-screen #eq-forecast-panel[hidden] { display:none; }
+#eq-screen .eq-forecast-heading { display:flex; align-items:center; justify-content:space-between; font-size:3.5cqw; }
+#eq-screen .eq-current-weather { font-size:10cqw; color:var(--eq-accent); }
+#eq-screen .eq-current-weather span { font-size:4cqw; color:var(--eq-text); }
+#eq-screen .eq-forecast-rows { display:grid; gap:2cqw; font-size:3cqw; }
+#eq-screen .eq-forecast-rows>div { display:grid; grid-template-columns:1fr 1.3fr 1fr; gap:10px; }
+#eq-screen .eq-forecast-rows>div>span:last-child { text-align:right; }
+#eq-screen .eq-weather-source { font-size:2cqw; color:var(--eq-soft); margin-top:2cqw; }
+#eq-screen .eq-weather { color:var(--eq-accent); font-size:4.4cqw; margin-top:6cqw; }
+#eq-screen .eq-weather span { color:var(--eq-soft); }
+#eq-screen #eq-now-playing[hidden] { display:none; }
+#eq-screen #eq-now-playing { width:100%; }
+#eq-screen[data-music="true"] .eq-clock-block, #eq-screen[data-music="true"] .eq-weather { display:none; }
+#eq-screen .eq-music-header { display:flex; justify-content:space-between; align-items:center; color:var(--eq-soft); font-size:3cqw; margin-bottom:4cqw; }
+#eq-screen .eq-music-header time { color:var(--eq-text); font-size:4cqw; }
+#eq-screen .eq-music-layout { display:grid; grid-template-columns:1fr 1fr; gap:5cqw; align-items:center; }
+#eq-screen .eq-art { aspect-ratio:1; overflow:hidden; position:relative; border-radius:8px; background:linear-gradient(150deg,#314b56,#152833 55%,#b96e48); color:#f8e9ce; isolation:isolate; }
+#eq-screen .eq-art-orb { position:absolute; width:70%; aspect-ratio:1; border-radius:50%; left:15%; top:12%; background:linear-gradient(150deg,#f0ce94,#d47851 65%,#5c4751); box-shadow:0 12px 60px #e3a76a40; z-index:-1; }
+#eq-screen .eq-art-caption { position:absolute; inset:7%; display:flex; flex-direction:column; justify-content:space-between; font-size:4.5cqw; line-height:1; letter-spacing:-.035em; }
+#eq-screen #eq-art-kind { font-size:1.8cqw; letter-spacing:.18em; }
+#eq-screen[data-radio="true"] .eq-art { background:linear-gradient(145deg,#7946a0,#341c4d); }
+#eq-screen[data-radio="true"] .eq-art-orb { display:none; }
+#eq-screen[data-radio="true"] .eq-art-caption { justify-content:center; gap:2cqw; }
+#eq-screen[data-radio="true"] #eq-art-name { font-size:6cqw; }
+#eq-screen .eq-song { font-size:5.8cqw; line-height:1.13; letter-spacing:-.025em; overflow-wrap:anywhere; }
+#eq-screen .eq-artist { color:var(--eq-accent); font-size:3.8cqw; line-height:1.25; margin-top:2cqw; }
+#eq-screen .eq-album { color:var(--eq-soft); font-size:2.8cqw; line-height:1.3; margin-top:1.2cqw; }
+#eq-screen .eq-activity { position:absolute; top:5%; left:5%; max-width:62%; text-align:left; color:#fff; background:#172332aa; border-radius:24px; padding:12px 18px; font-size:2.8cqw; line-height:1.3; }
+#eq-screen .eq-activity[hidden], #eq-screen #eq-menu[hidden] { display:none; }
+#eq-screen button { font-family:inherit; font-size:20px; color:var(--eq-soft); background:transparent; border:0; border-radius:12px; min-width:44px; min-height:44px; padding:10px 14px; cursor:pointer; }
+#eq-screen button:hover { background:#263638; color:var(--eq-text); }
+#eq-screen #eq-menu-button { position:absolute; right:2%; bottom:2%; font-size:16px; }
+#eq-screen #eq-menu { position:absolute; bottom:3%; left:4%; right:4%; background:#233335; border:1px solid #4b605b; border-radius:16px; padding:20px; box-shadow:0 15px 50px #0009; }
+#eq-screen .eq-menu-heading { display:flex; justify-content:space-between; align-items:center; font-size:24px; margin-bottom:12px; }
+#eq-screen .eq-menu-options { display:flex; flex-wrap:wrap; gap:12px; }
+#eq-screen .eq-menu-options button { flex:1; background:#304749; color:var(--eq-text); min-height:60px; }
+@media(max-width:599px) {
+ #eq-screen { aspect-ratio:auto; min-height:350px; padding:24px; }
+ #eq-screen .eq-clock { font-size:29cqw; }
+ #eq-screen .eq-date { font-size:19px; margin-bottom:12px; }
+ #eq-screen .eq-weather { font-size:28px; margin-top:36px; }
+ #eq-screen .eq-activity { font-size:16px; padding:10px; top:85px; left:5%; max-width:90%; }
+ #eq-screen #eq-weather-button { font-size:22px; }
+ #eq-screen #eq-forecast-panel { gap:20px; position:relative; inset:auto; width:100%; padding:18px; }
+ #eq-screen .eq-forecast-heading { font-size:24px; }
+ #eq-screen .eq-current-weather { font-size:54px; }
+ #eq-screen .eq-current-weather span { font-size:25px; }
+ #eq-screen .eq-forecast-rows { font-size:17px; gap:20px; }
+ #eq-screen .eq-forecast-rows>div { grid-template-columns:1fr 1fr; }
+ #eq-screen .eq-forecast-rows>div>span:nth-child(2) { grid-column:1/-1; grid-row:2; color:var(--eq-soft); }
+ #eq-screen .eq-weather-source { font-size:14px; }
+ #eq-screen .eq-menu-options button { font-size:18px; }
+ #eq-screen[data-music="true"] { padding-bottom:60px; }
+ #eq-screen .eq-music-header { font-size:19px; margin-bottom:24px; }
+ #eq-screen .eq-music-header time { font-size:24px; }
+ #eq-screen .eq-music-layout { grid-template-columns:1fr; gap:24px; }
+ #eq-screen .eq-art { max-width:340px; width:100%; margin:auto; }
+ #eq-screen .eq-art-caption { font-size:32px; }
+ #eq-screen #eq-art-kind { font-size:14px; }
+ #eq-screen[data-radio="true"] #eq-art-name { font-size:44px; }
+ #eq-screen .eq-song { font-size:34px; }
+ #eq-screen .eq-artist { font-size:26px; }
+ #eq-screen .eq-album { font-size:20px; }
+}
+</style>
+<script>
+(() => {
+ const root=document.getElementById('echo-quiet-study');
+ const screen=root.querySelector('#eq-screen');
+ const select=root.querySelector('#eq-preview-state');
+ const activity=root.querySelector('#eq-activity');
+ const menu=root.querySelector('#eq-menu');
+ const menuButton=root.querySelector('#eq-menu-button');
+ const state={activity:'idle',showDate:true};
+ const messages={idle:'',listening:'Listening…',timer:'Pasta · 08:42 remaining',music:'',radio:'',weather:'',ambient:''};
+ function render(){
+  screen.style.filter=state.activity==='ambient'?'brightness(.64)':'';menuButton.hidden=state.activity==='ambient';
+  const music=['music','radio'].includes(state.activity),radio=state.activity==='radio';
+  root.querySelector('#eq-forecast-panel').hidden=state.activity!=='weather';
+  activity.textContent=messages[state.activity];activity.hidden=!messages[state.activity];select.value=state.activity;root.querySelector('.eq-date').hidden=!state.showDate;
+  screen.dataset.music=String(music);screen.dataset.radio=String(radio);root.querySelector('#eq-now-playing').hidden=!music;
+  root.querySelector('#eq-music-source').textContent=radio?'Absolute Radio':'Now playing';
+  root.querySelector('#eq-song').textContent=radio?'Dreams':'A little closer';
+  root.querySelector('#eq-artist').textContent=radio?'Fleetwood Mac':'Northern Lights';
+  root.querySelector('#eq-album').textContent=radio?'Live radio':'After Hours';
+  root.querySelector('#eq-art-name').textContent=radio?'absolute radio':'NORTHERN LIGHTS';
+  root.querySelector('#eq-art-kind').textContent=radio?'STATION ARTWORK':'AFTER HOURS';
+  root.querySelector('#eq-art').setAttribute('aria-label',radio?'Illustrative Absolute Radio station artwork':'Illustrative Northern Lights album artwork');
+ }
+ function close(){menu.hidden=true;menuButton.setAttribute('aria-expanded','false');}
+ select.addEventListener('change',()=>{state.activity=select.value;close();render();});
+ menuButton.addEventListener('click',()=>{menu.hidden=!menu.hidden;menuButton.setAttribute('aria-expanded',String(!menu.hidden));});
+ root.querySelector('#eq-close').addEventListener('click',close);
+ root.querySelector('#eq-weather-button').addEventListener('click',()=>{state.activity='weather';close();render();});
+ root.querySelector('#eq-close-weather').addEventListener('click',()=>{state.activity='idle';render();});
+ menu.addEventListener('click',e=>{const b=e.target.closest('[data-activity]');if(!b)return;state.activity=b.dataset.activity;close();render();});
+ root.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
+ render();
+ if(globalThis.Tweak){const t=new Tweak({container:screen,onChange:render});t.addToggle(state,'showDate',{label:'Show date'});}
+})();
+</script>

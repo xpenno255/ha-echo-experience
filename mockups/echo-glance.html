@@ -1,0 +1,110 @@
+<div id="echo-glance-study">
+  <div class="viz-controls" aria-label="Preview controls">
+    <label class="form-label">Preview state
+      <select class="form-select" id="echo-glance-state">
+        <option value="idle">Everyday view</option>
+        <option value="listening">Listening</option>
+        <option value="timer">Timer running</option>
+        <option value="music">Music playing</option>
+        <option value="answer">Spoken answer</option>
+      </select>
+    </label>
+    <span class="text-small text-muted">Concept · Sample weather and activity</span>
+  </div>
+  <section id="echo-glance-screen" aria-label="Clock and weather dashboard concept">
+    <header class="eg-header"><span id="eg-room">Kitchen</span><span>Thursday, 17 September</span></header>
+    <div class="eg-hero">
+      <div class="eg-clock"><time>17:42</time><span class="eg-dayline">Sunset 19:18</span></div>
+      <div class="eg-weather"><div class="eg-temp">16<span>°</span></div><div class="eg-condition"><i data-lucide="cloud" aria-hidden="true"></i>Cloudy</div><div class="eg-feels">Feels like 15° · High 18°</div></div>
+    </div>
+    <div class="eg-outlook">Light rain this evening, easing overnight.</div>
+    <div class="eg-forecast" aria-label="Weather forecast">
+      <div><span class="eg-period">Tonight</span><span class="eg-forecast-value">12° <i data-lucide="cloud-drizzle" aria-hidden="true"></i></span><span class="eg-forecast-note">Rain · 60%</span></div>
+      <div><span class="eg-period">Tomorrow</span><span class="eg-forecast-value">19° <span class="eg-low">/ 12°</span></span><span class="eg-forecast-note">Mostly cloudy</span></div>
+      <div><span class="eg-period">Saturday</span><span class="eg-forecast-value">17° <span class="eg-low">/ 11°</span></span><span class="eg-forecast-note">Sunny spells</span></div>
+    </div>
+    <footer class="eg-footer"><div id="eg-status" aria-live="polite">Met Office · Updated 5 minutes ago</div><button type="button" id="eg-menu-button" aria-label="Open touch controls" aria-expanded="false">•••</button></footer>
+    <div class="eg-menu" id="eg-touch-menu" hidden>
+      <div class="eg-menu-heading"><span>Touch controls</span><button type="button" id="eg-close-menu" aria-label="Close touch controls">Close</button></div>
+      <div class="eg-menu-options"><button type="button" data-demo="timer">Timers</button><button type="button" data-demo="music">Music</button><button type="button" data-demo="answer">HomeGuide</button><button type="button" data-demo="convert">Conversions</button></div>
+    </div>
+  </section>
+</div>
+<style>
+#echo-glance-study { max-width:960px; margin-inline:auto; display:grid; gap:16px; }
+#echo-glance-screen { --eg-bg:#121a1c; --eg-text:#f4f2e9; --eg-muted:#b1bfbb; --eg-accent:#c4d9b1; --eg-rule:#334340; container-type:inline-size; background:var(--eg-bg); color:var(--eg-text); font-family:Inter,Arial,sans-serif; border-radius:20px; padding:3.6%; aspect-ratio:8/5; display:flex; flex-direction:column; gap:2cqw; box-sizing:border-box; position:relative; }
+#echo-glance-screen * { box-sizing:border-box; }
+#echo-glance-screen .eg-header { display:flex; justify-content:space-between; gap:16px; color:var(--eg-muted); font-size:2.65cqw; line-height:1.3; }
+#echo-glance-screen .eg-header span:first-child { color:var(--eg-accent); }
+#echo-glance-screen .eg-hero { display:grid; grid-template-columns:1.5fr 1fr; align-items:center; flex:1; gap:3cqw; }
+#echo-glance-screen .eg-clock { display:flex; flex-direction:column; }
+#echo-glance-screen time { font-size:22cqw; font-weight:400; letter-spacing:-.065em; line-height:1.05; font-variant-numeric:tabular-nums; }
+#echo-glance-screen .eg-dayline { color:var(--eg-muted); font-size:2.8cqw; margin-top:1cqw; }
+#echo-glance-screen .eg-weather { text-align:right; }
+#echo-glance-screen .eg-temp { font-size:13.5cqw; line-height:1; color:var(--eg-accent); letter-spacing:-.06em; }
+#echo-glance-screen .eg-temp>span { font-weight:400; }
+#echo-glance-screen .eg-condition { display:flex; align-items:center; justify-content:flex-end; gap:10px; font-size:3.8cqw; margin-top:1cqw; }
+#echo-glance-screen .eg-condition svg { width:3.8cqw; height:3.8cqw; }
+#echo-glance-screen .eg-feels { color:var(--eg-muted); font-size:2.4cqw; margin-top:1cqw; }
+#echo-glance-screen .eg-outlook { font-size:3cqw; color:var(--eg-text); line-height:1.3; padding-bottom:2.5cqw; border-bottom:1px solid var(--eg-rule); }
+#echo-glance-screen .eg-forecast { display:grid; grid-template-columns:repeat(3,1fr); gap:3cqw; }
+#echo-glance-screen .eg-forecast[hidden] { display:none; }
+#echo-glance-screen .eg-forecast>div { display:flex; flex-direction:column; gap:.7cqw; }
+#echo-glance-screen .eg-period { font-size:2.65cqw; color:var(--eg-muted); }
+#echo-glance-screen .eg-forecast-value { font-size:4.2cqw; display:flex; gap:8px; align-items:center; }
+#echo-glance-screen .eg-forecast-value svg { height:3.2cqw; width:3.2cqw; color:var(--eg-muted); }
+#echo-glance-screen .eg-low { font-size:3cqw; color:var(--eg-muted); }
+#echo-glance-screen .eg-forecast-note { font-size:2.4cqw; color:var(--eg-muted); }
+#echo-glance-screen .eg-footer { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:36px; margin-top:.5cqw; }
+#echo-glance-screen #eg-status { font-size:2cqw; color:var(--eg-muted); line-height:1.3; }
+#echo-glance-screen button { cursor:pointer; font-family:inherit; color:var(--eg-text); background:transparent; border:0; border-radius:12px; font-size:20px; min-width:44px; min-height:44px; padding:8px 12px; }
+#echo-glance-screen button:hover { background:#263638; }
+#echo-glance-screen[data-state="listening"] .eg-footer { border-top:3px solid var(--eg-accent); }
+#echo-glance-screen:not([data-state="idle"]) #eg-status { color:var(--eg-accent); font-size:2.8cqw; }
+#echo-glance-screen .eg-menu { position:absolute; inset:auto 3.6% 3.6%; background:#233335; border:1px solid #4b605b; border-radius:16px; padding:20px; box-shadow:0 15px 50px #0009; }
+#echo-glance-screen .eg-menu[hidden] { display:none; }
+#echo-glance-screen .eg-menu-heading { display:flex; align-items:center; justify-content:space-between; font-size:24px; margin-bottom:16px; }
+#echo-glance-screen .eg-menu-options { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+#echo-glance-screen .eg-menu-options button { background:#304749; text-align:left; min-height:60px; }
+@media(max-width:599px) {
+ #echo-glance-screen { aspect-ratio:auto; padding:24px; gap:24px; }
+ #echo-glance-screen .eg-header { font-size:16px; flex-wrap:wrap; }
+ #echo-glance-screen .eg-hero { grid-template-columns:1fr; gap:24px; }
+ #echo-glance-screen time { font-size:26cqw; }
+ #echo-glance-screen .eg-dayline { font-size:18px; }
+ #echo-glance-screen .eg-weather { text-align:left; }
+ #echo-glance-screen .eg-temp { font-size:64px; }
+ #echo-glance-screen .eg-condition { font-size:26px; justify-content:flex-start; }
+ #echo-glance-screen .eg-condition svg { width:26px; height:26px; }
+ #echo-glance-screen .eg-feels,#echo-glance-screen .eg-period { font-size:16px; }
+ #echo-glance-screen .eg-outlook { font-size:21px; padding-bottom:20px; }
+ #echo-glance-screen .eg-forecast { gap:12px; }
+ #echo-glance-screen .eg-forecast-value { font-size:27px; flex-wrap:wrap; gap:3px; }
+ #echo-glance-screen .eg-low { font-size:18px; }
+ #echo-glance-screen .eg-forecast-note { font-size:15px; }
+ #echo-glance-screen .eg-forecast-value svg { width:22px; height:22px; }
+ #echo-glance-screen #eg-status { font-size:14px; }
+ #echo-glance-screen:not([data-state="idle"]) #eg-status { font-size:19px; }
+}
+</style>
+<script>
+(() => {
+ const root=document.getElementById('echo-glance-study');
+ const screen=root.querySelector('#echo-glance-screen');
+ const select=root.querySelector('#echo-glance-state');
+ const status=root.querySelector('#eg-status');
+ const menu=root.querySelector('#eg-touch-menu');
+ const menuButton=root.querySelector('#eg-menu-button');
+ const state={activity:'idle',room:'Kitchen',forecast:true};
+ const messages={idle:'Met Office · Updated 5 minutes ago',listening:'Listening…',timer:'Pasta timer · 08:42 remaining',music:'Playing Absolute Radio · Kitchen speaker',answer:'HomeGuide · Your appliance answer appears here.',convert:'350°F = 176.7°C'};
+ function render(){screen.dataset.state=state.activity;status.textContent=messages[state.activity];root.querySelector('#eg-room').textContent=state.room;root.querySelector('.eg-forecast').hidden=!state.forecast;select.value=state.activity==='convert'?'answer':state.activity;}
+ function closeMenu(){menu.hidden=true;menuButton.setAttribute('aria-expanded','false');}
+ select.addEventListener('change',()=>{state.activity=select.value;closeMenu();render();});
+ menuButton.addEventListener('click',()=>{menu.hidden=!menu.hidden;menuButton.setAttribute('aria-expanded',String(!menu.hidden));});
+ root.querySelector('#eg-close-menu').addEventListener('click',closeMenu);
+ menu.addEventListener('click',e=>{const b=e.target.closest('[data-demo]');if(!b)return;state.activity=b.dataset.demo;closeMenu();render();});
+ root.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();});
+ render();
+ if(globalThis.Tweak){const t=new Tweak({container:screen,onChange:render});t.addSelect(state,'room',{label:'Room',options:['Kitchen','Bedroom','Living room']});t.addToggle(state,'forecast',{label:'Three-day forecast'});}
+})();
+</script>
