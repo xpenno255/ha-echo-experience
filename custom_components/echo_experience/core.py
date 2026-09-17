@@ -57,12 +57,17 @@ ALIASES={'grams':'g','gram':'g','kilograms':'kg','kilogram':'kg','milligrams':'m
  'millilitres':'ml','milliliters':'ml','millilitre':'ml','milliliter':'ml','litres':'l','liters':'l','litre':'l','liter':'l',
  'celsius':'c','centigrade':'c','fahrenheit':'f','kelvin':'k','°c':'c','°f':'f',
  'millimetres':'mm','centimetres':'cm','metres':'m','meters':'m','kilometres':'km','kilometers':'km','inches':'in','inch':'in','feet':'ft','foot':'ft','yards':'yd','miles':'mi',
- 'imperial pint':'uk pint','imperial pints':'uk pint','uk pints':'uk pint','us pints':'us pint','us cups':'us cup','metric cups':'metric cup'}
+ 'imperial pint':'uk pint','imperial pints':'uk pint','uk pints':'uk pint','us pints':'us pint','us cups':'us cup','metric cups':'metric cup',
+ 'millimetre':'mm','millimeter':'mm','millimeters':'mm','centimetre':'cm','centimeter':'cm','centimeters':'cm',
+ 'metre':'m','meter':'m','kilometre':'km','kilometer':'km','kilometers':'km','yard':'yd','mile':'mi'}
 
 def convert(value, from_unit, to_unit):
-    a=ALIASES.get(from_unit.strip().lower(),from_unit.strip().lower())
-    b=ALIASES.get(to_unit.strip().lower(),to_unit.strip().lower())
-    if a not in UNITS or b not in UNITS:raise ValueError('Specify supported units; cups, pints and fluid ounces need a UK, US or metric standard.')
+    normalize=lambda unit:' '.join(unit.strip().lower().replace('_',' ').split())
+    a=ALIASES.get(normalize(from_unit),normalize(from_unit))
+    b=ALIASES.get(normalize(to_unit),normalize(to_unit))
+    if a not in UNITS or b not in UNITS:
+        missing=', '.join(u for u in (from_unit,to_unit) if ALIASES.get(normalize(u),normalize(u)) not in UNITS)
+        raise ValueError(f'Unsupported or ambiguous unit: {missing}. Supported categories are length/distance, mass, volume and temperature. Cups, pints and fluid ounces need a UK, US or metric standard.')
     if UNITS[a][0]!=UNITS[b][0]:raise ValueError('These units measure different quantities. Volume to mass needs the ingredient and its density.')
     try: v=Decimal(str(value))
     except InvalidOperation as e:raise ValueError('A finite number is required') from e

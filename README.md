@@ -21,11 +21,13 @@ For local deployment, copy `.env.example` to `.env` and fill in the Home Assista
 - “What is 350 Fahrenheit in Celsius?” / “Convert 250 grams to ounces.”
 - Existing home commands such as “Turn on the kitchen lights.”
 
-The home screen uses the approved muted gradient, with a large clock and current weather beside the date. The cloud button opens the blue/slate weather view. The overflow menu holds touch shortcuts for Home, Timers, Music, Weather, HomeGuide, Controls and Conversions. The answer view includes a manual converter. HomeGuide has a **Keep open** pin using Kiosk Hold mode; **Done** releases a pin set by that page. A pin intentionally enabled by the user survives normal idle time; if the page reloads while pinned, use **Pinned** to release it. A guide remains in its view until navigation, even when the screensaver covers the display.
+The home screen uses the approved muted gradient, with a large clock and current weather beside the date. The cloud button opens the blue/slate weather view. The overflow menu holds touch shortcuts for Home, Timers, Music, Weather, HomeGuide, Controls and Conversions. The answer view is voice-first, with larger question/answer text and conversion results; no manual conversion form is shown. HomeGuide has a **Keep open** pin using Kiosk Hold mode; **Done** releases a pin set by that page. A pin intentionally enabled by the user survives normal idle time; if the page reloads while pinned, use **Pinned** to release it. A guide remains in its view until navigation, even when the screensaver covers the display.
 
 Playback on the profile's selected speaker switches an idle home screen to large artwork and available song/artist/album or station metadata. Pause retains the artwork, stop/idle returns an automatically opened player to home, and unrelated room playback cannot take over this Echo. Playback controls and speaker selection are behind the overflow menu. Guide/timer/weather views take precedence over an automatic music transition. `screensaver.md` documents the matching dim ambient view and Kiosk setup.
 
 The Kitchen Echo routes music exclusively to Kitchen Sonos Group (`media_player.kitchen_sonos_group_ma`). The Echo itself remains the speech and timer-alarm output and displays Sonos artwork and playback metadata. The group contains the two Play:5s bonded as Kitchen Sonos, Dining Room Sonos (Play:1), and Move Sonos (Move 2). Other Echo profiles can have their own configured music targets; a configured default is restored on integration/Core restart. Voice requests naming a configured speaker override the current selection. Generic device controls use Home Assistant's existing entity permissions and more-info dialogs.
+
+See [CONVERSIONS.md](CONVERSIONS.md) for supported units, the distance-conversion fix, upstream release review and HACS findings.
 
 ## Sonos ducking
 

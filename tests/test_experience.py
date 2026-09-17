@@ -34,6 +34,15 @@ class CoreTest(unittest.TestCase):
   self.assertEqual(convert(.5,'l','ml')['result'],500)
   self.assertAlmostEqual(convert(250,'g','oz')['result'],8.81849,places=4)
   self.assertNotEqual(convert(1,'uk pint','ml')['result'],convert(1,'us pint','ml')['result'])
+ def test_distance_voice_aliases(self):
+  self.assertAlmostEqual(convert(5.5,'km','mile')['result'],3.4175415573,places=9)
+  for a,b in [('millimetre','millimeters'),('centimetre','centimeters'),('metre','meters'),('kilometre','kilometers'),('inch','inches'),('foot','feet'),('yard','yards'),('mile','miles')]:
+   with self.subTest(unit=a):self.assertEqual(convert(1,a,b)['result'],1)
+  self.assertEqual(convert(1,' Metre ','cm')['result'],100)
+  self.assertAlmostEqual(convert(1,'us_cup','ml')['result'],236.5882365)
+ def test_unknown_unit_error_identifies_missing_unit(self):
+  with self.assertRaisesRegex(ValueError,'Unsupported or ambiguous unit: furlong'):
+   convert(1,'furlong','mile')
  def test_ambiguous_unsafe_conversions(self):
   for args in [(1,'cup','g'),(1,'ml','g'),(float('nan'),'g','oz'),(-274,'c','f')]:
    with self.assertRaises(ValueError):convert(*args)
