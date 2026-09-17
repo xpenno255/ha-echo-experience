@@ -1,6 +1,6 @@
 # Echo Experience
 
-Private source: https://github.com/xpenno255/echo-experience
+Private source: https://github.com/xpenno255/ha-echo-experience
 
 A shared Home Assistant dashboard and Assist tool integration for LineageOS Echos running Kiosk Satellite + Voice Satellite. Each device has its own satellite, music output, timer ownership and display results. The current installed profile is **Kitchen Echo** (`echo_show_8`).
 
