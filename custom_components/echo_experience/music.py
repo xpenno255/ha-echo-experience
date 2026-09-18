@@ -1,4 +1,5 @@
 """Conservative music resolution before changing a speaker's queue."""
+import asyncio
 import re
 import unicodedata
 
@@ -77,6 +78,31 @@ async def resolve_music(search, query, kind, artist='', album='', version=''):
     No playback or other mutations happen here. Streaming providers are searched
     only if the local library has no matching result.
     """
+    # An artist cannot have a different artist. Some models confuse the
+    # requested item's type with the separate artist filter. Resolve both
+    # possible title categories; never silently assume track rather than album.
+    if kind == 'artist' and artist:
+        if key(query, 'artist') == key(artist, 'artist'):
+            artist = ''  # Redundant artist filter; artist results have no artists list.
+        else:
+            results = await asyncio.gather(*(
+                resolve_music(search, query, candidate, artist, album, version)
+                for candidate in ('track', 'album')
+            ))
+            choices = []
+            for candidate, result in zip(('track', 'album'), results):
+                if result['status'] == 'matched':
+                    choices.append({**result['match'], 'media_type': candidate})
+                elif result['status'] == 'needs_clarification':
+                    choices.extend({**item, 'media_type': candidate} for item in result.get('choices', []))
+            if len(choices) == 1:
+                return {'status': 'matched', 'match': choices[0], 'media_type': choices[0]['media_type']}
+            if choices:
+                return {'status': 'needs_clarification', 'choices': choices[:5],
+                        'question': 'Did you mean the song or album, and which version?',
+                        'note': 'Use the returned choices to ask one short clarification. Nothing has been queued.'}
+            return {'status': 'not_found',
+                    'message': 'No matching song or album by that artist was found. Nothing has been queued.'}
     if kind not in RESULT_KEYS:
         return {'status': 'needs_clarification',
                 'question': 'Is that a song, an artist, an album, a playlist or a radio station?'}

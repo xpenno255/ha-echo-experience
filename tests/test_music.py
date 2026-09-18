@@ -58,6 +58,28 @@ class ResolverTest(unittest.IsolatedAsyncioTestCase):
         result=await resolve_music(search,'Sweet Child O Mine','track','Guns N Roses')
         self.assertEqual(result['status'],'matched')
 
+    async def test_artist_type_with_song_and_performer_recovers(self):
+        async def search(data):
+            return {'tracks': [track()]} if data['media_type'] == ['track'] else {'albums': []}
+        result=await resolve_music(search,'Sweet Child of Mine','artist',"Guns N' Roses")
+        self.assertEqual(result['status'],'matched')
+        self.assertEqual(result['media_type'],'track')
+        self.assertEqual(result['match']['uri'],'library://track/339')
+
+    async def test_conflicting_type_does_not_choose_song_over_album(self):
+        async def search(data):
+            if data['media_type'] == ['track']:return {'tracks':[track()]}
+            return {'albums':[{'uri':'library://album/other','name':'Sweet Child O Mine','artists':[{'name':'Guns N Roses'}]}]}
+        result=await resolve_music(search,'Sweet Child O Mine','artist','Guns N Roses')
+        self.assertEqual(result['status'],'needs_clarification')
+        self.assertEqual({c['media_type'] for c in result['choices']},{'track','album'})
+
+    async def test_artist_with_redundant_filter_is_valid(self):
+        search=AsyncMock(return_value={'artists':[{'uri':'library://artist/3','name':'Guns N’ Roses'}]})
+        result=await resolve_music(search,'Guns and Roses','artist','Guns N Roses')
+        self.assertEqual(result['status'],'matched')
+        self.assertNotIn('artist',search.call_args.args[0])
+
     async def test_unknown_type_does_not_guess(self):
         search=AsyncMock()
         self.assertEqual((await resolve_music(search,'Something',None))['status'],'needs_clarification')
@@ -97,6 +119,18 @@ class PlaybackTest(unittest.IsolatedAsyncioTestCase):
         result=await self.runtime.music(p,{'action':'search','query':'Sweet Child O Mine','media_type':'track'})
         self.assertEqual(result['status'],'matched')
         self.assertTrue(all(c.args[:2]==('music_assistant','search') for c in self.hass.services.async_call.call_args_list))
+
+    async def test_actual_failed_play_arguments_recover_correct_type(self):
+        p=self.profiles[0];p['music_assistant_entry']='kitchen-ma'
+        async def service(domain, action, data, **kwargs):
+            if action=='search':
+                return {'tracks':[track()]} if data['media_type']==['track'] else {'albums':[]}
+        self.hass.services.async_call.side_effect=service
+        await self.runtime.music(p,{'action':'play','artist':"Guns N' Roses",'media_type':'artist','query':'Sweet Child of Mine'})
+        call=next(c for c in self.hass.services.async_call.call_args_list if c.args[:2]==('music_assistant','play_media'))
+        self.assertEqual(call.args[2]['media_id'],'library://track/339')
+        self.assertEqual(call.args[2]['media_type'],'track')
+        self.assertEqual(call.args[2]['entity_id'],'media_player.kitchen')
 
     async def test_radio_path_preserved(self):
         await self.runtime.music(self.profiles[0],{'action':'play','query':'BBC Radio 2','media_type':'radio'})

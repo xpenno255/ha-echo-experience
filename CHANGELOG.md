@@ -1,5 +1,13 @@
 # Changes
 
+## 0.3.3 — correct song requests misclassified as artists
+
+- The 18 September physical Echo trace heard the song correctly but called `echo_music` with `media_type: artist`, query `Sweet Child of Mine` and artist `Guns N' Roses`.
+- Clarify the agent prompt and tool description: media_type describes the title being requested, not the performer filter.
+- Recover contradictory artist requests by resolving both songs and albums, proceeding only when there is a unique match. Preserve clarification when both categories match.
+- Ignore redundant artist filters on genuine artist requests. Add four regression tests, including the exact failed play arguments and correct Sonos target/media type.
+
+
 ## 0.3.2 — music title resolution
 
 - Resolve tracks, artists and albums before queuing the exact Music Assistant URI.
