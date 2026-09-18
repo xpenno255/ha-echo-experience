@@ -49,7 +49,7 @@ Weather uses the profile's weather entity for both speech and display. Forecasts
 
 1. Set up Kiosk Satellite and create a **distinct** Voice Satellite entry for the new physical device. Never assign two Echos to the same satellite or clone the existing Kiosk device identity.
 2. Add a record to `profiles.json`, using the actual IDs from HA. `id`, `satellite` and `device_id` must be unique. Obtain `device_id` from the new Voice Satellite device, not the ESPHome device. Set its Music Assistant player, weather entity, room controls and optional Kiosk entities.
-3. Copy the profile file to `/config/echo_experience.json`, regenerate the dashboard using `deploy.py`, and reload the **Echo Experience** integration through HA. Profile changes do not need a Core restart. Restarting Core is required after changing Python source code.
+3. Copy the profile file to `/config/echo_experience.json`, regenerate the dashboard using `deploy.py`, and reload the **Echo Experience** integration through HA. Run `python stop_automation.py` after changing profile music targets or companion voice devices to refresh the fast voice stop routes; a normal `deploy.py` run does this automatically. Profile changes do not need a Core restart. Restarting Core is required after changing Python source code.
 4. Set that Echo's start/default dashboard to `/echo-home/<id>` and its voice pipeline to **Echo Home**. Reload its page to load the registered card resource.
 5. In Kiosk Media Player → Now Playing, disable the Floating Player, automatic Now Playing launch and “Now Playing instead of the screensaver” so it cannot cover timer or guide content. Leave Sendspin and music ducking enabled. Keep Voice Satellite active only on the primary HA dashboard session.
 6. In the Voice Satellite panel’s timer options, enable **Hide on-screen countdown**. The dashboard supplies countdown cards/chips; native completion alerts remain enabled.
@@ -98,3 +98,7 @@ node tests/test_card.cjs www/echo-experience.js
 ```
 
 `verify_live.py` runs text-only requests through the dedicated pipeline using the Echo's device context. It deliberately does not claim microphone or acoustic verification. Focused deployment snapshots and live results are in the audit directory.
+
+## Fast voice stop
+
+[VOICE_STOP.md](VOICE_STOP.md) documents the sentence automation that handles “stop” before the conversation agent. Its exact routes are generated from profiles and saved in `automations/voice_music_stop.json`. Unknown devices never match every unassigned media player.

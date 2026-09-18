@@ -1,0 +1,61 @@
+{
+  "id": "1757961047860",
+  "alias": "Stop Sonos in Voice Assistant Area",
+  "description": "Known Echo/companion voice devices stop their configured Music Assistant group. Other devices require a real area and target only native Sonos entities in it. Generated from Echo Experience profiles.",
+  "triggers": [
+    {
+      "trigger": "conversation",
+      "command": [
+        "stop",
+        "stop music",
+        "stop sonos",
+        "stop the music",
+        "stop the sonos",
+        "stop playing music",
+        "turn off the music",
+        "stop sonos in here"
+      ]
+    }
+  ],
+  "variables": {
+    "device_players": {
+      "3cbf784cee34a3c4249e1cd03060b6dc": "media_player.kitchen_sonos_group_ma",
+      "40992cb98b6028e69e64dec59f0ebe07": "media_player.kitchen_sonos_group_ma"
+    },
+    "origin_device": "{{ trigger.device_id | default('', true) }}",
+    "origin_area": "{{ area_id(origin_device) if origin_device else none }}",
+    "stop_players": "{% if origin_device in device_players %}\n  {{ [device_players[origin_device]] }}\n{% elif origin_area %}\n  {{ integration_entities('sonos') | select('in', area_entities(origin_area))\n     | select('match', '^media_player\\.') | list }}\n{% else %}\n  {{ [] }}\n{% endif %}"
+  },
+  "actions": [
+    {
+      "choose": [
+        {
+          "conditions": [
+            {
+              "condition": "template",
+              "value_template": "{{ stop_players | length > 0 }}"
+            }
+          ],
+          "sequence": [
+            {
+              "action": "media_player.media_stop",
+              "target": {
+                "entity_id": "{{ stop_players }}"
+              }
+            },
+            {
+              "set_conversation_response": "Stopped."
+            }
+          ]
+        }
+      ],
+      "default": [
+        {
+          "set_conversation_response": "I couldn't identify the music speaker for this device."
+        }
+      ]
+    }
+  ],
+  "mode": "parallel",
+  "max": 10
+}

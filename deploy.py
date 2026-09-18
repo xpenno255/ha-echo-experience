@@ -61,4 +61,7 @@ if __name__=='__main__':
     os.umask(0o077)
     parser=argparse.ArgumentParser();parser.add_argument('--files-only',action='store_true');args=parser.parse_args()
     install_files()
-    if not args.files_only:dashboard()
+    if not args.files_only:
+        dashboard()
+        from stop_automation import install as install_stop_automation
+        install_stop_automation()

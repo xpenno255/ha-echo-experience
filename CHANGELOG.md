@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-09-18 — scoped voice stop automation
+
+- Fix an older sentence automation that intercepted “Stop”, targeted 14 unrelated/unassigned media players and delayed its response by 30.5 seconds.
+- Generate exact default Music Assistant player routes for each Echo and configured companion voice device. For other devices, require a real area and restrict targets to the native Sonos integration.
+- Allow independent simultaneous stop requests across Echos; respond honestly when no speaker is identifiable.
+- Keep the automation in the repository and refresh its routes during normal deployment. This configuration-only fix requires no Core restart.
+
+
 ## 0.3.3 — correct song requests misclassified as artists
 
 - The 18 September physical Echo trace heard the song correctly but called `echo_music` with `media_type: artist`, query `Sweet Child of Mine` and artist `Guns N' Roses`.
