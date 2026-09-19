@@ -40,7 +40,8 @@
         "volume_factor": 0.1,
         "restore_delay": 1,
         "max_duration": 120
-      }
+      },
+      "music_resolver_agent": "conversation.echo_music_resolver"
     }
   ]
 }

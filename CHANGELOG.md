@@ -1,5 +1,14 @@
 # Changes
 
+## 0.4.0 — catalog and music-agent fallback
+
+- Fix the first-attempt Mammoth II failure: duplicate album fields no longer filter album results as if they were tracks.
+- Prefer standard studio releases over duplicate editions, while preserving requested albums/versions and distinct artists.
+- Match spelling mistakes and phonetic names against the artist's actual MA albums/tracks; use a dedicated tool-free Gemma agent for bounded shortlist selection or name correction verified by another search.
+- Reuse the model behind the earlier enhanced View Assist music agent without changing that agent or re-enabling its automation.
+- Add catalog caching, model/time limits and regressions for invalid suggestions, explicit artist/version preservation and multi-Echo routing.
+
+
 ## 2026-09-18 — scoped voice stop automation
 
 - Fix an older sentence automation that intercepted “Stop”, targeted 14 unrelated/unassigned media players and delayed its response by 30.5 seconds.

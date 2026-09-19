@@ -13,6 +13,8 @@ from homeassistant.helpers import llm
 from homeassistant.auth.permissions.const import POLICY_READ, POLICY_CONTROL
 from homeassistant.util import dt as dt_util
 from .music import resolve_music
+from .music_fallback import resolve_with_fallback
+from .music_backend import MusicBackend
 from .ducking import DuckingManager
 from .core import validate_profiles, route_profile, convert, VIEWS, normalize_timer_name
 
@@ -50,6 +52,7 @@ class Experience:
         self.forecasts={}
         self.locks={}
         self.music_players={}
+        self.music_catalog_cache={}
 
     def profile(self,slug):
         return next((p for p in self.profiles if p['id']==slug),None)
@@ -171,8 +174,12 @@ class Experience:
                 async def search(fields):
                     return await self.hass.services.async_call('music_assistant','search',
                         {'config_entry_id':entry,**fields},blocking=True,return_response=True,context=context)
+                backend=MusicBackend(self.hass,entry,p.get('music_resolver_agent'),context,self.music_catalog_cache)
                 async with asyncio.timeout(25):
-                    resolution=await resolve_music(search,query,kind,args.get('artist',''),args.get('album',''),args.get('version',''))
+                    if p.get('music_resolver_agent'):
+                        resolution=await resolve_with_fallback(search,backend.catalog,backend.advise,query,kind,args.get('artist',''),args.get('album',''),args.get('version',''))
+                    else:
+                        resolution=await resolve_music(search,query,kind,args.get('artist',''),args.get('album',''),args.get('version',''))
                 if action=='search':return resolution
                 if resolution['status']!='matched':
                     await self.publish(p,'answer',{'question':query,'speech':resolution.get('question') or resolution.get('message')})
@@ -275,7 +282,7 @@ class ExperienceAPI(llm.API):
                 ActionTool(self.runtime,p,'echo_timer','Manage native voice timers on THIS Echo only. Start a named timer with a duration in seconds; status lists remaining seconds. Pause, resume, cancel or add one minute using its name (omit only if exactly one exists). Never create or guess timer.* entities.',{vol.Required('operation'):vol.In(['start','status','pause','resume','cancel','add']),vol.Optional('name'):str,vol.Optional('seconds'):vol.All(vol.Coerce(int),vol.Range(min=1,max=86400))}),
                 ActionTool(self.runtime,p,'echo_weather','Get the local forecast and display it on THIS Echo. Use for weather and rain questions. Choose today, tomorrow, next_hours (12 hours), or week.',{vol.Optional('period',default='today'):vol.In(['today','tomorrow','next_hours','week'])}),
                 ActionTool(self.runtime,p,'echo_convert','Calculate a unit conversion exactly and display the result. Use for temperatures, weights, volumes and length/distance (millimetres, centimetres, metres, kilometres, inches, feet, yards, miles). Both singular and plural unit names are accepted. Cups/pints need their stated standard; never assume ingredient density.',{vol.Required('value'):vol.Coerce(float),vol.Required('from_unit'):str,vol.Required('to_unit'):str}),
-                ActionTool(self.runtime,p,'echo_music','Play music/radio or control playback on this Echo. Default is its selected music speaker. Optional speaker must be one of: '+speakers+'. Always set media_type for play/search: track for a song, album for an album, artist only when query is the band/artist name. The artist field is a separate filter; naming a performer does not make a song an artist request. Put only the title in query, and the requested artist, album and version in their separate fields. Search resolves a title without playing. Play resolves tracks/artists/albums before queuing. If status is needs_clarification or not_found, ask a short question using the result; nothing has played. Never guess a URI. volume is 0–100.',{vol.Required('action'):vol.In(['play','search','pause','resume','next','previous','stop','volume']),vol.Optional('query'):str,vol.Optional('media_type'):vol.In(['track','artist','album','playlist','radio','podcast']),vol.Optional('artist'):str,vol.Optional('album'):str,vol.Optional('version'):str,vol.Optional('speaker'):str,vol.Optional('volume'):vol.All(vol.Coerce(float),vol.Range(min=0,max=100))}),
+                ActionTool(self.runtime,p,'echo_music','Play music/radio or control playback on this Echo. Default is its selected music speaker. Optional speaker must be one of: '+speakers+'. Always set media_type for play/search: track for a song, album for an album, artist only when query is the band/artist name. The artist field is a separate filter; naming a performer does not make a song an artist request. Put only the title in query and the performer in artist. For album requests use query for the album title and omit the album field; album is only a filter for a track. Only set version if the user explicitly requests one. Standard studio releases are preferred automatically; do not ask about remasters or editions before calling this tool. Search resolves a title without playing. Play resolves tracks/artists/albums before queuing. If status is needs_clarification or not_found, ask a short question using the result; nothing has played. Never guess a URI. volume is 0–100.',{vol.Required('action'):vol.In(['play','search','pause','resume','next','previous','stop','volume']),vol.Optional('query'):str,vol.Optional('media_type'):vol.In(['track','artist','album','playlist','radio','podcast']),vol.Optional('artist'):str,vol.Optional('album'):str,vol.Optional('version'):str,vol.Optional('speaker'):str,vol.Optional('volume'):vol.All(vol.Coerce(float),vol.Range(min=0,max=100))}),
                 ActionTool(self.runtime,p,'echo_show','Open a view on THIS Echo when asked to show the home screen, timers, music, weather, guides or home controls.',{vol.Required('view'):vol.In(VIEWS)})])
         return llm.APIInstance(api=self,api_prompt='Use Echo tools for this satellite\'s weather, music and conversions. Use echo_timer for timers and native Assist intents for home commands. Use echo_guide for appliance instructions. Never substitute guessed manual instructions or forecast data.',llm_context=context,tools=tools)
 

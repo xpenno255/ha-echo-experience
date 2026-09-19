@@ -8,11 +8,11 @@ ALIASES = {
     'artist': {'guns and roses': 'guns n roses'},
     'track': {'sweet child of mine': 'sweet child o mine'},
 }
-NUMBERS = {'two': '2', 'three': '3', 'four': '4', 'five': '5', 'six': '6', 'seven': '7', 'eight': '8', 'nine': '9', 'ten': '10',
+NUMBERS = {'one': '1', 'i': '1', 'two': '2', 'three': '3', 'four': '4', 'five': '5', 'six': '6', 'seven': '7', 'eight': '8', 'nine': '9', 'ten': '10',
            'ii': '2', 'iii': '3', 'iv': '4', 'v': '5', 'vi': '6',
            'vii': '7', 'viii': '8', 'ix': '9', 'x': '10'}
 ROMAN = {str(i): word for i, word in enumerate(
-    ('ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x'), 2)}
+    ('i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x'), 1)}
 RESULT_KEYS = {'track': 'tracks', 'artist': 'artists', 'album': 'albums'}
 
 
@@ -49,6 +49,44 @@ def search_name(text, kind):
     return text
 
 
+
+EDITION_WORDS = re.compile(r'\b(live|remaster(?:ed)?|deluxe|anniversary|expanded|edition|acoustic|instrumental|karaoke|remix)\b', re.I)
+
+
+def edition_suffix(name, kind):
+    if kind not in ('track', 'album'):
+        return ''
+    match = re.search(r'(?:\s*[([]([^()\[\]]+)[)\]]|\s+-\s+(.+))$', name)
+    suffix = (match.group(1) or match.group(2)) if match else ''
+    return suffix if EDITION_WORDS.search(suffix) else ''
+
+
+def base_title(name, kind):
+    suffix = edition_suffix(name, kind)
+    if not suffix:
+        return name
+    return name[:name.rfind(suffix)].rstrip(' ([–-')
+
+
+def prefer_editions(items, kind):
+    """Pick a sensible release of the same work, never merge different artists."""
+    groups = {}
+    for item in items:
+        artists = tuple(sorted(key(a['name'], 'artist') for a in item.get('artists', [])))
+        # Artist identities are not deduplicated merely because their names match.
+        identity = item['uri'] if kind == 'artist' else (key(base_title(item['name'], kind), kind), artists)
+        groups.setdefault(identity, []).append(item)
+    def rank(item):
+        version = words(item.get('version', '') + ' ' + edition_suffix(item['name'], kind))
+        album = item.get('album') or {}
+        release = words(album.get('name', ''))
+        special = bool(re.search(r'\b(live|acoustic|instrumental|karaoke|remix)\b', version + ' ' + release))
+        compilation = bool(re.search(r'\b(greatest hits|best of|compilation)\b', release))
+        return (special, bool(version), compilation, not item['uri'].startswith('library://'),
+                item.get('year') or 9999, item['uri'])
+    return [min(group, key=rank) for group in groups.values()]
+
+
 def summary(item):
     return {k: v for k, v in {
         'uri': item['uri'], 'name': item['name'],
@@ -58,15 +96,23 @@ def summary(item):
     }.items() if v}
 
 
+def version_matches(wanted, actual):
+    wanted, actual = words(wanted), words(actual)
+    if wanted in ('studio', 'studio version', 'original', 'original version'):
+        return not re.search(r'\b(live|acoustic|instrumental|karaoke|remix)\b', actual)
+    return set(wanted.split()).issubset(actual.split())
+
+
 def matches(item, query, kind, artist='', album='', version=''):
-    if not item.get('uri') or key(item.get('name', ''), kind) != key(query, kind):
+    if not item.get('uri') or key(base_title(item.get('name', ''), kind), kind) != key(base_title(query, kind), kind):
         return False
     if artist and not any(key(a.get('name', ''), 'artist') == key(artist, 'artist')
                           for a in item.get('artists', [])):
         return False
-    if album and key((item.get('album') or {}).get('name', ''), 'album') != key(album, 'album'):
+    if album and kind == 'track' and key((item.get('album') or {}).get('name', ''), 'album') != key(album, 'album'):
         return False
-    if version and key(item.get('version', ''), 'version') != key(version, 'version'):
+    wanted_version = version or edition_suffix(query, kind)
+    if wanted_version and not version_matches(wanted_version, item.get('version', '') + ' ' + edition_suffix(item.get('name', ''), kind)):
         return False
     return True
 
@@ -123,7 +169,7 @@ async def resolve_music(search, query, kind, artist='', album='', version=''):
                     found[item['uri']] = item
             # The complete result page is evaluated before selecting anything.
             if found:
-                choices = [summary(item) for item in found.values()]
+                choices = [summary(item) for item in prefer_editions(found.values(), kind)]
                 if len(choices) == 1:
                     return {'status': 'matched', 'match': choices[0]}
                 return {'status': 'needs_clarification', 'choices': choices[:5],

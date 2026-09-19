@@ -48,7 +48,7 @@ class ResolverTest(unittest.IsolatedAsyncioTestCase):
     async def test_album_and_version_are_respected(self):
         search=AsyncMock(return_value={'tracks':[track(),track('library://track/2',album='Live Era',version='Live')]})
         result=await resolve_music(search,'Sweet Child O Mine','track','Guns N Roses')
-        self.assertEqual(result['status'],'needs_clarification')
+        self.assertEqual(result['match']['uri'],'library://track/339')
         result=await resolve_music(search,'Sweet Child O Mine','track','Guns N Roses','Live Era','live')
         self.assertEqual(result['match']['uri'],'library://track/2')
 
@@ -108,7 +108,7 @@ class PlaybackTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_ambiguous_play_does_not_change_queue(self):
         p=self.profiles[0];p['music_assistant_entry']='kitchen-ma'
-        self.hass.services.async_call.return_value={'tracks':[track(),track('library://track/2',version='Live')]}
+        self.hass.services.async_call.return_value={'tracks':[track(),track('library://track/2',artist='Another Artist')]}
         result=await self.runtime.music(p,{'action':'play','query':'Sweet Child O Mine','media_type':'track'})
         self.assertEqual(result['status'],'needs_clarification')
         self.assertFalse(any(c.args[:2]==('music_assistant','play_media') for c in self.hass.services.async_call.call_args_list))

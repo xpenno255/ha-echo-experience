@@ -66,6 +66,7 @@ Example profile (replace all IDs with actual entities):
   "device_id": "VOICE_SATELLITE_DEVICE_ID",
   "music_player": "media_player.bedroom_echo",
   "music_assistant_entry": "MUSIC_ASSISTANT_CONFIG_ENTRY_ID",
+  "music_resolver_agent": "conversation.echo_music_resolver",
   "weather": "weather.met_office_weoley_castle",
   "dashboard": "echo-home/bedroom_echo",
   "kiosk_navigation": "select.bedroom_echo_dashboard_view",
