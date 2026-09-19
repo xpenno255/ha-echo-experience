@@ -1,4 +1,4 @@
-# Music matching — 0.4.0
+# Music matching — 0.4.1
 
 The Echo keeps simple music requests on a fast path and uses the Music Assistant catalog plus a dedicated name resolver when a transcription needs help. A selected URI always comes from Music Assistant. The voice model cannot invent a playable ID or change the originating Echo's permitted speaker.
 
@@ -11,6 +11,8 @@ The Echo keeps simple music requests on a fast path and uses the Music Assistant
 5. Ask a short question only when the request still lacks a convincing match. An explicit artist cannot be dropped, an identified artist cannot be swapped, and an album number or requested live/version constraint cannot be discarded by a correction.
 
 The advisor has no Home Assistant APIs or function tools. Its output is parsed as JSON, and generated URIs, invalid indices, low confidence and malformed replies are rejected. It receives no playback controls. Calls use fresh conversation sessions so requests from different Echos do not share conversational history.
+
+Advisor choices and corrected names must also pass an independent spelling/phonetic plausibility check. A confident model answer cannot substitute an unrelated title merely because it belongs to the requested artist. Short artist names can resolve through a unique close phonetic catalog match; ambiguous identities remain unresolved. Spoken letters and number components provide additional evidence for names such as AC/DC and 30/30-150.
 
 The artist catalog is limited to 1,000 entries and each artist's title catalog to 2,000 items, cached for five minutes per Music Assistant entry/artist/type. Shortlists contain at most 12 items. Exact matches need no model call. Each fallback permits at most two model calls of six seconds each, within the overall 25-second resolution deadline. Catalog failures and advisor failures fall back to the unresolved result. Retrieval quality still depends on Music Assistant/provider metadata; this is not a guarantee of arbitrary speech recognition.
 
@@ -32,7 +34,7 @@ Python changes require a Core restart. Back up the current owned files and agent
 
 ## Validation
 
-70 Python tests cover number/alias handling, the exact duplicate-album bug, studio/default editions, explicit live and album filters, rejected covers, catalog spelling/phonetic recovery, actual-candidate selection, invalid/low-confidence model output, invented names, timeouts, two-call budget, artist/version preservation and fallback routing to the originating Echo's speaker. Earlier regression cases for misclassified artist requests and scoped voice stopping remain covered.
+76 Python tests include a 386-case favourite-artist regression corpus, as well as number/alias handling, the exact duplicate-album bug, studio/default editions, explicit live and album filters, rejected covers, catalog spelling/phonetic recovery, actual-candidate selection, invalid/low-confidence model output, invented names, timeouts, two-call budget, artist/version preservation and fallback routing to the originating Echo's speaker. Earlier regression cases for misclassified artist requests and scoped voice stopping remain covered. See [TOP20_TESTS.md](TOP20_TESTS.md) for corpus provenance, fresh-advisor results and repeatable commands.
 
 Read-only live checks on 19 September:
 

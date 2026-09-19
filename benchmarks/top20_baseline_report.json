@@ -1,0 +1,5524 @@
+{
+  "schema": 1,
+  "mode": "advisor",
+  "case_count": 386,
+  "live_advisor_calls": 108,
+  "results": [
+    {
+      "id": "black_stone_cherry_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/black_stone_cherry",
+          "name": "Black Stone Cherry"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "black_stone_cherry_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/black_stone_cherry",
+          "name": "Black Stone Cherry"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "black_stone_cherry_artist_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/black_stone_cherry",
+          "name": "Black Stone Cherry"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "black_stone_cherry_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/black_stone_cherry/folklore_and_superstition",
+          "name": "Folklore and Superstition",
+          "artist": "Black Stone Cherry"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "black_stone_cherry_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/black_stone_cherry/folklore_and_superstition",
+          "name": "Folklore and Superstition",
+          "artist": "Black Stone Cherry"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "black_stone_cherry_album_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/black_stone_cherry/folklore_and_superstition",
+          "name": "Folklore and Superstition",
+          "artist": "Black Stone Cherry"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "black_stone_cherry_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/black_stone_cherry/folklore_and_superstition",
+          "name": "Folklore and Superstition",
+          "artist": "Black Stone Cherry"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "black_stone_cherry_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/black_stone_cherry/0",
+          "name": "Blind Man",
+          "artist": "Black Stone Cherry",
+          "album": "Folklore and Superstition"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "black_stone_cherry_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/black_stone_cherry/0",
+          "name": "Blind Man",
+          "artist": "Black Stone Cherry",
+          "album": "Folklore and Superstition"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "black_stone_cherry_track_0_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/black_stone_cherry/0",
+          "name": "Blind Man",
+          "artist": "Black Stone Cherry",
+          "album": "Folklore and Superstition"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "black_stone_cherry_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/black_stone_cherry/0",
+          "name": "Blind Man",
+          "artist": "Black Stone Cherry",
+          "album": "Folklore and Superstition"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "black_stone_cherry_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/black_stone_cherry/0/live",
+          "name": "Blind Man",
+          "artist": "Black Stone Cherry",
+          "album": "Folklore and Superstition",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "black_stone_cherry_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.512
+    },
+    {
+      "id": "black_stone_cherry_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/black_stone_cherry/1",
+          "name": "Please Come In",
+          "artist": "Black Stone Cherry",
+          "album": "Folklore and Superstition"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "black_stone_cherry_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/black_stone_cherry/1",
+          "name": "Please Come In",
+          "artist": "Black Stone Cherry",
+          "album": "Folklore and Superstition"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "black_stone_cherry_track_1_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/black_stone_cherry/1",
+          "name": "Please Come In",
+          "artist": "Black Stone Cherry",
+          "album": "Folklore and Superstition"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "black_stone_cherry_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/black_stone_cherry/1",
+          "name": "Please Come In",
+          "artist": "Black Stone Cherry",
+          "album": "Folklore and Superstition"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "black_stone_cherry_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/black_stone_cherry/1/live",
+          "name": "Please Come In",
+          "artist": "Black Stone Cherry",
+          "album": "Folklore and Superstition",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "black_stone_cherry_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.329
+    },
+    {
+      "id": "black_stone_cherry_wrong_performer",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.566
+    },
+    {
+      "id": "alter_bridge_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/alter_bridge",
+          "name": "Alter Bridge"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "alter_bridge_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/alter_bridge",
+          "name": "Alter Bridge"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "alter_bridge_artist_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/alter_bridge",
+          "name": "Alter Bridge"
+        },
+        "media_type": "artist",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "alter_bridge_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/alter_bridge/ab_iii",
+          "name": "AB III",
+          "artist": "Alter Bridge"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "alter_bridge_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/alter_bridge/ab_iii",
+          "name": "AB III",
+          "artist": "Alter Bridge"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "alter_bridge_album_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/alter_bridge/ab_iii",
+          "name": "AB III",
+          "artist": "Alter Bridge"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "alter_bridge_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/alter_bridge/ab_iii",
+          "name": "AB III",
+          "artist": "Alter Bridge"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.002
+    },
+    {
+      "id": "alter_bridge_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/alter_bridge/0",
+          "name": "Isolation",
+          "artist": "Alter Bridge",
+          "album": "AB III"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "alter_bridge_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/alter_bridge/0",
+          "name": "Isolation",
+          "artist": "Alter Bridge",
+          "album": "AB III"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "alter_bridge_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/alter_bridge/0",
+          "name": "Isolation",
+          "artist": "Alter Bridge",
+          "album": "AB III"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.003
+    },
+    {
+      "id": "alter_bridge_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/alter_bridge/0/live",
+          "name": "Isolation",
+          "artist": "Alter Bridge",
+          "album": "AB III",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "alter_bridge_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.374
+    },
+    {
+      "id": "alter_bridge_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/alter_bridge/1",
+          "name": "Ghost of Days Gone By",
+          "artist": "Alter Bridge",
+          "album": "AB III"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "alter_bridge_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/alter_bridge/1",
+          "name": "Ghost of Days Gone By",
+          "artist": "Alter Bridge",
+          "album": "AB III"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "alter_bridge_track_1_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/alter_bridge/1",
+          "name": "Ghost of Days Gone By",
+          "artist": "Alter Bridge",
+          "album": "AB III"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "alter_bridge_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/alter_bridge/1",
+          "name": "Ghost of Days Gone By",
+          "artist": "Alter Bridge",
+          "album": "AB III"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.002
+    },
+    {
+      "id": "alter_bridge_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/alter_bridge/1/live",
+          "name": "Ghost of Days Gone By",
+          "artist": "Alter Bridge",
+          "album": "AB III",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "alter_bridge_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.351
+    },
+    {
+      "id": "alter_bridge_wrong_performer",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.38
+    },
+    {
+      "id": "guns_n_roses_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/guns_n_roses",
+          "name": "Guns N' Roses"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "guns_n_roses_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/guns_n_roses",
+          "name": "Guns N' Roses"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "guns_n_roses_artist_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/guns_n_roses",
+          "name": "Guns N' Roses"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "guns_n_roses_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/guns_n_roses/use_your_illusion_ii",
+          "name": "Use Your Illusion II",
+          "artist": "Guns N' Roses"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "guns_n_roses_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/guns_n_roses/use_your_illusion_ii",
+          "name": "Use Your Illusion II",
+          "artist": "Guns N' Roses"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "guns_n_roses_album_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/guns_n_roses/use_your_illusion_ii",
+          "name": "Use Your Illusion II",
+          "artist": "Guns N' Roses"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "guns_n_roses_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/guns_n_roses/use_your_illusion_ii",
+          "name": "Use Your Illusion II",
+          "artist": "Guns N' Roses"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "guns_n_roses_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/guns_n_roses/0",
+          "name": "You Could Be Mine",
+          "artist": "Guns N' Roses",
+          "album": "Use Your Illusion II"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "guns_n_roses_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/guns_n_roses/0",
+          "name": "You Could Be Mine",
+          "artist": "Guns N' Roses",
+          "album": "Use Your Illusion II"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "guns_n_roses_track_0_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/guns_n_roses/0",
+          "name": "You Could Be Mine",
+          "artist": "Guns N' Roses",
+          "album": "Use Your Illusion II"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "guns_n_roses_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/guns_n_roses/0",
+          "name": "You Could Be Mine",
+          "artist": "Guns N' Roses",
+          "album": "Use Your Illusion II"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "guns_n_roses_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/guns_n_roses/0/live",
+          "name": "You Could Be Mine",
+          "artist": "Guns N' Roses",
+          "album": "Use Your Illusion II",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "guns_n_roses_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.375
+    },
+    {
+      "id": "guns_n_roses_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/guns_n_roses/1",
+          "name": "Knockin' on Heaven's Door",
+          "artist": "Guns N' Roses",
+          "album": "Use Your Illusion II"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "guns_n_roses_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/guns_n_roses/1",
+          "name": "Knockin' on Heaven's Door",
+          "artist": "Guns N' Roses",
+          "album": "Use Your Illusion II"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "guns_n_roses_track_1_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/guns_n_roses/1",
+          "name": "Knockin' on Heaven's Door",
+          "artist": "Guns N' Roses",
+          "album": "Use Your Illusion II"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "guns_n_roses_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/guns_n_roses/1",
+          "name": "Knockin' on Heaven's Door",
+          "artist": "Guns N' Roses",
+          "album": "Use Your Illusion II"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "guns_n_roses_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/guns_n_roses/1/live",
+          "name": "Knockin' on Heaven's Door",
+          "artist": "Guns N' Roses",
+          "album": "Use Your Illusion II",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "guns_n_roses_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.45
+    },
+    {
+      "id": "guns_n_roses_wrong_performer",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.595
+    },
+    {
+      "id": "foo_fighters_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/foo_fighters",
+          "name": "Foo Fighters"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "foo_fighters_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/foo_fighters",
+          "name": "Foo Fighters"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "foo_fighters_artist_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/foo_fighters",
+          "name": "Foo Fighters"
+        },
+        "media_type": "artist",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "foo_fighters_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/foo_fighters/wasting_light",
+          "name": "Wasting Light",
+          "artist": "Foo Fighters"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "foo_fighters_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/foo_fighters/wasting_light",
+          "name": "Wasting Light",
+          "artist": "Foo Fighters"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "foo_fighters_album_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/foo_fighters/wasting_light",
+          "name": "Wasting Light",
+          "artist": "Foo Fighters"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.218
+    },
+    {
+      "id": "foo_fighters_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/foo_fighters/wasting_light",
+          "name": "Wasting Light",
+          "artist": "Foo Fighters"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "foo_fighters_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/foo_fighters/0",
+          "name": "Walk",
+          "artist": "Foo Fighters",
+          "album": "Wasting Light"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "foo_fighters_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/foo_fighters/0",
+          "name": "Walk",
+          "artist": "Foo Fighters",
+          "album": "Wasting Light"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "foo_fighters_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/foo_fighters/0",
+          "name": "Walk",
+          "artist": "Foo Fighters",
+          "album": "Wasting Light"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "foo_fighters_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/foo_fighters/0/live",
+          "name": "Walk",
+          "artist": "Foo Fighters",
+          "album": "Wasting Light",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "foo_fighters_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.284
+    },
+    {
+      "id": "foo_fighters_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/foo_fighters/1",
+          "name": "Rope",
+          "artist": "Foo Fighters",
+          "album": "Wasting Light"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "foo_fighters_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/foo_fighters/1",
+          "name": "Rope",
+          "artist": "Foo Fighters",
+          "album": "Wasting Light"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "foo_fighters_track_1_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/foo_fighters/1",
+          "name": "Rope",
+          "artist": "Foo Fighters",
+          "album": "Wasting Light"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.221
+    },
+    {
+      "id": "foo_fighters_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/foo_fighters/1",
+          "name": "Rope",
+          "artist": "Foo Fighters",
+          "album": "Wasting Light"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.002
+    },
+    {
+      "id": "foo_fighters_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/foo_fighters/1/live",
+          "name": "Rope",
+          "artist": "Foo Fighters",
+          "album": "Wasting Light",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "foo_fighters_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.358
+    },
+    {
+      "id": "foo_fighters_wrong_performer",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.578
+    },
+    {
+      "id": "oasis_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/oasis",
+          "name": "Oasis"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "oasis_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/oasis",
+          "name": "Oasis"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "oasis_artist_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/oasis",
+          "name": "Oasis"
+        },
+        "media_type": "artist",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "oasis_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/oasis/what_s_the_story_morning_glory",
+          "name": "(What's the Story) Morning Glory?",
+          "artist": "Oasis"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "oasis_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/oasis/what_s_the_story_morning_glory",
+          "name": "(What's the Story) Morning Glory?",
+          "artist": "Oasis"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "oasis_album_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/oasis/what_s_the_story_morning_glory",
+          "name": "(What's the Story) Morning Glory?",
+          "artist": "Oasis"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "oasis_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/oasis/what_s_the_story_morning_glory",
+          "name": "(What's the Story) Morning Glory?",
+          "artist": "Oasis"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "oasis_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/oasis/0",
+          "name": "Don't Look Back in Anger",
+          "artist": "Oasis",
+          "album": "(What's the Story) Morning Glory?"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "oasis_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/oasis/0",
+          "name": "Don't Look Back in Anger",
+          "artist": "Oasis",
+          "album": "(What's the Story) Morning Glory?"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "oasis_track_0_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/oasis/0",
+          "name": "Don't Look Back in Anger",
+          "artist": "Oasis",
+          "album": "(What's the Story) Morning Glory?"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "oasis_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/oasis/0",
+          "name": "Don't Look Back in Anger",
+          "artist": "Oasis",
+          "album": "(What's the Story) Morning Glory?"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.002
+    },
+    {
+      "id": "oasis_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/oasis/0/live",
+          "name": "Don't Look Back in Anger",
+          "artist": "Oasis",
+          "album": "(What's the Story) Morning Glory?",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "oasis_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.407
+    },
+    {
+      "id": "oasis_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/oasis/1",
+          "name": "Some Might Say",
+          "artist": "Oasis",
+          "album": "(What's the Story) Morning Glory?"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "oasis_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/oasis/1",
+          "name": "Some Might Say",
+          "artist": "Oasis",
+          "album": "(What's the Story) Morning Glory?"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "oasis_track_1_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/oasis/1",
+          "name": "Some Might Say",
+          "artist": "Oasis",
+          "album": "(What's the Story) Morning Glory?"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.235
+    },
+    {
+      "id": "oasis_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/oasis/1",
+          "name": "Some Might Say",
+          "artist": "Oasis",
+          "album": "(What's the Story) Morning Glory?"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "oasis_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/oasis/1/live",
+          "name": "Some Might Say",
+          "artist": "Oasis",
+          "album": "(What's the Story) Morning Glory?",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "oasis_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.312
+    },
+    {
+      "id": "oasis_wrong_performer",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.608
+    },
+    {
+      "id": "nickelback_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/nickelback",
+          "name": "Nickelback"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "nickelback_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/nickelback",
+          "name": "Nickelback"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "nickelback_artist_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/nickelback",
+          "name": "Nickelback"
+        },
+        "media_type": "artist",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "nickelback_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/nickelback/all_the_right_reasons",
+          "name": "All the Right Reasons",
+          "artist": "Nickelback"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "nickelback_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/nickelback/all_the_right_reasons",
+          "name": "All the Right Reasons",
+          "artist": "Nickelback"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "nickelback_album_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/nickelback/all_the_right_reasons",
+          "name": "All the Right Reasons",
+          "artist": "Nickelback"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "nickelback_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/nickelback/all_the_right_reasons",
+          "name": "All the Right Reasons",
+          "artist": "Nickelback"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "nickelback_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/nickelback/0",
+          "name": "Rockstar",
+          "artist": "Nickelback",
+          "album": "All the Right Reasons"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "nickelback_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/nickelback/0",
+          "name": "Rockstar",
+          "artist": "Nickelback",
+          "album": "All the Right Reasons"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "nickelback_track_0_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/nickelback/0",
+          "name": "Rockstar",
+          "artist": "Nickelback",
+          "album": "All the Right Reasons"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "nickelback_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/nickelback/0",
+          "name": "Rockstar",
+          "artist": "Nickelback",
+          "album": "All the Right Reasons"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.002
+    },
+    {
+      "id": "nickelback_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/nickelback/0/live",
+          "name": "Rockstar",
+          "artist": "Nickelback",
+          "album": "All the Right Reasons",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "nickelback_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.259
+    },
+    {
+      "id": "nickelback_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/nickelback/1",
+          "name": "Photograph",
+          "artist": "Nickelback",
+          "album": "All the Right Reasons"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "nickelback_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/nickelback/1",
+          "name": "Photograph",
+          "artist": "Nickelback",
+          "album": "All the Right Reasons"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "nickelback_track_1_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/nickelback/1",
+          "name": "Photograph",
+          "artist": "Nickelback",
+          "album": "All the Right Reasons"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.229
+    },
+    {
+      "id": "nickelback_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/nickelback/1",
+          "name": "Photograph",
+          "artist": "Nickelback",
+          "album": "All the Right Reasons"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "nickelback_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/nickelback/1/live",
+          "name": "Photograph",
+          "artist": "Nickelback",
+          "album": "All the Right Reasons",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "nickelback_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.302
+    },
+    {
+      "id": "nickelback_wrong_performer",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.565
+    },
+    {
+      "id": "michael_jackson_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/michael_jackson",
+          "name": "Michael Jackson"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "michael_jackson_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/michael_jackson",
+          "name": "Michael Jackson"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "michael_jackson_artist_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/michael_jackson",
+          "name": "Michael Jackson"
+        },
+        "media_type": "artist",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "michael_jackson_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/michael_jackson/bad",
+          "name": "Bad",
+          "artist": "Michael Jackson"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "michael_jackson_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/michael_jackson/bad",
+          "name": "Bad",
+          "artist": "Michael Jackson"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "michael_jackson_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/michael_jackson/bad",
+          "name": "Bad",
+          "artist": "Michael Jackson"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "michael_jackson_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/michael_jackson/0",
+          "name": "Smooth Criminal",
+          "artist": "Michael Jackson",
+          "album": "Bad"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "michael_jackson_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/michael_jackson/0",
+          "name": "Smooth Criminal",
+          "artist": "Michael Jackson",
+          "album": "Bad"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "michael_jackson_track_0_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/michael_jackson/0",
+          "name": "Smooth Criminal",
+          "artist": "Michael Jackson",
+          "album": "Bad"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "michael_jackson_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/michael_jackson/0",
+          "name": "Smooth Criminal",
+          "artist": "Michael Jackson",
+          "album": "Bad"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "michael_jackson_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/michael_jackson/0/live",
+          "name": "Smooth Criminal",
+          "artist": "Michael Jackson",
+          "album": "Bad",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "michael_jackson_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.31
+    },
+    {
+      "id": "michael_jackson_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/michael_jackson/1",
+          "name": "Man in the Mirror",
+          "artist": "Michael Jackson",
+          "album": "Bad"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "michael_jackson_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/michael_jackson/1",
+          "name": "Man in the Mirror",
+          "artist": "Michael Jackson",
+          "album": "Bad"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "michael_jackson_track_1_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/michael_jackson/1",
+          "name": "Man in the Mirror",
+          "artist": "Michael Jackson",
+          "album": "Bad"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "michael_jackson_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/michael_jackson/1",
+          "name": "Man in the Mirror",
+          "artist": "Michael Jackson",
+          "album": "Bad"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "michael_jackson_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/michael_jackson/1/live",
+          "name": "Man in the Mirror",
+          "artist": "Michael Jackson",
+          "album": "Bad",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "michael_jackson_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.368
+    },
+    {
+      "id": "michael_jackson_wrong_performer",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.602
+    },
+    {
+      "id": "pearl_jam_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/pearl_jam",
+          "name": "Pearl Jam"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pearl_jam_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/pearl_jam",
+          "name": "Pearl Jam"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pearl_jam_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/pearl_jam/ten",
+          "name": "Ten",
+          "artist": "Pearl Jam"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pearl_jam_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/pearl_jam/ten",
+          "name": "Ten",
+          "artist": "Pearl Jam"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pearl_jam_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/pearl_jam/ten",
+          "name": "Ten",
+          "artist": "Pearl Jam"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pearl_jam_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pearl_jam/0",
+          "name": "Alive",
+          "artist": "Pearl Jam",
+          "album": "Ten"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pearl_jam_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pearl_jam/0",
+          "name": "Alive",
+          "artist": "Pearl Jam",
+          "album": "Ten"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pearl_jam_track_0_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pearl_jam/0",
+          "name": "Alive",
+          "artist": "Pearl Jam",
+          "album": "Ten"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pearl_jam_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pearl_jam/0",
+          "name": "Alive",
+          "artist": "Pearl Jam",
+          "album": "Ten"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pearl_jam_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pearl_jam/0/live",
+          "name": "Alive",
+          "artist": "Pearl Jam",
+          "album": "Ten",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pearl_jam_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.289
+    },
+    {
+      "id": "pearl_jam_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pearl_jam/1",
+          "name": "Even Flow",
+          "artist": "Pearl Jam",
+          "album": "Ten"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pearl_jam_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pearl_jam/1",
+          "name": "Even Flow",
+          "artist": "Pearl Jam",
+          "album": "Ten"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pearl_jam_track_1_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pearl_jam/1",
+          "name": "Even Flow",
+          "artist": "Pearl Jam",
+          "album": "Ten"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "pearl_jam_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pearl_jam/1",
+          "name": "Even Flow",
+          "artist": "Pearl Jam",
+          "album": "Ten"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "pearl_jam_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pearl_jam/1/live",
+          "name": "Even Flow",
+          "artist": "Pearl Jam",
+          "album": "Ten",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pearl_jam_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.315
+    },
+    {
+      "id": "pearl_jam_wrong_performer",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.61
+    },
+    {
+      "id": "ac_dc_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/ac_dc",
+          "name": "AC/DC"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "ac_dc_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/ac_dc",
+          "name": "AC/DC"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "ac_dc_artist_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/ac_dc",
+          "name": "AC/DC"
+        },
+        "media_type": "artist",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.244
+    },
+    {
+      "id": "ac_dc_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/ac_dc/back_in_black",
+          "name": "Back in Black",
+          "artist": "AC/DC"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "ac_dc_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/ac_dc/back_in_black",
+          "name": "Back in Black",
+          "artist": "AC/DC"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "ac_dc_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/ac_dc/back_in_black",
+          "name": "Back in Black",
+          "artist": "AC/DC"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "ac_dc_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/ac_dc/0",
+          "name": "You Shook Me All Night Long",
+          "artist": "AC/DC",
+          "album": "Back in Black"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "ac_dc_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/ac_dc/0",
+          "name": "You Shook Me All Night Long",
+          "artist": "AC/DC",
+          "album": "Back in Black"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "ac_dc_track_0_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/ac_dc/0",
+          "name": "You Shook Me All Night Long",
+          "artist": "AC/DC",
+          "album": "Back in Black"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "ac_dc_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/ac_dc/0",
+          "name": "You Shook Me All Night Long",
+          "artist": "AC/DC",
+          "album": "Back in Black"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "ac_dc_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/ac_dc/0/live",
+          "name": "You Shook Me All Night Long",
+          "artist": "AC/DC",
+          "album": "Back in Black",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "ac_dc_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.362
+    },
+    {
+      "id": "ac_dc_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/ac_dc/1",
+          "name": "Hells Bells",
+          "artist": "AC/DC",
+          "album": "Back in Black"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "ac_dc_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/ac_dc/1",
+          "name": "Hells Bells",
+          "artist": "AC/DC",
+          "album": "Back in Black"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "ac_dc_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/ac_dc/1",
+          "name": "Hells Bells",
+          "artist": "AC/DC",
+          "album": "Back in Black"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.002
+    },
+    {
+      "id": "ac_dc_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/ac_dc/1/live",
+          "name": "Hells Bells",
+          "artist": "AC/DC",
+          "album": "Back in Black",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "ac_dc_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.324
+    },
+    {
+      "id": "ac_dc_wrong_performer",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.608
+    },
+    {
+      "id": "dire_straits_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/dire_straits",
+          "name": "Dire Straits"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "dire_straits_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/dire_straits",
+          "name": "Dire Straits"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "dire_straits_artist_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/dire_straits",
+          "name": "Dire Straits"
+        },
+        "media_type": "artist",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "dire_straits_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/dire_straits/brothers_in_arms",
+          "name": "Brothers in Arms",
+          "artist": "Dire Straits"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "dire_straits_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/dire_straits/brothers_in_arms",
+          "name": "Brothers in Arms",
+          "artist": "Dire Straits"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "dire_straits_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/dire_straits/brothers_in_arms",
+          "name": "Brothers in Arms",
+          "artist": "Dire Straits"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "dire_straits_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/dire_straits/0",
+          "name": "Money for Nothing",
+          "artist": "Dire Straits",
+          "album": "Brothers in Arms"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "dire_straits_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/dire_straits/0",
+          "name": "Money for Nothing",
+          "artist": "Dire Straits",
+          "album": "Brothers in Arms"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "dire_straits_track_0_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/dire_straits/0",
+          "name": "Money for Nothing",
+          "artist": "Dire Straits",
+          "album": "Brothers in Arms"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "dire_straits_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/dire_straits/0",
+          "name": "Money for Nothing",
+          "artist": "Dire Straits",
+          "album": "Brothers in Arms"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.002
+    },
+    {
+      "id": "dire_straits_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/dire_straits/0/live",
+          "name": "Money for Nothing",
+          "artist": "Dire Straits",
+          "album": "Brothers in Arms",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "dire_straits_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.307
+    },
+    {
+      "id": "dire_straits_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/dire_straits/1",
+          "name": "Walk of Life",
+          "artist": "Dire Straits",
+          "album": "Brothers in Arms"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "dire_straits_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/dire_straits/1",
+          "name": "Walk of Life",
+          "artist": "Dire Straits",
+          "album": "Brothers in Arms"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "dire_straits_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/dire_straits/1",
+          "name": "Walk of Life",
+          "artist": "Dire Straits",
+          "album": "Brothers in Arms"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.002
+    },
+    {
+      "id": "dire_straits_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/dire_straits/1/live",
+          "name": "Walk of Life",
+          "artist": "Dire Straits",
+          "album": "Brothers in Arms",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "dire_straits_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.319
+    },
+    {
+      "id": "dire_straits_wrong_performer",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.587
+    },
+    {
+      "id": "metallica_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/metallica",
+          "name": "Metallica"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "metallica_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/metallica",
+          "name": "Metallica"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "metallica_artist_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/metallica",
+          "name": "Metallica"
+        },
+        "media_type": "artist",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.268
+    },
+    {
+      "id": "metallica_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/metallica/metallica",
+          "name": "Metallica",
+          "artist": "Metallica"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "metallica_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/metallica/metallica",
+          "name": "Metallica",
+          "artist": "Metallica"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "metallica_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/metallica/metallica",
+          "name": "Metallica",
+          "artist": "Metallica"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "metallica_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/metallica/0",
+          "name": "Enter Sandman",
+          "artist": "Metallica",
+          "album": "Metallica"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "metallica_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/metallica/0",
+          "name": "Enter Sandman",
+          "artist": "Metallica",
+          "album": "Metallica"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "metallica_track_0_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/metallica/0",
+          "name": "Enter Sandman",
+          "artist": "Metallica",
+          "album": "Metallica"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "metallica_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/metallica/0",
+          "name": "Enter Sandman",
+          "artist": "Metallica",
+          "album": "Metallica"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "metallica_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/metallica/0/live",
+          "name": "Enter Sandman",
+          "artist": "Metallica",
+          "album": "Metallica",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "metallica_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.323
+    },
+    {
+      "id": "metallica_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/metallica/1",
+          "name": "Nothing Else Matters",
+          "artist": "Metallica",
+          "album": "Metallica"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "metallica_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/metallica/1",
+          "name": "Nothing Else Matters",
+          "artist": "Metallica",
+          "album": "Metallica"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "metallica_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/metallica/1",
+          "name": "Nothing Else Matters",
+          "artist": "Metallica",
+          "album": "Metallica"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "metallica_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/metallica/1/live",
+          "name": "Nothing Else Matters",
+          "artist": "Metallica",
+          "album": "Metallica",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "metallica_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.309
+    },
+    {
+      "id": "metallica_wrong_performer",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.498
+    },
+    {
+      "id": "muse_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/muse",
+          "name": "Muse"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "muse_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/muse",
+          "name": "Muse"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "muse_artist_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/muse",
+          "name": "Muse"
+        },
+        "media_type": "artist",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.258
+    },
+    {
+      "id": "muse_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/muse/black_holes_and_revelations",
+          "name": "Black Holes and Revelations",
+          "artist": "Muse"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "muse_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/muse/black_holes_and_revelations",
+          "name": "Black Holes and Revelations",
+          "artist": "Muse"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "muse_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/muse/black_holes_and_revelations",
+          "name": "Black Holes and Revelations",
+          "artist": "Muse"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "muse_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/muse/0",
+          "name": "Supermassive Black Hole",
+          "artist": "Muse",
+          "album": "Black Holes and Revelations"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "muse_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/muse/0",
+          "name": "Supermassive Black Hole",
+          "artist": "Muse",
+          "album": "Black Holes and Revelations"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "muse_track_0_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/muse/0",
+          "name": "Supermassive Black Hole",
+          "artist": "Muse",
+          "album": "Black Holes and Revelations"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "muse_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/muse/0",
+          "name": "Supermassive Black Hole",
+          "artist": "Muse",
+          "album": "Black Holes and Revelations"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.002
+    },
+    {
+      "id": "muse_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/muse/0/live",
+          "name": "Supermassive Black Hole",
+          "artist": "Muse",
+          "album": "Black Holes and Revelations",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "muse_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.324
+    },
+    {
+      "id": "muse_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/muse/1",
+          "name": "Knights of Cydonia",
+          "artist": "Muse",
+          "album": "Black Holes and Revelations"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "muse_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/muse/1",
+          "name": "Knights of Cydonia",
+          "artist": "Muse",
+          "album": "Black Holes and Revelations"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "muse_track_1_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/muse/1",
+          "name": "Knights of Cydonia",
+          "artist": "Muse",
+          "album": "Black Holes and Revelations"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "muse_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/muse/1",
+          "name": "Knights of Cydonia",
+          "artist": "Muse",
+          "album": "Black Holes and Revelations"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.002
+    },
+    {
+      "id": "muse_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/muse/1/live",
+          "name": "Knights of Cydonia",
+          "artist": "Muse",
+          "album": "Black Holes and Revelations",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "muse_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.308
+    },
+    {
+      "id": "muse_wrong_performer",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 1.66
+    },
+    {
+      "id": "myles_kennedy_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/myles_kennedy",
+          "name": "Myles Kennedy"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "myles_kennedy_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/myles_kennedy",
+          "name": "Myles Kennedy"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "myles_kennedy_artist_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/myles_kennedy",
+          "name": "Myles Kennedy"
+        },
+        "media_type": "artist",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "myles_kennedy_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/myles_kennedy/year_of_the_tiger",
+          "name": "Year of the Tiger",
+          "artist": "Myles Kennedy"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "myles_kennedy_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/myles_kennedy/year_of_the_tiger",
+          "name": "Year of the Tiger",
+          "artist": "Myles Kennedy"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "myles_kennedy_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/myles_kennedy/year_of_the_tiger",
+          "name": "Year of the Tiger",
+          "artist": "Myles Kennedy"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "myles_kennedy_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/myles_kennedy/0",
+          "name": "Year of the Tiger",
+          "artist": "Myles Kennedy",
+          "album": "Year of the Tiger"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "myles_kennedy_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/myles_kennedy/0",
+          "name": "Year of the Tiger",
+          "artist": "Myles Kennedy",
+          "album": "Year of the Tiger"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "myles_kennedy_track_0_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/myles_kennedy/0",
+          "name": "Year of the Tiger",
+          "artist": "Myles Kennedy",
+          "album": "Year of the Tiger"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "myles_kennedy_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/myles_kennedy/0",
+          "name": "Year of the Tiger",
+          "artist": "Myles Kennedy",
+          "album": "Year of the Tiger"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.002
+    },
+    {
+      "id": "myles_kennedy_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/myles_kennedy/0/live",
+          "name": "Year of the Tiger",
+          "artist": "Myles Kennedy",
+          "album": "Year of the Tiger",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "myles_kennedy_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.391
+    },
+    {
+      "id": "myles_kennedy_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/myles_kennedy/1",
+          "name": "Love Can Only Heal",
+          "artist": "Myles Kennedy",
+          "album": "Year of the Tiger"
+        }
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "myles_kennedy_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/myles_kennedy/1",
+          "name": "Love Can Only Heal",
+          "artist": "Myles Kennedy",
+          "album": "Year of the Tiger"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "myles_kennedy_track_1_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/myles_kennedy/1",
+          "name": "Love Can Only Heal",
+          "artist": "Myles Kennedy",
+          "album": "Year of the Tiger"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "myles_kennedy_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/myles_kennedy/1",
+          "name": "Love Can Only Heal",
+          "artist": "Myles Kennedy",
+          "album": "Year of the Tiger"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "myles_kennedy_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/myles_kennedy/1/live",
+          "name": "Love Can Only Heal",
+          "artist": "Myles Kennedy",
+          "album": "Year of the Tiger",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "myles_kennedy_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.354
+    },
+    {
+      "id": "myles_kennedy_wrong_performer",
+      "category": "negative",
+      "status": "fail",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/pantera/vulgar_display_of_power",
+          "name": "Vulgar Display of Power",
+          "artist": "Pantera"
+        },
+        "resolution": "verified_name_correction"
+      },
+      "seconds": 0.56
+    },
+    {
+      "id": "pantera_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/pantera",
+          "name": "Pantera"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pantera_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/pantera",
+          "name": "Pantera"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pantera_artist_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/pantera",
+          "name": "Pantera"
+        },
+        "media_type": "artist",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "pantera_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/pantera/vulgar_display_of_power",
+          "name": "Vulgar Display of Power",
+          "artist": "Pantera"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pantera_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/pantera/vulgar_display_of_power",
+          "name": "Vulgar Display of Power",
+          "artist": "Pantera"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pantera_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/pantera/vulgar_display_of_power",
+          "name": "Vulgar Display of Power",
+          "artist": "Pantera"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "pantera_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pantera/0",
+          "name": "Walk",
+          "artist": "Pantera",
+          "album": "Vulgar Display of Power"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pantera_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pantera/0",
+          "name": "Walk",
+          "artist": "Pantera",
+          "album": "Vulgar Display of Power"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pantera_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pantera/0",
+          "name": "Walk",
+          "artist": "Pantera",
+          "album": "Vulgar Display of Power"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "pantera_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pantera/0/live",
+          "name": "Walk",
+          "artist": "Pantera",
+          "album": "Vulgar Display of Power",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pantera_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.305
+    },
+    {
+      "id": "pantera_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pantera/1",
+          "name": "This Love",
+          "artist": "Pantera",
+          "album": "Vulgar Display of Power"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pantera_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pantera/1",
+          "name": "This Love",
+          "artist": "Pantera",
+          "album": "Vulgar Display of Power"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pantera_track_1_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pantera/1",
+          "name": "This Love",
+          "artist": "Pantera",
+          "album": "Vulgar Display of Power"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.234
+    },
+    {
+      "id": "pantera_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pantera/1",
+          "name": "This Love",
+          "artist": "Pantera",
+          "album": "Vulgar Display of Power"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.002
+    },
+    {
+      "id": "pantera_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/pantera/1/live",
+          "name": "This Love",
+          "artist": "Pantera",
+          "album": "Vulgar Display of Power",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "pantera_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.317
+    },
+    {
+      "id": "pantera_wrong_performer",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.839
+    },
+    {
+      "id": "reef_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/reef",
+          "name": "Reef"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "reef_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/reef",
+          "name": "Reef"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "reef_artist_spoken",
+      "category": "spoken",
+      "status": "fail",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.522
+    },
+    {
+      "id": "reef_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/reef/glow",
+          "name": "Glow",
+          "artist": "Reef"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "reef_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/reef/glow",
+          "name": "Glow",
+          "artist": "Reef"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "reef_album_spoken_artist",
+      "category": "combined",
+      "status": "fail",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.296
+    },
+    {
+      "id": "reef_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/reef/0",
+          "name": "Place Your Hands",
+          "artist": "Reef",
+          "album": "Glow"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "reef_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/reef/0",
+          "name": "Place Your Hands",
+          "artist": "Reef",
+          "album": "Glow"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "reef_track_0_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/reef/0",
+          "name": "Place Your Hands",
+          "artist": "Reef",
+          "album": "Glow"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "reef_track_0_spoken_artist",
+      "category": "combined",
+      "status": "fail",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.311
+    },
+    {
+      "id": "reef_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/reef/0/live",
+          "name": "Place Your Hands",
+          "artist": "Reef",
+          "album": "Glow",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "reef_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.333
+    },
+    {
+      "id": "reef_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/reef/1",
+          "name": "Come Back Brighter",
+          "artist": "Reef",
+          "album": "Glow"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "reef_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/reef/1",
+          "name": "Come Back Brighter",
+          "artist": "Reef",
+          "album": "Glow"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "reef_track_1_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/reef/1",
+          "name": "Come Back Brighter",
+          "artist": "Reef",
+          "album": "Glow"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "reef_track_1_spoken_artist",
+      "category": "combined",
+      "status": "fail",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.287
+    },
+    {
+      "id": "reef_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/reef/1/live",
+          "name": "Come Back Brighter",
+          "artist": "Reef",
+          "album": "Glow",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "reef_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.337
+    },
+    {
+      "id": "reef_wrong_performer",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.546
+    },
+    {
+      "id": "slash_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/slash",
+          "name": "Slash"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/slash",
+          "name": "Slash"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/slash/slash",
+          "name": "Slash",
+          "artist": "Slash"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/slash/slash",
+          "name": "Slash",
+          "artist": "Slash"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/slash/slash",
+          "name": "Slash",
+          "artist": "Slash"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash/0",
+          "name": "Back from Cali",
+          "artist": "Slash",
+          "album": "Slash"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash/0",
+          "name": "Back from Cali",
+          "artist": "Slash",
+          "album": "Slash"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash/0",
+          "name": "Back from Cali",
+          "artist": "Slash",
+          "album": "Slash"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash/0/live",
+          "name": "Back from Cali",
+          "artist": "Slash",
+          "album": "Slash",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.299
+    },
+    {
+      "id": "slash_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash/1",
+          "name": "By the Sword",
+          "artist": "Slash",
+          "album": "Slash"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash/1",
+          "name": "By the Sword",
+          "artist": "Slash",
+          "album": "Slash"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_track_1_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash/1",
+          "name": "By the Sword",
+          "artist": "Slash",
+          "album": "Slash"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "slash_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash/1",
+          "name": "By the Sword",
+          "artist": "Slash",
+          "album": "Slash"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "slash_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash/1/live",
+          "name": "By the Sword",
+          "artist": "Slash",
+          "album": "Slash",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.319
+    },
+    {
+      "id": "slash_wrong_performer",
+      "category": "negative",
+      "status": "fail",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/slash_s_snakepit/it_s_five_o_clock_somewhere",
+          "name": "It's Five O'Clock Somewhere",
+          "artist": "Slash's Snakepit"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.258
+    },
+    {
+      "id": "slash_s_snakepit_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/slash_s_snakepit",
+          "name": "Slash's Snakepit"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_s_snakepit_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/slash_s_snakepit",
+          "name": "Slash's Snakepit"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_s_snakepit_artist_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/slash_s_snakepit",
+          "name": "Slash's Snakepit"
+        },
+        "media_type": "artist",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "slash_s_snakepit_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/slash_s_snakepit/it_s_five_o_clock_somewhere",
+          "name": "It's Five O'Clock Somewhere",
+          "artist": "Slash's Snakepit"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_s_snakepit_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/slash_s_snakepit/it_s_five_o_clock_somewhere",
+          "name": "It's Five O'Clock Somewhere",
+          "artist": "Slash's Snakepit"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_s_snakepit_album_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/slash_s_snakepit/it_s_five_o_clock_somewhere",
+          "name": "It's Five O'Clock Somewhere",
+          "artist": "Slash's Snakepit"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_s_snakepit_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/slash_s_snakepit/it_s_five_o_clock_somewhere",
+          "name": "It's Five O'Clock Somewhere",
+          "artist": "Slash's Snakepit"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "slash_s_snakepit_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash_s_snakepit/0",
+          "name": "Beggars & Hangers-On",
+          "artist": "Slash's Snakepit",
+          "album": "It's Five O'Clock Somewhere"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_s_snakepit_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash_s_snakepit/0",
+          "name": "Beggars & Hangers-On",
+          "artist": "Slash's Snakepit",
+          "album": "It's Five O'Clock Somewhere"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "slash_s_snakepit_track_0_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash_s_snakepit/0",
+          "name": "Beggars & Hangers-On",
+          "artist": "Slash's Snakepit",
+          "album": "It's Five O'Clock Somewhere"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "slash_s_snakepit_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash_s_snakepit/0",
+          "name": "Beggars & Hangers-On",
+          "artist": "Slash's Snakepit",
+          "album": "It's Five O'Clock Somewhere"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.002
+    },
+    {
+      "id": "slash_s_snakepit_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash_s_snakepit/0/live",
+          "name": "Beggars & Hangers-On",
+          "artist": "Slash's Snakepit",
+          "album": "It's Five O'Clock Somewhere",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_s_snakepit_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.423
+    },
+    {
+      "id": "slash_s_snakepit_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash_s_snakepit/1",
+          "name": "Neither Can I",
+          "artist": "Slash's Snakepit",
+          "album": "It's Five O'Clock Somewhere"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_s_snakepit_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash_s_snakepit/1",
+          "name": "Neither Can I",
+          "artist": "Slash's Snakepit",
+          "album": "It's Five O'Clock Somewhere"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_s_snakepit_track_1_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash_s_snakepit/1",
+          "name": "Neither Can I",
+          "artist": "Slash's Snakepit",
+          "album": "It's Five O'Clock Somewhere"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.244
+    },
+    {
+      "id": "slash_s_snakepit_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash_s_snakepit/1",
+          "name": "Neither Can I",
+          "artist": "Slash's Snakepit",
+          "album": "It's Five O'Clock Somewhere"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.002
+    },
+    {
+      "id": "slash_s_snakepit_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash_s_snakepit/1/live",
+          "name": "Neither Can I",
+          "artist": "Slash's Snakepit",
+          "album": "It's Five O'Clock Somewhere",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slash_s_snakepit_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.352
+    },
+    {
+      "id": "slash_s_snakepit_wrong_performer",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.618
+    },
+    {
+      "id": "slipknot_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/slipknot",
+          "name": "Slipknot"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slipknot_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/slipknot",
+          "name": "Slipknot"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slipknot_artist_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/slipknot",
+          "name": "Slipknot"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slipknot_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/slipknot/vol_3_the_subliminal_verses",
+          "name": "Vol. 3: (The Subliminal Verses)",
+          "artist": "Slipknot"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slipknot_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/slipknot/vol_3_the_subliminal_verses",
+          "name": "Vol. 3: (The Subliminal Verses)",
+          "artist": "Slipknot"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slipknot_album_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/slipknot/vol_3_the_subliminal_verses",
+          "name": "Vol. 3: (The Subliminal Verses)",
+          "artist": "Slipknot"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.29
+    },
+    {
+      "id": "slipknot_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/slipknot/vol_3_the_subliminal_verses",
+          "name": "Vol. 3: (The Subliminal Verses)",
+          "artist": "Slipknot"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "slipknot_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slipknot/0",
+          "name": "Duality",
+          "artist": "Slipknot",
+          "album": "Vol. 3: (The Subliminal Verses)"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slipknot_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slipknot/0",
+          "name": "Duality",
+          "artist": "Slipknot",
+          "album": "Vol. 3: (The Subliminal Verses)"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slipknot_track_0_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slipknot/0",
+          "name": "Duality",
+          "artist": "Slipknot",
+          "album": "Vol. 3: (The Subliminal Verses)"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.246
+    },
+    {
+      "id": "slipknot_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slipknot/0",
+          "name": "Duality",
+          "artist": "Slipknot",
+          "album": "Vol. 3: (The Subliminal Verses)"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "slipknot_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slipknot/0/live",
+          "name": "Duality",
+          "artist": "Slipknot",
+          "album": "Vol. 3: (The Subliminal Verses)",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slipknot_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.3
+    },
+    {
+      "id": "slipknot_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slipknot/1",
+          "name": "Before I Forget",
+          "artist": "Slipknot",
+          "album": "Vol. 3: (The Subliminal Verses)"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slipknot_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slipknot/1",
+          "name": "Before I Forget",
+          "artist": "Slipknot",
+          "album": "Vol. 3: (The Subliminal Verses)"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slipknot_track_1_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slipknot/1",
+          "name": "Before I Forget",
+          "artist": "Slipknot",
+          "album": "Vol. 3: (The Subliminal Verses)"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.24
+    },
+    {
+      "id": "slipknot_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slipknot/1",
+          "name": "Before I Forget",
+          "artist": "Slipknot",
+          "album": "Vol. 3: (The Subliminal Verses)"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.002
+    },
+    {
+      "id": "slipknot_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slipknot/1/live",
+          "name": "Before I Forget",
+          "artist": "Slipknot",
+          "album": "Vol. 3: (The Subliminal Verses)",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "slipknot_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.342
+    },
+    {
+      "id": "slipknot_wrong_performer",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.66
+    },
+    {
+      "id": "stone_sour_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/stone_sour",
+          "name": "Stone Sour"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "stone_sour_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/stone_sour",
+          "name": "Stone Sour"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "stone_sour_artist_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/stone_sour",
+          "name": "Stone Sour"
+        },
+        "media_type": "artist",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.255
+    },
+    {
+      "id": "stone_sour_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/stone_sour/come_what_ever_may",
+          "name": "Come What(ever) May",
+          "artist": "Stone Sour"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "stone_sour_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/stone_sour/come_what_ever_may",
+          "name": "Come What(ever) May",
+          "artist": "Stone Sour"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "stone_sour_album_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/stone_sour/come_what_ever_may",
+          "name": "Come What(ever) May",
+          "artist": "Stone Sour"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "stone_sour_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/stone_sour/come_what_ever_may",
+          "name": "Come What(ever) May",
+          "artist": "Stone Sour"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "stone_sour_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/stone_sour/0",
+          "name": "Through Glass",
+          "artist": "Stone Sour",
+          "album": "Come What(ever) May"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "stone_sour_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/stone_sour/0",
+          "name": "Through Glass",
+          "artist": "Stone Sour",
+          "album": "Come What(ever) May"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "stone_sour_track_0_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/stone_sour/0",
+          "name": "Through Glass",
+          "artist": "Stone Sour",
+          "album": "Come What(ever) May"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.252
+    },
+    {
+      "id": "stone_sour_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/stone_sour/0",
+          "name": "Through Glass",
+          "artist": "Stone Sour",
+          "album": "Come What(ever) May"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.002
+    },
+    {
+      "id": "stone_sour_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/stone_sour/0/live",
+          "name": "Through Glass",
+          "artist": "Stone Sour",
+          "album": "Come What(ever) May",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "stone_sour_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.317
+    },
+    {
+      "id": "stone_sour_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/stone_sour/1",
+          "name": "30/30-150",
+          "artist": "Stone Sour",
+          "album": "Come What(ever) May"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "stone_sour_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/stone_sour/1",
+          "name": "30/30-150",
+          "artist": "Stone Sour",
+          "album": "Come What(ever) May"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "stone_sour_track_1_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/stone_sour/1",
+          "name": "30/30-150",
+          "artist": "Stone Sour",
+          "album": "Come What(ever) May"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.233
+    },
+    {
+      "id": "stone_sour_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/stone_sour/1",
+          "name": "30/30-150",
+          "artist": "Stone Sour",
+          "album": "Come What(ever) May"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.002
+    },
+    {
+      "id": "stone_sour_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/stone_sour/1/live",
+          "name": "30/30-150",
+          "artist": "Stone Sour",
+          "album": "Come What(ever) May",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "stone_sour_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.39
+    },
+    {
+      "id": "stone_sour_wrong_performer",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.536
+    },
+    {
+      "id": "take_that_artist_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/take_that",
+          "name": "Take That"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "take_that_artist_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/take_that",
+          "name": "Take That"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "take_that_artist_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://artist/take_that",
+          "name": "Take That"
+        },
+        "media_type": "artist",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.297
+    },
+    {
+      "id": "take_that_album_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/take_that/beautiful_world",
+          "name": "Beautiful World",
+          "artist": "Take That"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "take_that_album_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/take_that/beautiful_world",
+          "name": "Beautiful World",
+          "artist": "Take That"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "take_that_album_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/take_that/beautiful_world",
+          "name": "Beautiful World",
+          "artist": "Take That"
+        },
+        "media_type": "album",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "take_that_track_0_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/take_that/0",
+          "name": "Patience",
+          "artist": "Take That",
+          "album": "Beautiful World"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "take_that_track_0_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/take_that/0",
+          "name": "Patience",
+          "artist": "Take That",
+          "album": "Beautiful World"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "take_that_track_0_spoken",
+      "category": "spoken",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/take_that/0",
+          "name": "Patience",
+          "artist": "Take That",
+          "album": "Beautiful World"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.239
+    },
+    {
+      "id": "take_that_track_0_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/take_that/0",
+          "name": "Patience",
+          "artist": "Take That",
+          "album": "Beautiful World"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.002
+    },
+    {
+      "id": "take_that_track_0_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/take_that/0/live",
+          "name": "Patience",
+          "artist": "Take That",
+          "album": "Beautiful World",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "take_that_track_0_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.296
+    },
+    {
+      "id": "take_that_track_1_canonical",
+      "category": "canonical",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/take_that/1",
+          "name": "Shine",
+          "artist": "Take That",
+          "album": "Beautiful World"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "take_that_track_1_punctuation",
+      "category": "punctuation",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/take_that/1",
+          "name": "Shine",
+          "artist": "Take That",
+          "album": "Beautiful World"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "take_that_track_1_spoken_artist",
+      "category": "combined",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/take_that/1",
+          "name": "Shine",
+          "artist": "Take That",
+          "album": "Beautiful World"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.001
+    },
+    {
+      "id": "take_that_track_1_live",
+      "category": "explicit_version",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/take_that/1/live",
+          "name": "Shine",
+          "artist": "Take That",
+          "album": "Beautiful World",
+          "version": "Live"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "take_that_track_1_wrong_version",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.366
+    },
+    {
+      "id": "take_that_wrong_performer",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.619
+    },
+    {
+      "id": "slash_is_not_snakepit",
+      "category": "negative",
+      "status": "fail",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://track/slash/0",
+          "name": "Back from Cali",
+          "artist": "Slash",
+          "album": "Slash"
+        },
+        "media_type": "track",
+        "resolution": "artist_catalog"
+      },
+      "seconds": 0.225
+    },
+    {
+      "id": "unknown_artist_0",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.549
+    },
+    {
+      "id": "unknown_artist_1",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.537
+    },
+    {
+      "id": "unknown_artist_2",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.56
+    },
+    {
+      "id": "wrong_album_number",
+      "category": "negative",
+      "status": "pass",
+      "result": {
+        "status": "not_found",
+        "message": "No confident match was found. Ask for the artist or the exact title. Nothing has been queued."
+      },
+      "seconds": 0.352
+    },
+    {
+      "id": "guns_n_roses_redundant_album_field",
+      "category": "duplicate_album",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/guns_n_roses/use_your_illusion_ii",
+          "name": "Use Your Illusion II",
+          "artist": "Guns N' Roses"
+        }
+      },
+      "seconds": 0.0
+    },
+    {
+      "id": "alter_bridge_redundant_album_field",
+      "category": "duplicate_album",
+      "status": "pass",
+      "result": {
+        "status": "matched",
+        "match": {
+          "uri": "fixture://album/alter_bridge/ab_iii",
+          "name": "AB III",
+          "artist": "Alter Bridge"
+        }
+      },
+      "seconds": 0.0
+    }
+  ],
+  "totals": {
+    "pass": 379,
+    "fail": 7,
+    "skip": 0
+  }
+}

@@ -1,5 +1,13 @@
 # Changes
 
+## 0.4.1 - favourite-artist regression suite
+
+- Add 386 artist, album and track matching cases across the user's 20 favourite artists, with independently sourced canonical metadata and synthetic release variants.
+- Reject unrelated advisor-selected titles and name corrections even when the advisor reports high confidence. Require independent spelling/phonetic evidence and retain performer constraints.
+- Recover short phonetic artist names such as Reeve/Reef when the catalog has a unique close match; support evidence from spoken letters and numeric title components.
+- Rank spoken numeric titles before selecting a shortlist, fixing the live-library miss for Stone Sour's 30/30-150; test against more than 12 competing tracks.
+- Record a fresh 386/386 real-advisor benchmark and replay those actual responses in offline CI. Preserve the 379/386 baseline and document the distinction from live-library and microphone testing.
+
 ## 0.4.0 — catalog and music-agent fallback
 
 - Fix the first-attempt Mammoth II failure: duplicate album fields no longer filter album results as if they were tracks.

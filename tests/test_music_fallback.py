@@ -5,13 +5,70 @@ from unittest.mock import AsyncMock
 import test_experience
 from test_music import track
 from custom_components.echo_experience.music import resolve_music
-from custom_components.echo_experience.music_fallback import resolve_with_fallback, parse_advice, select
+from custom_components.echo_experience.music_fallback import resolve_with_fallback, parse_advice, select, plausible_name
 
 ARTIST={'name':'Alter Bridge','uri':'library://artist/1'}
 ALBUM={'name':'Blackbird','uri':'library://album/1','artists':[ARTIST]}
 EMPTY=AsyncMock(return_value={})
 
 class FallbackTest(unittest.IsolatedAsyncioTestCase):
+    async def test_spoken_numeric_title_survives_large_artist_catalog(self):
+        performer = {'name': 'Stone Sour', 'uri': 'stone-sour'}
+        wanted = {'name': '30/30-150', 'uri': 'numeric-track', 'artists': [performer]}
+        distractors = [{'name': name, 'uri': str(n), 'artists': [performer]} for n, name in enumerate([
+            'Through Glass', 'Come Whatever May', 'Made of Scars', 'Reborn', 'Your God',
+            'Sillyworld', 'Socio', '1st Person', 'Cardiff', 'Zzyzx Rd', 'Hell and Consequences',
+            'Bother', 'Get Inside', 'Inhale', 'Blue Study', 'Orchids'])]
+        async def catalog(kind, uri):
+            return [performer] if kind == 'artist' else [*distractors, wanted]
+        advisor = AsyncMock(return_value='{"index":0,"confidence":"high"}')
+        result = await resolve_with_fallback(EMPTY, catalog, advisor,
+            'thirty thirty one fifty', 'track', 'stone sower')
+        self.assertEqual(result['match']['uri'], wanted['uri'])
+        advisor.assert_called_once()
+        self.assertEqual(advisor.call_args.args[0]['request']['media_type'], 'artist')
+
+    def test_short_phonetic_artist_requires_unique_catalog_identity(self):
+        reef = {'name': 'Reef', 'uri': 'reef'}
+        item, _ = select([reef], 'reeve', 'artist')
+        self.assertEqual(item, reef)
+        for other in ({'name': 'Reeve', 'uri': 'reeve'}, {'name': 'Reef', 'uri': 'another-reef'}):
+            item, _ = select([reef, other], 'reev', 'artist')
+            self.assertIsNone(item)
+        item, _ = select([{'name': "Slash's Snakepit", 'uri': 'snakepit'}], 'Slash', 'artist')
+        self.assertIsNone(item)
+
+    def test_advisor_plausibility_preserves_spoken_letters_numbers_and_titles(self):
+        for query, name, kind in [('a sea dee sea', 'AC/DC', 'artist'),
+                                 ('thirty thirty one fifty', '30/30-150', 'track'),
+                                 ('mews', 'Muse', 'artist'), ('doo ality', 'Duality', 'track'),
+                                 ('threw glass', 'Through Glass', 'track')]:
+            with self.subTest(query=query):
+                self.assertTrue(plausible_name(query, name, kind))
+
+    async def test_confident_advisor_cannot_substitute_unrelated_work(self):
+        for query, name, artist, kind in [('Year of the Tiger', 'Vulgar Display of Power', 'Pantera', 'album'),
+                                         ('Slash', "It's Five O'Clock Somewhere", "Slash's Snakepit", 'album'),
+                                         ('Beggars and Hangers On', 'Back from Cali', 'Slash', 'track')]:
+            with self.subTest(query=query):
+                performer = {'name': artist, 'uri': 'artist'}
+                item = {'name': name, 'uri': 'unrelated', 'artists': [performer]}
+                async def catalog(k, uri):
+                    return [performer] if k == 'artist' else [item]
+                async def search(data):
+                    return {kind + 's': [item]} if data['name'] == name else {}
+                advisor = AsyncMock(side_effect=[json.dumps({'index': 0, 'confidence': 'high'}),
+                    json.dumps({'query': name, 'artist': artist, 'confidence': 'high'})])
+                result = await resolve_with_fallback(search, catalog, advisor, query, kind, artist)
+                self.assertEqual(result['status'], 'not_found')
+
+    async def test_correction_cannot_replace_unresolved_performer(self):
+        advisor = AsyncMock(return_value=json.dumps({'query': 'Sweet Child O Mine',
+            'artist': 'Guns N Roses', 'confidence': 'high'}))
+        result = await resolve_with_fallback(AsyncMock(return_value={'tracks': [track()]}),
+            AsyncMock(return_value=[]), advisor, 'Sweet Child O Mine', 'track', 'Unknown Performer')
+        self.assertEqual(result['status'], 'not_found')
+
     async def test_exact_match_never_calls_advisor_or_catalog(self):
         search=AsyncMock(return_value={'tracks':[track()]});catalog=AsyncMock();advisor=AsyncMock()
         result=await resolve_with_fallback(search,catalog,advisor,'Sweet Child O Mine','track','Guns N Roses')

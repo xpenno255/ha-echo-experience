@@ -6,6 +6,20 @@ from difflib import SequenceMatcher
 from .music import (resolve_music, key, canonical, summary, matches, base_title,
                     prefer_editions, RESULT_KEYS, edition_suffix)
 
+SPOKEN_NUMBERS = dict(zip(('zero one two three four five six seven eight nine ten eleven twelve '
+                          'thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty thirty '
+                          'forty fifty sixty seventy eighty ninety').split(),
+                         map(str, [*range(21), 30, 40, 50, 60, 70, 80, 90])))
+
+
+def ranking_key(text, kind):
+    text = canonical(base_title(text, kind), kind)
+    tokens = text.split()
+    # Numeric titles must reach the shortlist even in a large artist catalog.
+    if tokens and all(t in SPOKEN_NUMBERS or t.isdecimal() for t in tokens):
+        return ''.join(SPOKEN_NUMBERS.get(t, t) for t in tokens)
+    return text.replace(' ', '')
+
 
 def number_compatible(query, name, kind):
     a = re.findall(r'\b\d+\b', canonical(base_title(query, kind), kind))
@@ -16,8 +30,45 @@ def number_compatible(query, name, kind):
 def similarity(query, name, kind):
     if not number_compatible(query, name, kind):
         return 0.0
-    return SequenceMatcher(None, key(base_title(query, kind), kind),
-                           key(base_title(name, kind), kind)).ratio()
+    return SequenceMatcher(None, ranking_key(query, kind), ranking_key(name, kind)).ratio()
+
+
+def phonetic_key(text):
+    """Small consonant key used as evidence, never as a global artist alias."""
+    text = key(text, 'artist')
+    groups = {c: str(n) for n, chars in enumerate(('bfpv', 'cgjkqsxz', 'dt', 'l', 'mn', 'r'), 1)
+              for c in chars}
+    codes = ''.join(groups.get(c, '') for c in text)
+    return re.sub(r'(.)\1+', r'\1', codes)
+
+
+def plausible_name(query, name, kind):
+    """Require independent name evidence before trusting an advisor's choice."""
+    if not number_compatible(query, name, kind):
+        return False
+    a, b = (canonical(base_title(s, kind), kind) for s in (query, name))
+    if not a or not b:
+        return False
+    if key(a, kind) == key(b, kind):
+        return True
+    # Spoken letters and number components are common in band/track names.
+    letters = {'a': 'a', 'ay': 'a', 'bee': 'b', 'be': 'b', 'sea': 'c', 'see': 'c',
+               'dee': 'd', 'ee': 'e', 'ef': 'f', 'gee': 'g', 'aitch': 'h',
+               'eye': 'i', 'jay': 'j', 'kay': 'k', 'el': 'l', 'em': 'm', 'en': 'n',
+               'oh': 'o', 'pee': 'p', 'cue': 'q', 'ar': 'r', 'ess': 's', 'tee': 't',
+               'you': 'u', 'vee': 'v', 'ex': 'x', 'why': 'y', 'zed': 'z', 'zee': 'z'}
+    for source, target in ((a, b), (b, a)):
+        tokens = source.split()
+        if all(t in letters or len(t) == 1 for t in tokens):
+            if ''.join(letters.get(t, t) for t in tokens) == target.replace(' ', ''):
+                return True
+        if ''.join(SPOKEN_NUMBERS.get(t, t) for t in tokens) == target.replace(' ', ''):
+            return True
+    score = similarity(a, b, kind)
+    if score >= (.75 if min(len(key(a, kind)), len(key(b, kind))) < 6 else .60):
+        return True
+    return (score >= .5 and bool(phonetic_key(a)) and phonetic_key(a) == phonetic_key(b)
+            and .65 <= len(key(a, kind)) / len(key(b, kind)) <= 1.55)
 
 
 def eligible(items, kind, artist='', album='', version=''):
@@ -37,6 +88,12 @@ def select(items, query, kind, artist='', album='', version=''):
     pool = [i for i in pool if number_compatible(query, i['name'], kind)]
     pool = prefer_editions(pool, kind)
     pool.sort(key=lambda i: similarity(query, i['name'], kind), reverse=True)
+    if kind == 'artist' and 3 <= len(key(query, kind)) <= 5:
+        phonetic = [i for i in pool if 3 <= len(key(i['name'], kind)) <= 5
+                    and phonetic_key(query) and phonetic_key(query) == phonetic_key(i['name'])
+                    and similarity(query, i['name'], kind) >= .6]
+        if len(phonetic) == 1:
+            return phonetic[0], pool
     if pool and len(key(query, kind)) >= 6:
         score = similarity(query, pool[0]['name'], kind)
         runner_up = similarity(query, pool[1]['name'], kind) if len(pool) > 1 else 0
@@ -89,7 +146,8 @@ async def resolve_with_fallback(search, catalog, advisor, query, kind, artist=''
                            'candidates': [{'index': n, **summary(i)} for n, i in enumerate(pool[:12])]})
         index = answer.get('index')
         # bool is an int in Python; reject it along with arbitrary/generated IDs.
-        if type(index) is int and 0 <= index < min(len(pool), 12):
+        if (type(index) is int and 0 <= index < min(len(pool), 12)
+                and plausible_name(name, pool[index]['name'], media_type)):
             return pool[index]
         return None
 
@@ -131,7 +189,9 @@ async def resolve_with_fallback(search, catalog, advisor, query, kind, artist=''
         return initial
     if artist and kind != 'artist' and not by.strip():
         return initial
-    if '://' in title + by or not number_compatible(query, title, kind):
+    if '://' in title + by or not plausible_name(query, title, kind):
+        return initial
+    if artist and kind != 'artist' and not plausible_name(artist, by, 'artist'):
         return initial
     # An artist already identified in the catalog cannot be changed by a rewrite.
     if artist_item and key(by, 'artist') != key(artist_item['name'], 'artist'):

@@ -100,6 +100,8 @@ node tests/test_card.cjs www/echo-experience.js
 
 `verify_live.py` runs text-only requests through the dedicated pipeline using the Echo's device context. It deliberately does not claim microphone or acoustic verification. Focused deployment snapshots and live results are in the audit directory.
 
+[TOP20_TESTS.md](TOP20_TESTS.md) documents the 386-case favourite-artist corpus, fresh music-advisor benchmark, offline CI replay and read-only live-library checks.
+
 ## Fast voice stop
 
 [VOICE_STOP.md](VOICE_STOP.md) documents the sentence automation that handles “stop” before the conversation agent. Its exact routes are generated from profiles and saved in `automations/voice_music_stop.json`. Unknown devices never match every unassigned media player.

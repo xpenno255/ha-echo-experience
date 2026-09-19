@@ -1,0 +1,2183 @@
+{
+  "schema": 1,
+  "agent": "conversation.echo_music_resolver",
+  "description": "Actual music-only agent responses for deterministic regression replay. Fresh model validation uses --mode advisor --fresh.",
+  "responses": {
+    "10d249bb9ac64f271c2d97b25a889324b4236e6afc3b272178bd6f1a4fe0ba32": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Blind Man",
+          "media_type": "track",
+          "artist": "Black Stone Cherry",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Blind Man\", \"artist\": \"Black Stone Cherry\", \"confidence\": \"high\"}"
+    },
+    "eb1cf4056728d9983d937cf71b4f1559c5ef922cd0cf763f8f109f8db7acd5e8": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Please Come In",
+          "media_type": "track",
+          "artist": "Black Stone Cherry",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Please Come In\", \"artist\": \"Black Stone Cherry\", \"confidence\": \"high\"}"
+    },
+    "c46efd7d1fa95389ac52ac9b7f1cbd1d6a2c70f035435f8735ef4209a9cf0a91": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "Folklore and Superstition",
+          "media_type": "album",
+          "artist": "Alter Bridge",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/alter_bridge/ab_iii",
+            "name": "AB III",
+            "artist": "Alter Bridge"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"high\"}"
+    },
+    "ab20db9fd03a1c8ca12f1937fc4fd9496fef3de70e6e590c0d33acc11a15a6e9": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Folklore and Superstition",
+          "media_type": "album",
+          "artist": "Alter Bridge",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"Fortress\", \"artist\": \"Alter Bridge\", \"confidence\": \"high\"}"
+    },
+    "5480d10366d70d3b5a935a09f8ef7d2800f45668b9699d385c97f67377b9b5c8": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Isolation",
+          "media_type": "track",
+          "artist": "Alter Bridge",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Isolation\", \"artist\": \"Alter Bridge\", \"confidence\": \"high\"}"
+    },
+    "363c6e9b21f0ed0a79bed7e228e59b90bf2846f3211867cf9f157338b55ea0d4": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Ghost of Days Gone By",
+          "media_type": "track",
+          "artist": "Alter Bridge",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Ghost of Days Gone By\", \"artist\": \"Alter Bridge\", \"confidence\": \"high\"}"
+    },
+    "ae17c2e490d26ee5cdf4b2d792e9750d2e8a10205c788487c6f7687b146dd039": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "AB III",
+          "media_type": "album",
+          "artist": "Guns N' Roses",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"Appetite for Destruction\", \"artist\": \"Guns N' Roses\", \"confidence\": \"high\"}"
+    },
+    "14b4f7cc44def9704c0b17793e0fd552ff16d548a3aaeb1ac04f5570e0cec4e0": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "You Could Be Mine",
+          "media_type": "track",
+          "artist": "Guns N' Roses",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"You Could Be Mine\", \"artist\": \"Guns N' Roses\", \"confidence\": \"high\"}"
+    },
+    "6158bf4c4f8f2cc64218609c54d8235ddd5cef8b14b3078991bbeb929a95bada": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Knockin' on Heaven's Door",
+          "media_type": "track",
+          "artist": "Guns N' Roses",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Knockin' on Heaven's Door\", \"artist\": \"Guns N' Roses\", \"confidence\": \"high\"}"
+    },
+    "94025a1775d631d051f31599769d875d4e02223c6af741e954450516f24af630": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "Use Your Illusion II",
+          "media_type": "album",
+          "artist": "Foo Fighters",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/foo_fighters/wasting_light",
+            "name": "Wasting Light",
+            "artist": "Foo Fighters"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "50d606db005e566d598695a2acc1a29ab80466d2520f0be70902d035ff8aabbe": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Use Your Illusion II",
+          "media_type": "album",
+          "artist": "Foo Fighters",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"Use Your Illusion II\", \"artist\": \"Guns N' Roses\", \"confidence\": \"high\"}"
+    },
+    "d1240bad95e5a94627804d0b9885403df29abb6529149e4720140d8438d14935": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "wasting lite",
+          "media_type": "album",
+          "artist": "Foo Fighters",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/foo_fighters/wasting_light",
+            "name": "Wasting Light",
+            "artist": "Foo Fighters"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"high\"}"
+    },
+    "afb1e2438f0eb45829db9b35b2fe92a300eb07976223bf804b3b4aa25fbc6d7d": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Walk",
+          "media_type": "track",
+          "artist": "Foo Fighters",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Walk\", \"artist\": \"Foo Fighters\", \"confidence\": \"high\"}"
+    },
+    "8cb621925cb6f7f8c9061fe12f19fdfc88174b1f78c4cee81b1e1b609cae627c": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "roap",
+          "media_type": "track",
+          "artist": "Foo Fighters",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://track/foo_fighters/1",
+            "name": "Rope",
+            "artist": "Foo Fighters",
+            "album": "Wasting Light"
+          },
+          {
+            "index": 1,
+            "uri": "fixture://track/foo_fighters/0",
+            "name": "Walk",
+            "artist": "Foo Fighters",
+            "album": "Wasting Light"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"high\"}"
+    },
+    "3c67cbdc7b4376f8ecdac587b677bfde86ecc3a594f981e6d2a03be6e0232d1b": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Rope",
+          "media_type": "track",
+          "artist": "Foo Fighters",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Rope\", \"artist\": \"Foo Fighters\", \"confidence\": \"high\"}"
+    },
+    "18d0a2f0c7bab1af8ba26c06d4b92808bb240eabae0ba8cc72979deb0596f766": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "Wasting Light",
+          "media_type": "album",
+          "artist": "Oasis",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/oasis/what_s_the_story_morning_glory",
+            "name": "(What's the Story) Morning Glory?",
+            "artist": "Oasis"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "28bb31073c6dcd3733ef4dc1b6e4e5c321859553d7aa7f38b785e0da30f0cb60": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Wasting Light",
+          "media_type": "album",
+          "artist": "Oasis",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"The Wasting Light\", \"artist\": \"Foo Fighters\", \"confidence\": \"high\"}"
+    },
+    "28a11294d1a2e09f2714d3b2a3ac42304c13780ec87887e211ad7981ce32b7c3": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Don't Look Back in Anger",
+          "media_type": "track",
+          "artist": "Oasis",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Don't Look Back in Anger\", \"artist\": \"Oasis\", \"confidence\": \"high\"}"
+    },
+    "55a7fcf9ec776c2d1fa4e82515b43fe1006815a23dd99c6d010819a4a4f19110": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "some mite say",
+          "media_type": "track",
+          "artist": "Oasis",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://track/oasis/1",
+            "name": "Some Might Say",
+            "artist": "Oasis",
+            "album": "(What's the Story) Morning Glory?"
+          },
+          {
+            "index": 1,
+            "uri": "fixture://track/oasis/0",
+            "name": "Don't Look Back in Anger",
+            "artist": "Oasis",
+            "album": "(What's the Story) Morning Glory?"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"high\"}"
+    },
+    "353c254252923f6ad3d9ba464f0911b3c070c4cb6c254fa492b0b6e50daa5a65": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Some Might Say",
+          "media_type": "track",
+          "artist": "Oasis",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Some Might Say\", \"artist\": \"Oasis\", \"confidence\": \"high\"}"
+    },
+    "ba928229bca8c6714b42cf47538f4d740e8adf7a6d2a6a0ecf6223e939e30a6d": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "(What's the Story) Morning Glory?",
+          "media_type": "album",
+          "artist": "Nickelback",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/nickelback/all_the_right_reasons",
+            "name": "All the Right Reasons",
+            "artist": "Nickelback"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "1bd5a0e8c06ffd0704f5bcad047b550b3b4ba1d173b7962aab498f69750304cf": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "(What's the Story) Morning Glory?",
+          "media_type": "album",
+          "artist": "Nickelback",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"(What's the Story) Morning Glory?\", \"artist\": \"Oasis\", \"confidence\": \"high\"}"
+    },
+    "d83dc68c0f20e8a45ce28980eb634f95dfd943d3ae86adc190a7d303b0a3297e": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Rockstar",
+          "media_type": "track",
+          "artist": "Nickelback",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Rockstar\", \"artist\": \"Nickelback\", \"confidence\": \"high\"}"
+    },
+    "93ef424f4b0b546293cf2b9e323f66885e933326e583fc272d9cc1249c574c8e": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "fotograph",
+          "media_type": "track",
+          "artist": "Nickelback",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://track/nickelback/1",
+            "name": "Photograph",
+            "artist": "Nickelback",
+            "album": "All the Right Reasons"
+          },
+          {
+            "index": 1,
+            "uri": "fixture://track/nickelback/0",
+            "name": "Rockstar",
+            "artist": "Nickelback",
+            "album": "All the Right Reasons"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"high\"}"
+    },
+    "800d1bbb36458a50eca9d35d08ea13cc092aceebc43a7ae9b246b6511889a1a9": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Photograph",
+          "media_type": "track",
+          "artist": "Nickelback",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\":\"Photograph\",\"artist\":\"Nickelback\",\"confidence\":\"high\"}"
+    },
+    "323913620add68935b5ed2034f8f9032492933e76757b2e5cd89a75c506dc9fc": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "All the Right Reasons",
+          "media_type": "album",
+          "artist": "Michael Jackson",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/michael_jackson/bad",
+            "name": "Bad",
+            "artist": "Michael Jackson"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "745780b54ba95bc154239e81972d873f39868d36381a2ee37aebbc6471d898f1": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "All the Right Reasons",
+          "media_type": "album",
+          "artist": "Michael Jackson",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"All the Right Reasons\", \"artist\": \"No Doubt\", \"confidence\": \"high\"}"
+    },
+    "2d0619823db9dce8f8a52689c3090e424fcc28ad84f485c96498baad00cd44a9": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Smooth Criminal",
+          "media_type": "track",
+          "artist": "Michael Jackson",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Smooth Criminal\", \"artist\": \"Michael Jackson\", \"confidence\": \"high\"}"
+    },
+    "1e6c9df2e8f10a8629c7955fdfde5e76d0fd352c34250778a20a8df9185dc335": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Man in the Mirror",
+          "media_type": "track",
+          "artist": "Michael Jackson",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Man in the Mirror\", \"artist\": \"Michael Jackson\", \"confidence\": \"high\"}"
+    },
+    "24ccdc98635c6d7d69c1c7bf98bd21e550faab26f62c6642302cce2ec54330e4": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "Bad",
+          "media_type": "album",
+          "artist": "Pearl Jam",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/pearl_jam/ten",
+            "name": "Ten",
+            "artist": "Pearl Jam"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "164818b5354475b92ebb739575f2aded82687feea05888d376075506913d0c7d": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Bad",
+          "media_type": "album",
+          "artist": "Pearl Jam",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"Bad\", \"artist\": \"Pearl Jam\", \"confidence\": \"high\"}"
+    },
+    "7417b8a018a4e8de2d58529ded4a24c97ca159467c145315def7b50b0174c15b": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Alive",
+          "media_type": "track",
+          "artist": "Pearl Jam",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Alive\", \"artist\": \"Pearl Jam\", \"confidence\": \"high\"}"
+    },
+    "aa7c4585c6766c873d30d83506245a7624acc475840fbfc8b822317d26dfe0cc": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Even Flow",
+          "media_type": "track",
+          "artist": "Pearl Jam",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Even Flow\", \"artist\": \"Pearl Jam\", \"confidence\": \"high\"}"
+    },
+    "9421c4ccb468a4c46060d0b5b21803b33a79163853707ae2f6b994d0d054fbc8": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "Ten",
+          "media_type": "album",
+          "artist": "AC/DC",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/ac_dc/back_in_black",
+            "name": "Back in Black",
+            "artist": "AC/DC"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "3255d6dcb8ad75a1f481ea14579cb981a58e11e6a573049b7052bc31da0aedff": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Ten",
+          "media_type": "album",
+          "artist": "AC/DC",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"T.N.T.\", \"artist\": \"AC/DC\", \"confidence\": \"high\"}"
+    },
+    "8068bdd2c21345d0fd3abb42d67bd845950e4c852cedb55f37e89634f0a1cebb": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "a sea dee sea",
+          "media_type": "artist",
+          "artist": "",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://artist/oasis",
+            "name": "Oasis"
+          },
+          {
+            "index": 1,
+            "uri": "fixture://artist/alter_bridge",
+            "name": "Alter Bridge"
+          },
+          {
+            "index": 2,
+            "uri": "fixture://artist/dire_straits",
+            "name": "Dire Straits"
+          },
+          {
+            "index": 3,
+            "uri": "fixture://artist/pantera",
+            "name": "Pantera"
+          },
+          {
+            "index": 4,
+            "uri": "fixture://artist/pearl_jam",
+            "name": "Pearl Jam"
+          },
+          {
+            "index": 5,
+            "uri": "fixture://artist/take_that",
+            "name": "Take That"
+          },
+          {
+            "index": 6,
+            "uri": "fixture://artist/stone_sour",
+            "name": "Stone Sour"
+          },
+          {
+            "index": 7,
+            "uri": "fixture://artist/black_stone_cherry",
+            "name": "Black Stone Cherry"
+          },
+          {
+            "index": 8,
+            "uri": "fixture://artist/guns_n_roses",
+            "name": "Guns N' Roses"
+          },
+          {
+            "index": 9,
+            "uri": "fixture://artist/ac_dc",
+            "name": "AC/DC"
+          },
+          {
+            "index": 10,
+            "uri": "fixture://artist/muse",
+            "name": "Muse"
+          },
+          {
+            "index": 11,
+            "uri": "fixture://artist/reef",
+            "name": "Reef"
+          }
+        ]
+      },
+      "response": "{\"index\": 9, \"confidence\": \"high\"}"
+    },
+    "297c2ceb4cce62437879d7811bce7f5af8bb996cb18b000d38e65aa2d05e9ee7": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "You Shook Me All Night Long",
+          "media_type": "track",
+          "artist": "AC/DC",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"You Shook Me All Night Long\", \"artist\": \"AC/DC\", \"confidence\": \"high\"}"
+    },
+    "5bb633c28ec4818f96fe10f28bc1ab0540804e613185a3830ee0f26173ff04de": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Hells Bells",
+          "media_type": "track",
+          "artist": "AC/DC",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Hells Bells\", \"artist\": \"AC/DC\", \"confidence\": \"high\"}"
+    },
+    "a9e3b4e32b8ec12e4d4ad13ba6510f0936f4b80f10e63992bc51af4aeb23865a": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "Back in Black",
+          "media_type": "album",
+          "artist": "Dire Straits",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/dire_straits/brothers_in_arms",
+            "name": "Brothers in Arms",
+            "artist": "Dire Straits"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "15b04638af751c81166d2f7c575fe397d4b800fd97b470685199fc00ad123787": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Back in Black",
+          "media_type": "album",
+          "artist": "Dire Straits",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"Back in Black\", \"artist\": \"AC/DC\", \"confidence\": \"high\"}"
+    },
+    "dbd7d678a189d6d49191e5a2a06b1c7f0090082a3a3d80b7658001d41683424e": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Money for Nothing",
+          "media_type": "track",
+          "artist": "Dire Straits",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Money for Nothing\", \"artist\": \"Dire Straits\", \"confidence\": \"high\"}"
+    },
+    "c2f60888f6aaf0566dba999246e4c6fd237014b15998e6beaf75918412039557": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Walk of Life",
+          "media_type": "track",
+          "artist": "Dire Straits",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Walk of Life\", \"artist\": \"Dire Straits\", \"confidence\": \"high\"}"
+    },
+    "0bc7672c2a5e1ed33a9312062202f6dc27469fd4c5084d08aa1bbfbbf1c0a53c": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "Brothers in Arms",
+          "media_type": "album",
+          "artist": "Metallica",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/metallica/metallica",
+            "name": "Metallica",
+            "artist": "Metallica"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "80e617df5538f3b3bb8f7efd2e24ceee3f345c8a76780a4c3619bc90bf6bd988": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Brothers in Arms",
+          "media_type": "album",
+          "artist": "Metallica",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"Brothers in Arms\", \"artist\": \"Dire Straits\", \"confidence\": \"high\"}"
+    },
+    "f768054bf50d11337977e96e1c257e51f449af4c03d27a1f30ead3c676ac8772": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "metal licker",
+          "media_type": "artist",
+          "artist": "",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://artist/metallica",
+            "name": "Metallica"
+          },
+          {
+            "index": 1,
+            "uri": "fixture://artist/nickelback",
+            "name": "Nickelback"
+          },
+          {
+            "index": 2,
+            "uri": "fixture://artist/black_stone_cherry",
+            "name": "Black Stone Cherry"
+          },
+          {
+            "index": 3,
+            "uri": "fixture://artist/alter_bridge",
+            "name": "Alter Bridge"
+          },
+          {
+            "index": 4,
+            "uri": "fixture://artist/dire_straits",
+            "name": "Dire Straits"
+          },
+          {
+            "index": 5,
+            "uri": "fixture://artist/myles_kennedy",
+            "name": "Myles Kennedy"
+          },
+          {
+            "index": 6,
+            "uri": "fixture://artist/pantera",
+            "name": "Pantera"
+          },
+          {
+            "index": 7,
+            "uri": "fixture://artist/michael_jackson",
+            "name": "Michael Jackson"
+          },
+          {
+            "index": 8,
+            "uri": "fixture://artist/slipknot",
+            "name": "Slipknot"
+          },
+          {
+            "index": 9,
+            "uri": "fixture://artist/take_that",
+            "name": "Take That"
+          },
+          {
+            "index": 10,
+            "uri": "fixture://artist/foo_fighters",
+            "name": "Foo Fighters"
+          },
+          {
+            "index": 11,
+            "uri": "fixture://artist/ac_dc",
+            "name": "AC/DC"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"high\"}"
+    },
+    "648fe8a41eff12f9883df0a597f33b934ab4538a348501231ba0c4dd912c22a1": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Enter Sandman",
+          "media_type": "track",
+          "artist": "Metallica",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Enter Sandman\", \"artist\": \"Metallica\", \"confidence\": \"high\"}"
+    },
+    "14da2cf4972e816146ac4fe94e6dfa4ef22e1f4feafd9004ece999c28b657d1e": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Nothing Else Matters",
+          "media_type": "track",
+          "artist": "Metallica",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Nothing Else Matters\", \"artist\": \"Metallica\", \"confidence\": \"high\"}"
+    },
+    "f89e07dd706d65b16e6b42b18199ff81ef6f93bd3b761bb1b9d9ff5c9ecf78a5": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "Metallica",
+          "media_type": "album",
+          "artist": "Muse",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/muse/black_holes_and_revelations",
+            "name": "Black Holes and Revelations",
+            "artist": "Muse"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "3f5b99484ee078dd9d91bb0015c528230aa1a31633d82e232cbcfac4f1cbbf6b": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Metallica",
+          "media_type": "album",
+          "artist": "Muse",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"Metallica\", \"artist\": \"Muse\", \"confidence\": \"low\"}"
+    },
+    "4430521bf5b377e9278c31968c61dda61ebf254eb7541c71bb991fa70951c141": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "mews",
+          "media_type": "artist",
+          "artist": "",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://artist/muse",
+            "name": "Muse"
+          },
+          {
+            "index": 1,
+            "uri": "fixture://artist/myles_kennedy",
+            "name": "Myles Kennedy"
+          },
+          {
+            "index": 2,
+            "uri": "fixture://artist/michael_jackson",
+            "name": "Michael Jackson"
+          },
+          {
+            "index": 3,
+            "uri": "fixture://artist/metallica",
+            "name": "Metallica"
+          },
+          {
+            "index": 4,
+            "uri": "fixture://artist/stone_sour",
+            "name": "Stone Sour"
+          },
+          {
+            "index": 5,
+            "uri": "fixture://artist/guns_n_roses",
+            "name": "Guns N' Roses"
+          },
+          {
+            "index": 6,
+            "uri": "fixture://artist/foo_fighters",
+            "name": "Foo Fighters"
+          },
+          {
+            "index": 7,
+            "uri": "fixture://artist/dire_straits",
+            "name": "Dire Straits"
+          },
+          {
+            "index": 8,
+            "uri": "fixture://artist/reef",
+            "name": "Reef"
+          },
+          {
+            "index": 9,
+            "uri": "fixture://artist/oasis",
+            "name": "Oasis"
+          },
+          {
+            "index": 10,
+            "uri": "fixture://artist/slash",
+            "name": "Slash"
+          },
+          {
+            "index": 11,
+            "uri": "fixture://artist/pantera",
+            "name": "Pantera"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"high\"}"
+    },
+    "84484785e9c6bebece1bbed830721314dbbee90f80e6aecbd80c8f48e6d11f37": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Supermassive Black Hole",
+          "media_type": "track",
+          "artist": "Muse",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Supermassive Black Hole\", \"artist\": \"Muse\", \"confidence\": \"high\"}"
+    },
+    "e4584608b1d9dd2c76243f381381b0db141d16df7d355bfe56265bc7a8e23391": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Knights of Cydonia",
+          "media_type": "track",
+          "artist": "Muse",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Knights of Cydonia\", \"artist\": \"Muse\", \"confidence\": \"high\"}"
+    },
+    "059971efde3c9df943512cd8c059581f60f5ecf35bd7591af1ae952bf4a9ddfd": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "Black Holes and Revelations",
+          "media_type": "album",
+          "artist": "Myles Kennedy",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/myles_kennedy/year_of_the_tiger",
+            "name": "Year of the Tiger",
+            "artist": "Myles Kennedy"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "676f90a6378c5fed3f53702f8faf1918b0dcb587659fae452db2a4a2cea13f5b": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Black Holes and Revelations",
+          "media_type": "album",
+          "artist": "Myles Kennedy",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"Black Holes and Revelations\", \"artist\": \"Muse\", \"confidence\": \"high\"}"
+    },
+    "db772c64a99fe9c3d6aaaec3ca6eabc418379609410afd4d0de396c88570ae52": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Year of the Tiger",
+          "media_type": "track",
+          "artist": "Myles Kennedy",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Year of the Tiger\", \"artist\": \"Myles Kennedy\", \"confidence\": \"high\"}"
+    },
+    "a5ae85863ee3ea10e49372eaa81acda605bafcd8791182f9601d1938a27a0001": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Love Can Only Heal",
+          "media_type": "track",
+          "artist": "Myles Kennedy",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Love Can Only Heal\", \"artist\": \"Myles Kennedy\", \"confidence\": \"high\"}"
+    },
+    "05a31810db2c8deef6812ba263f183a2063e8e0508c72b46a86f1a58999914ae": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "Year of the Tiger",
+          "media_type": "album",
+          "artist": "Pantera",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/pantera/vulgar_display_of_power",
+            "name": "Vulgar Display of Power",
+            "artist": "Pantera"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "398fc9e48481cd08955f3eea0d4d5ddc58e99704e2826aa3cfc7b77c4d12d9c9": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Year of the Tiger",
+          "media_type": "album",
+          "artist": "Pantera",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"Vulgar Display of Power\", \"artist\": \"Pantera\", \"confidence\": \"low\"}"
+    },
+    "9e45956265ca9d88bd53d576e791169b080abc690f1b20731979e055435b5e20": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Walk",
+          "media_type": "track",
+          "artist": "Pantera",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Walk\", \"artist\": \"Pantera\", \"confidence\": \"high\"}"
+    },
+    "73ec05c5b16c7ff4f56bfb65429f623d956430394dd774a5972a625b4749b863": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "this luv",
+          "media_type": "track",
+          "artist": "Pantera",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://track/pantera/1",
+            "name": "This Love",
+            "artist": "Pantera",
+            "album": "Vulgar Display of Power"
+          },
+          {
+            "index": 1,
+            "uri": "fixture://track/pantera/0",
+            "name": "Walk",
+            "artist": "Pantera",
+            "album": "Vulgar Display of Power"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"high\"}"
+    },
+    "7ebbcd0c7ec1c1dafcb3e2d11029b30820bdfbc985521cdb830a42d6238c1400": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "This Love",
+          "media_type": "track",
+          "artist": "Pantera",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"This Love\", \"artist\": \"Pantera\", \"confidence\": \"high\"}"
+    },
+    "480a7f96768f0aafa034e2d3911e955cfa65e9e5a9d81adf02fb79a3d96a187e": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "Vulgar Display of Power",
+          "media_type": "album",
+          "artist": "Reef",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/reef/glow",
+            "name": "Glow",
+            "artist": "Reef"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "8f351f0b540d057710d0717577e57231aba5d3027c363967412e7cdf5489636c": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Vulgar Display of Power",
+          "media_type": "album",
+          "artist": "Reef",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"Vulgar Display of Power\", \"artist\": \"Pantera\", \"confidence\": \"high\"}"
+    },
+    "4c2cb44e40c63c4efb3a8ac738a761a2a241907982fb6974a76e1604504835bf": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Place Your Hands",
+          "media_type": "track",
+          "artist": "Reef",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Place Your Hands\", \"artist\": \"Reef\", \"confidence\": \"high\"}"
+    },
+    "f4c1332b91fb4f835d033e0d2ff124aa2efffe78cd8d61cdeb2d1970f8677c4d": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Come Back Brighter",
+          "media_type": "track",
+          "artist": "Reef",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Come Back Brighter\", \"artist\": \"Reef\", \"confidence\": \"high\"}"
+    },
+    "4a7712db94ded063ab6d6fdb606ef88d81eab6f524ce776eee670acf02bcd435": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "Glow",
+          "media_type": "album",
+          "artist": "Slash",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/slash/slash",
+            "name": "Slash",
+            "artist": "Slash"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "63795a41099e5856ff2b9f8b05f07c56f82496136bc2bfb3d6c8e306004c9582": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Glow",
+          "media_type": "album",
+          "artist": "Slash",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"Glow\", \"artist\": \"Slash\", \"confidence\": \"low\"}"
+    },
+    "4560cda13dd89e56914619b158e130fef4bd1fed9f1c0f1a71644b2447ac9811": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Back from Cali",
+          "media_type": "track",
+          "artist": "Slash",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Back from Cali\", \"artist\": \"Slash\", \"confidence\": \"high\"}"
+    },
+    "91f0dd28bafa9c8f039b0c93e03a917e4e0d9e0a931f36bec1d9ea2917319dfe": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "By the Sword",
+          "media_type": "track",
+          "artist": "Slash",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"By the Sword\", \"artist\": \"Slash\", \"confidence\": \"high\"}"
+    },
+    "728cf74ac5633b44d8b60c3ef999e6022391d616109592ef98d9e56ff1000dcc": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "Slash",
+          "media_type": "album",
+          "artist": "Slash's Snakepit",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/slash_s_snakepit/it_s_five_o_clock_somewhere",
+            "name": "It's Five O'Clock Somewhere",
+            "artist": "Slash's Snakepit"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"high\"}"
+    },
+    "cc67fabb0dfc5ccf29ec07b5a70cf6e6230ff94099920818991b65d463c313bc": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Slash",
+          "media_type": "album",
+          "artist": "Slash's Snakepit",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"Slash's Snakepit\", \"artist\": \"\", \"confidence\": \"high\"}"
+    },
+    "cce04d0d68e1d8d6fd3bbf8fa4a1bd72c7c9cc0b218e99698a2442f9c5da4892": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Beggars & Hangers-On",
+          "media_type": "track",
+          "artist": "Slash's Snakepit",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Beggars & Hangers-On\", \"artist\": \"Slash's Snakepit\", \"confidence\": \"high\"}"
+    },
+    "c2ee0e01c9989b686bf11fae9ec95709e38c2074920484b69ef5e2108f3d6503": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "neither can eye",
+          "media_type": "track",
+          "artist": "Slash's Snakepit",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://track/slash_s_snakepit/1",
+            "name": "Neither Can I",
+            "artist": "Slash's Snakepit",
+            "album": "It's Five O'Clock Somewhere"
+          },
+          {
+            "index": 1,
+            "uri": "fixture://track/slash_s_snakepit/0",
+            "name": "Beggars & Hangers-On",
+            "artist": "Slash's Snakepit",
+            "album": "It's Five O'Clock Somewhere"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"high\"}"
+    },
+    "4f8843eece435eb25b84504b5d0d8d2bf07a78a34190a29923a76588a2b9f562": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Neither Can I",
+          "media_type": "track",
+          "artist": "Slash's Snakepit",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Neither Can I\", \"artist\": \"Slash's Snakepit\", \"confidence\": \"high\"}"
+    },
+    "593513bf13bc9ac7bb4cb69926cbbd1fbe4829f51d75549b1f5688dc5b0672fc": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "It's Five O'Clock Somewhere",
+          "media_type": "album",
+          "artist": "Slipknot",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/slipknot/vol_3_the_subliminal_verses",
+            "name": "Vol. 3: (The Subliminal Verses)",
+            "artist": "Slipknot"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "f1f4fd9f3860afd2fb9d07eb18b28a99c2874c3d5191fc9fcd9275a65526341e": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "It's Five O'Clock Somewhere",
+          "media_type": "album",
+          "artist": "Slipknot",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"It's Five O'Clock Somewhere\", \"artist\": \"\", \"confidence\": \"low\"}"
+    },
+    "dc2867abe95e7d8a118ee1d813fd20965968ecd5ab322853bc33a471fe0a1f0a": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "volume three the subliminal verses",
+          "media_type": "album",
+          "artist": "Slipknot",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/slipknot/vol_3_the_subliminal_verses",
+            "name": "Vol. 3: (The Subliminal Verses)",
+            "artist": "Slipknot"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"high\"}"
+    },
+    "c0b19548913e901984fef42caae28bf5cf7b9be63918a94696d78ddb6a5fa542": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "doo ality",
+          "media_type": "track",
+          "artist": "Slipknot",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://track/slipknot/0",
+            "name": "Duality",
+            "artist": "Slipknot",
+            "album": "Vol. 3: (The Subliminal Verses)"
+          },
+          {
+            "index": 1,
+            "uri": "fixture://track/slipknot/1",
+            "name": "Before I Forget",
+            "artist": "Slipknot",
+            "album": "Vol. 3: (The Subliminal Verses)"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"high\"}"
+    },
+    "015b53940e201574bbc1fe8f7f70683797ffdfedc5754c3a13ce7c579148b1c1": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Duality",
+          "media_type": "track",
+          "artist": "Slipknot",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\":\"Duality\",\"artist\":\"Slipknot\",\"confidence\":\"high\"}"
+    },
+    "6458e21dcddd38369087acdec3cad467f43c5b3179aa090791756eff1f65cc3b": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "before eye forget",
+          "media_type": "track",
+          "artist": "Slipknot",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://track/slipknot/1",
+            "name": "Before I Forget",
+            "artist": "Slipknot",
+            "album": "Vol. 3: (The Subliminal Verses)"
+          },
+          {
+            "index": 1,
+            "uri": "fixture://track/slipknot/0",
+            "name": "Duality",
+            "artist": "Slipknot",
+            "album": "Vol. 3: (The Subliminal Verses)"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"high\"}"
+    },
+    "731e75d74de6581d17b0411baace5dad633448edb29b83ffedb4260d148074cd": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Before I Forget",
+          "media_type": "track",
+          "artist": "Slipknot",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Before I Forget\", \"artist\": \"Slipknot\", \"confidence\": \"high\"}"
+    },
+    "144ca8240d9f097c2e7defa0d1fa1f5a87307a54828365c819e2aa2c45da7639": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "Vol. 3: (The Subliminal Verses)",
+          "media_type": "album",
+          "artist": "Stone Sour",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/stone_sour/come_what_ever_may",
+            "name": "Come What(ever) May",
+            "artist": "Stone Sour"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "d9fe253ce5e3eaca9bf62f6612b8b562f4012cc465b137287a8a19549ac7a41e": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Vol. 3: (The Subliminal Verses)",
+          "media_type": "album",
+          "artist": "Stone Sour",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"task\": \"correct\", \"request\": {\"query\": \"Vol. 3: (The Subliminal Verses)\", \"media_type\": \"album\", \"artist\": \"Stone Sour\", \"album\": \"\", \"version\": \"\"}, \"query\": \"Vol. 3: The Subliminal Verses\", \"artist\": \"Stone Sour\", \"confidence\": \"high\"}"
+    },
+    "a6cc0665f5b6d568795b6ad4e8390b4ce4dcf5bdf2e46cf1400591ab926f5aee": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "stone sower",
+          "media_type": "artist",
+          "artist": "",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://artist/stone_sour",
+            "name": "Stone Sour"
+          },
+          {
+            "index": 1,
+            "uri": "fixture://artist/black_stone_cherry",
+            "name": "Black Stone Cherry"
+          },
+          {
+            "index": 2,
+            "uri": "fixture://artist/guns_n_roses",
+            "name": "Guns N' Roses"
+          },
+          {
+            "index": 3,
+            "uri": "fixture://artist/pantera",
+            "name": "Pantera"
+          },
+          {
+            "index": 4,
+            "uri": "fixture://artist/alter_bridge",
+            "name": "Alter Bridge"
+          },
+          {
+            "index": 5,
+            "uri": "fixture://artist/foo_fighters",
+            "name": "Foo Fighters"
+          },
+          {
+            "index": 6,
+            "uri": "fixture://artist/dire_straits",
+            "name": "Dire Straits"
+          },
+          {
+            "index": 7,
+            "uri": "fixture://artist/muse",
+            "name": "Muse"
+          },
+          {
+            "index": 8,
+            "uri": "fixture://artist/reef",
+            "name": "Reef"
+          },
+          {
+            "index": 9,
+            "uri": "fixture://artist/myles_kennedy",
+            "name": "Myles Kennedy"
+          },
+          {
+            "index": 10,
+            "uri": "fixture://artist/oasis",
+            "name": "Oasis"
+          },
+          {
+            "index": 11,
+            "uri": "fixture://artist/slash",
+            "name": "Slash"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"high\"}"
+    },
+    "ac9dba76ceca33cdec87eb22b7b3d5605de559f0b356ef569c6743997d5df560": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "threw glass",
+          "media_type": "track",
+          "artist": "Stone Sour",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://track/stone_sour/0",
+            "name": "Through Glass",
+            "artist": "Stone Sour",
+            "album": "Come What(ever) May"
+          },
+          {
+            "index": 1,
+            "uri": "fixture://track/stone_sour/1",
+            "name": "30/30-150",
+            "artist": "Stone Sour",
+            "album": "Come What(ever) May"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"high\"}"
+    },
+    "2274a52b930c4bc061310ea412efd13ea2992db518083db8a10509279ed07a80": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Through Glass",
+          "media_type": "track",
+          "artist": "Stone Sour",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Through Glass\", \"artist\": \"Stone Sour\", \"confidence\": \"high\"}"
+    },
+    "a69d03ac234c9f3cb6ae5ec1c1b3a23d17b972e474ed77a1f6cd0a066796ad7e": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "30/30-150",
+          "media_type": "track",
+          "artist": "Stone Sour",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"30/30-150\", \"artist\": \"Stone Sour\", \"confidence\": \"high\"}"
+    },
+    "dc651c609be1acf6ebd6e731ae590a4a6e8fcbc5c32d764b54d048798ae6c751": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "Come What(ever) May",
+          "media_type": "album",
+          "artist": "Take That",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/take_that/beautiful_world",
+            "name": "Beautiful World",
+            "artist": "Take That"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "4c130a4177cd00753b881457d29bee52b4e51f715f3a04bb01b2c31459e8b532": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Come What(ever) May",
+          "media_type": "album",
+          "artist": "Take That",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"Come Undone\", \"artist\": \"Take That\", \"confidence\": \"low\"}"
+    },
+    "b6c8eb498a06bc64d0f76f8cc41df0f36172a9c5b384fe93334c1ec9b21eaf61": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "take fat",
+          "media_type": "artist",
+          "artist": "",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://artist/take_that",
+            "name": "Take That"
+          },
+          {
+            "index": 1,
+            "uri": "fixture://artist/slash_s_snakepit",
+            "name": "Slash's Snakepit"
+          },
+          {
+            "index": 2,
+            "uri": "fixture://artist/metallica",
+            "name": "Metallica"
+          },
+          {
+            "index": 3,
+            "uri": "fixture://artist/reef",
+            "name": "Reef"
+          },
+          {
+            "index": 4,
+            "uri": "fixture://artist/nickelback",
+            "name": "Nickelback"
+          },
+          {
+            "index": 5,
+            "uri": "fixture://artist/dire_straits",
+            "name": "Dire Straits"
+          },
+          {
+            "index": 6,
+            "uri": "fixture://artist/pantera",
+            "name": "Pantera"
+          },
+          {
+            "index": 7,
+            "uri": "fixture://artist/pearl_jam",
+            "name": "Pearl Jam"
+          },
+          {
+            "index": 8,
+            "uri": "fixture://artist/stone_sour",
+            "name": "Stone Sour"
+          },
+          {
+            "index": 9,
+            "uri": "fixture://artist/alter_bridge",
+            "name": "Alter Bridge"
+          },
+          {
+            "index": 10,
+            "uri": "fixture://artist/foo_fighters",
+            "name": "Foo Fighters"
+          },
+          {
+            "index": 11,
+            "uri": "fixture://artist/myles_kennedy",
+            "name": "Myles Kennedy"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"high\"}"
+    },
+    "731e3961b3fbf88e5020332e0d6ff45677df3bb378d5c3b80fc28f88c2dc5c09": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "patients",
+          "media_type": "track",
+          "artist": "Take That",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://track/take_that/0",
+            "name": "Patience",
+            "artist": "Take That",
+            "album": "Beautiful World"
+          },
+          {
+            "index": 1,
+            "uri": "fixture://track/take_that/1",
+            "name": "Shine",
+            "artist": "Take That",
+            "album": "Beautiful World"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"high\"}"
+    },
+    "4e434eef6f2c085a8de63f365f290ce117bb170a4744045d79eeec8badaa137a": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Patience",
+          "media_type": "track",
+          "artist": "Take That",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Patience\", \"artist\": \"Take That\", \"confidence\": \"high\"}"
+    },
+    "8a88073258b3cbb4f0516f3c26d6a1b83b2078dbb72944b35c93c6c5a09cc43f": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Shine",
+          "media_type": "track",
+          "artist": "Take That",
+          "album": "",
+          "version": "karaoke"
+        }
+      },
+      "response": "{\"query\": \"Shine\", \"artist\": \"Take That\", \"confidence\": \"high\"}"
+    },
+    "f5c1cce5fdc0daeb596b494fe91b7b97eb18a57d1cd0a3053bb74f4d2c8bf9ae": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "Beautiful World",
+          "media_type": "album",
+          "artist": "Black Stone Cherry",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://album/black_stone_cherry/folklore_and_superstition",
+            "name": "Folklore and Superstition",
+            "artist": "Black Stone Cherry"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "34e0e656d644564e7733c782deee5edb28b507131a57a90874f41055db478855": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Beautiful World",
+          "media_type": "album",
+          "artist": "Black Stone Cherry",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"Beautiful World\", \"artist\": \"Black Stone Cherry\", \"confidence\": \"high\"}"
+    },
+    "d2258b530ba9c0fe2f05bafc3809ea2c69e4182c302fb160a387e6242c17b5a8": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "Beggars and Hangers On",
+          "media_type": "track",
+          "artist": "Slash",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://track/slash/1",
+            "name": "By the Sword",
+            "artist": "Slash",
+            "album": "Slash"
+          },
+          {
+            "index": 1,
+            "uri": "fixture://track/slash/0",
+            "name": "Back from Cali",
+            "artist": "Slash",
+            "album": "Slash"
+          }
+        ]
+      },
+      "response": "{\"index\": 1, \"confidence\": \"high\"}"
+    },
+    "421276588957e331861fa8f222003a2e6d3c227831d7d4e7752a87e3379e65c2": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Beggars and Hangers On",
+          "media_type": "track",
+          "artist": "Slash",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\":\"Beggars and Hangers On\",\"artist\":\"Slash\",\"confidence\":\"low\"}"
+    },
+    "d356f02e7f6a7f37158abda3f527de438ebeb20a75e24ba04bc362e2ba21d752": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "xqzpkflm",
+          "media_type": "artist",
+          "artist": "",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://artist/pearl_jam",
+            "name": "Pearl Jam"
+          },
+          {
+            "index": 1,
+            "uri": "fixture://artist/slipknot",
+            "name": "Slipknot"
+          },
+          {
+            "index": 2,
+            "uri": "fixture://artist/nickelback",
+            "name": "Nickelback"
+          },
+          {
+            "index": 3,
+            "uri": "fixture://artist/muse",
+            "name": "Muse"
+          },
+          {
+            "index": 4,
+            "uri": "fixture://artist/reef",
+            "name": "Reef"
+          },
+          {
+            "index": 5,
+            "uri": "fixture://artist/slash",
+            "name": "Slash"
+          },
+          {
+            "index": 6,
+            "uri": "fixture://artist/pantera",
+            "name": "Pantera"
+          },
+          {
+            "index": 7,
+            "uri": "fixture://artist/take_that",
+            "name": "Take That"
+          },
+          {
+            "index": 8,
+            "uri": "fixture://artist/metallica",
+            "name": "Metallica"
+          },
+          {
+            "index": 9,
+            "uri": "fixture://artist/alter_bridge",
+            "name": "Alter Bridge"
+          },
+          {
+            "index": 10,
+            "uri": "fixture://artist/foo_fighters",
+            "name": "Foo Fighters"
+          },
+          {
+            "index": 11,
+            "uri": "fixture://artist/myles_kennedy",
+            "name": "Myles Kennedy"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "4092a3e12d16a1b24b01b81b7307820d9df7afe6ea161f2c078de504ad18163c": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "xqzpkflm",
+          "media_type": "artist",
+          "artist": "",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"xqjz\", \"artist\": \"\", \"confidence\": \"low\"}"
+    },
+    "9b046005963c27f501cab5e0228dc53d7ce412008cd9d5dc6f5b4667bc62ec04": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "florbnagle toaster orchestra",
+          "media_type": "artist",
+          "artist": "",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://artist/black_stone_cherry",
+            "name": "Black Stone Cherry"
+          },
+          {
+            "index": 1,
+            "uri": "fixture://artist/foo_fighters",
+            "name": "Foo Fighters"
+          },
+          {
+            "index": 2,
+            "uri": "fixture://artist/guns_n_roses",
+            "name": "Guns N' Roses"
+          },
+          {
+            "index": 3,
+            "uri": "fixture://artist/alter_bridge",
+            "name": "Alter Bridge"
+          },
+          {
+            "index": 4,
+            "uri": "fixture://artist/dire_straits",
+            "name": "Dire Straits"
+          },
+          {
+            "index": 5,
+            "uri": "fixture://artist/pantera",
+            "name": "Pantera"
+          },
+          {
+            "index": 6,
+            "uri": "fixture://artist/take_that",
+            "name": "Take That"
+          },
+          {
+            "index": 7,
+            "uri": "fixture://artist/metallica",
+            "name": "Metallica"
+          },
+          {
+            "index": 8,
+            "uri": "fixture://artist/stone_sour",
+            "name": "Stone Sour"
+          },
+          {
+            "index": 9,
+            "uri": "fixture://artist/myles_kennedy",
+            "name": "Myles Kennedy"
+          },
+          {
+            "index": 10,
+            "uri": "fixture://artist/oasis",
+            "name": "Oasis"
+          },
+          {
+            "index": 11,
+            "uri": "fixture://artist/slash",
+            "name": "Slash"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "db8909d10548970a45686e932f37de61da31f3f674a13d343be5e5ee431b1410": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "florbnagle toaster orchestra",
+          "media_type": "artist",
+          "artist": "",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"Flor Bangle Toaster Orchestra\", \"artist\": \"\", \"confidence\": \"high\"}"
+    },
+    "c5a6f6d8f58b026ad705e1b53f6577902fb69d1bbfb1fbffba0d366cf8944999": {
+      "request": {
+        "task": "choose",
+        "request": {
+          "query": "imaginary 829384 band",
+          "media_type": "artist",
+          "artist": "",
+          "album": "",
+          "version": ""
+        },
+        "candidates": [
+          {
+            "index": 0,
+            "uri": "fixture://artist/black_stone_cherry",
+            "name": "Black Stone Cherry"
+          },
+          {
+            "index": 1,
+            "uri": "fixture://artist/pearl_jam",
+            "name": "Pearl Jam"
+          },
+          {
+            "index": 2,
+            "uri": "fixture://artist/guns_n_roses",
+            "name": "Guns N' Roses"
+          },
+          {
+            "index": 3,
+            "uri": "fixture://artist/nickelback",
+            "name": "Nickelback"
+          },
+          {
+            "index": 4,
+            "uri": "fixture://artist/foo_fighters",
+            "name": "Foo Fighters"
+          },
+          {
+            "index": 5,
+            "uri": "fixture://artist/dire_straits",
+            "name": "Dire Straits"
+          },
+          {
+            "index": 6,
+            "uri": "fixture://artist/myles_kennedy",
+            "name": "Myles Kennedy"
+          },
+          {
+            "index": 7,
+            "uri": "fixture://artist/michael_jackson",
+            "name": "Michael Jackson"
+          },
+          {
+            "index": 8,
+            "uri": "fixture://artist/slash_s_snakepit",
+            "name": "Slash's Snakepit"
+          },
+          {
+            "index": 9,
+            "uri": "fixture://artist/ac_dc",
+            "name": "AC/DC"
+          },
+          {
+            "index": 10,
+            "uri": "fixture://artist/pantera",
+            "name": "Pantera"
+          },
+          {
+            "index": 11,
+            "uri": "fixture://artist/slipknot",
+            "name": "Slipknot"
+          }
+        ]
+      },
+      "response": "{\"index\": 0, \"confidence\": \"low\"}"
+    },
+    "d6dcf6cccdf5eb88841df5f5b9110ddbdf958fa7889e5b6df694fdded6037e01": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "imaginary 829384 band",
+          "media_type": "artist",
+          "artist": "",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"Imaginary\", \"artist\": \"\", \"confidence\": \"low\"}"
+    },
+    "f687dd922fb115d624bd99efbb1a49507826583ffdccc9da17503f77ccf41358": {
+      "request": {
+        "task": "correct",
+        "request": {
+          "query": "Use Your Illusion 7",
+          "media_type": "album",
+          "artist": "Guns N' Roses",
+          "album": "",
+          "version": ""
+        }
+      },
+      "response": "{\"query\": \"Use Your Illusion I\", \"artist\": \"Guns N' Roses\", \"confidence\": \"high\"}"
+    }
+  }
+}
