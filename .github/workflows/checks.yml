@@ -18,8 +18,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --check www/echo-experience.js
-      - run: node tests/test_card.cjs www/echo-experience.js
+      - run: node --check custom_components/echo_experience/www/echo-experience.js
+      - run: node tests/test_card.cjs custom_components/echo_experience/www/echo-experience.js
   release:
     needs: checks
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

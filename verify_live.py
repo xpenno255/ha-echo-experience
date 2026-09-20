@@ -3,7 +3,7 @@ import asyncio,json,time
 from pathlib import Path
 import websockets
 from ha_client import ROOT,URL,ENV,commands,ws_commands
-from deploy import AUDIT
+from tooling import AUDIT
 HERE=Path(__file__).resolve().parent
 async def run(text):
     pipeline=ENV.get('echo_pipeline_id')

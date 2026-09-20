@@ -11,7 +11,8 @@ from homeassistant.components import websocket_api
 from homeassistant.components.intent.const import TIMER_DATA
 from homeassistant.core import callback, SupportsResponse
 from homeassistant.exceptions import Unauthorized
-from homeassistant.helpers import llm, entity_registry as er
+from homeassistant.helpers import llm, entity_registry as er, issue_registry as ir
+from homeassistant.helpers.service import async_register_admin_service
 from homeassistant.auth.permissions.const import POLICY_READ, POLICY_CONTROL
 from homeassistant.util import dt as dt_util
 from .music import resolve_music
@@ -19,6 +20,8 @@ from .music_fallback import resolve_with_fallback
 from .music_backend import MusicBackend
 from .ducking import DuckingManager
 from .core import validate_profiles, route_profile, convert, VIEWS, normalize_timer_name
+from . import frontend, dashboard
+from .stop_route import StopRoute
 
 DOMAIN='echo_experience'
 EVENT='echo_experience_update'
@@ -30,12 +33,37 @@ async def async_setup(hass, config):
     for command in (ws_state, ws_subscribe, ws_action):websocket_api.async_register_command(hass,command)
     return True
 
+def integration_version(hass):
+    return json.loads((Path(__file__).parent/'manifest.json').read_text())['version']
+
 async def async_setup_entry(hass, entry):
     def read():
         return validate_profiles(json.loads(Path(hass.config.path('echo_experience.json')).read_text()))
     config=await hass.async_add_executor_job(read)
     runtime=Experience(hass,config)
     hass.data[DOMAIN]=runtime
+    version=await hass.async_add_executor_job(integration_version,hass)
+    # The card, its resource, the dashboard and the stop route ship with the integration. A failure in one is a
+    # visible repair issue and never stops the others; the issue clears when that feature next sets up cleanly.
+    async def feature(name,coro):
+        try:
+            await coro
+            ir.async_delete_issue(hass,DOMAIN,'setup_failed_'+name)
+        except Exception as err:
+            _LOGGER.exception('Echo Experience %s setup failed',name)
+            ir.async_create_issue(hass,DOMAIN,'setup_failed_'+name,is_fixable=False,severity=ir.IssueSeverity.ERROR,translation_key='setup_failed_'+name,translation_placeholders={'error':str(err) or type(err).__name__})
+    async def card():
+        await frontend.async_register_static_path(hass)
+        await frontend.async_ensure_resource(hass,version)
+    await feature('frontend',card())
+    await feature('dashboard',dashboard.async_manage(hass,runtime.profiles,version,entry.options.get('manage_dashboard',True)))
+    runtime.stop_route=StopRoute(hass,runtime)
+    await feature('stop_route',runtime.stop_route.async_start())
+    entry.async_on_unload(runtime.stop_route.stop)
+    entry.async_on_unload(entry.add_update_listener(async_options_updated))
+    async def reload(call):await hass.config_entries.async_reload(entry.entry_id)
+    async_register_admin_service(hass,DOMAIN,'reload',reload)
+    entry.async_on_unload(lambda:hass.services.async_remove(DOMAIN,'reload'))
     entry.async_on_unload(llm.async_register_api(hass,ExperienceAPI(hass,runtime)))
     entry.async_on_unload(hass.bus.async_listen('voice_satellite_chat',runtime.chat))
     entry.async_on_unload(hass.bus.async_listen('voice_satellite_timer',runtime.timer_event))
@@ -56,6 +84,9 @@ async def dismiss_timer_service(hass,runtime,call):
         if user is None or not user.permissions.check_entity(p['satellite'],POLICY_CONTROL):
             raise Unauthorized(context=call.context,entity_id=p['satellite'],permission=POLICY_CONTROL)
     return await runtime.dismiss_for_device(call.data['device_id'],call.data.get('name'))
+
+async def async_options_updated(hass, entry):
+    await hass.config_entries.async_reload(entry.entry_id)
 
 async def async_unload_entry(hass, entry):
     runtime=hass.data.pop(DOMAIN,None)
@@ -160,9 +191,9 @@ class Experience:
             return {'status':'dismissed' if report.get('dismissed') else 'not_ringing','timers':[t['name'] for t in ringing]}
         return {'status':'failed','timers':[t['name'] for t in ringing]}
 
-    async def dismiss_for_device(self,device_id,name=None):
-        """Service entry point for the fast sentence route: silence this device's ringing alarm, never another Echo's."""
-        p=self.profile_for_device(device_id)
+    async def dismiss_for_device(self,device_id,name=None,profile=None):
+        """Silence this device's ringing alarm, never another Echo's. Callers with a validated owner map pass the profile."""
+        p=profile or self.profile_for_device(device_id)
         if not p:return {'status':'unknown_device'}
         wanted=normalize_timer_name(name)
         ringing=[t for t in self.ringing_timers(p) if not wanted or normalize_timer_name(t['name'])==wanted]
@@ -396,7 +427,7 @@ class ExperienceAPI(llm.API):
                 ActionTool(self.runtime,p,'echo_convert','Calculate a unit conversion exactly and display the result. Use for temperatures, weights, volumes and length/distance (millimetres, centimetres, metres, kilometres, inches, feet, yards, miles). Both singular and plural unit names are accepted. Cups/pints need their stated standard; never assume ingredient density.',{vol.Required('value'):vol.Coerce(float),vol.Required('from_unit'):str,vol.Required('to_unit'):str}),
                 ActionTool(self.runtime,p,'echo_music','Play music/radio or control playback on this Echo. Default is its selected music speaker. Optional speaker must be one of: '+speakers+'. Always set media_type for play/search: track for a song, album for an album, artist only when query is the band/artist name. The artist field is a separate filter; naming a performer does not make a song an artist request. Put only the title in query and the performer in artist. For album requests use query for the album title and omit the album field; album is only a filter for a track. Only set version if the user explicitly requests one. Standard studio releases are preferred automatically; do not ask about remasters or editions before calling this tool. Search resolves a title without playing. Play resolves tracks/artists/albums before queuing. If status is needs_clarification or not_found, ask a short question using the result; nothing has played. Never guess a URI. volume is 0–100.',{vol.Required('action'):vol.In(['play','search','pause','resume','next','previous','stop','volume']),vol.Optional('query'):str,vol.Optional('media_type'):vol.In(['track','artist','album','playlist','radio','podcast']),vol.Optional('artist'):str,vol.Optional('album'):str,vol.Optional('version'):str,vol.Optional('speaker'):str,vol.Optional('volume'):vol.All(vol.Coerce(float),vol.Range(min=0,max=100))}),
                 ActionTool(self.runtime,p,'echo_show','Open a view on THIS Echo when asked to show the home screen, timers, music, weather, guides or home controls.',{vol.Required('view'):vol.In(VIEWS)})])
-        return llm.APIInstance(api=self,api_prompt='Use Echo tools for this satellite\'s weather, music and conversions. Use echo_timer for timers and native Assist intents for home commands. Use echo_guide for appliance instructions. Never substitute guessed manual instructions or forecast data.',llm_context=context,tools=tools)
+        return llm.APIInstance(api=self,api_prompt='Use Echo tools for this satellite\'s weather, music and conversions. Use echo_timer for timers and native Assist intents for home commands. A finished timer whose alarm is sounding is listed under ringing, not timers: for stop, dismiss, silence or cancel while it rings use echo_timer operation cancel or dismiss (naming it if given) and confirm only when the result status is dismissed. Use echo_guide for appliance instructions. Never substitute guessed manual instructions or forecast data.',llm_context=context,tools=tools)
 
 def access(hass,connection,slug,policy):
     runtime=hass.data.get(DOMAIN)

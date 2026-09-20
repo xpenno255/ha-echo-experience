@@ -30,7 +30,7 @@ The 19 September “Play the album Mammoth 2 by Mammoth” trace exposed another
 
 Add `music_resolver_agent: conversation.echo_music_resolver` alongside `music_assistant_entry` in each participating Echo's profile. The same tool-free agent may serve multiple Echos; speaker routing remains profile-specific. Omitting the field retains the basic resolver without the advisor/catalog fallback. `agent.json` records the main Echo Home prompt; update that subentry's prompt as well when installing.
 
-Python changes require a Core restart. Back up the current owned files and agent settings first and avoid active voice timers. Deploy profiles and source with `deploy.py`. The lookup-only `echo_music` action `search` exercises the same matching path as `play` without touching playback or the dashboard. The installed HA Music Assistant integration supplies the client dependency (1.5.1 on HA 2026.9.2); no additional credentials or Python requirements are added.
+Python changes require a Core restart. Back up the current owned files and agent settings first and avoid active voice timers. Install source through HACS and update `/config/echo_experience.json` by hand, then reload the integration. The lookup-only `echo_music` action `search` exercises the same matching path as `play` without touching playback or the dashboard. The installed HA Music Assistant integration supplies the client dependency (1.5.1 on HA 2026.9.2); no additional credentials or Python requirements are added.
 
 ## Validation
 

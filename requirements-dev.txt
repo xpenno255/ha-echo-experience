@@ -1,4 +1,7 @@
 homeassistant==2026.9.2
 requests>=2.32,<3
 websockets>=15,<17
-smbprotocol>=1.15,<2
+# Conversation matcher stack, pinned to what HA 2026.9.2 ships, so sentence-trigger tests run for real.
+hassil==3.12.0
+home-assistant-intents==2026.8.28
+gazetteer-matcher==1.1.0

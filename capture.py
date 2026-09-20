@@ -2,7 +2,7 @@
 import sys,time
 from pathlib import Path
 from ha_client import ROOT,rest,SESSION,URL
-from deploy import AUDIT
+from tooling import AUDIT
 p=AUDIT
 eid='sensor.amzn_echo_show_8_last_screenshot'
 before=rest('/api/states/'+eid)['state']

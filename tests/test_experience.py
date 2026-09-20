@@ -1,4 +1,5 @@
 import asyncio
+import json
 import copy
 import importlib.util
 import sys
@@ -230,3 +231,58 @@ class RuntimeTest(unittest.IsolatedAsyncioTestCase):
   self.assertEqual(call.args[2]['entity_id'],'media_player.bedroom')
 
 if __name__=='__main__':unittest.main()
+
+class SetupTest(unittest.IsolatedAsyncioTestCase):
+ """async_setup_entry wires the shipped card, dashboard and stop route, and never lets one failure break the rest."""
+ async def asyncSetUp(self):
+  from unittest.mock import patch
+  self.calls={}
+  self.patches=[
+   patch.object(module.frontend,'async_register_static_path',AsyncMock(side_effect=lambda hass:self.calls.setdefault('static',True))),
+   patch.object(module.frontend,'async_ensure_resource',AsyncMock(side_effect=lambda hass,v:self.calls.setdefault('resource',v))),
+   patch.object(module.dashboard,'async_manage',AsyncMock(side_effect=lambda hass,profiles,v,enabled=True:self.calls.setdefault('dashboard',(v,enabled)))),
+   patch.object(module.StopRoute,'async_start',AsyncMock(side_effect=lambda:self.calls.setdefault('route',True))),
+   patch.object(module.DuckingManager,'async_start',AsyncMock()),
+   patch.object(module.llm,'async_register_api',lambda hass,api:(lambda:None)),
+   patch.object(module,'async_register_admin_service',lambda hass,d,n,h,**k:self.admin.__setitem__(n,h)),
+   patch.object(module.ir,'async_create_issue',lambda hass,domain,key,**kw:self.issues.__setitem__(key,kw)),
+   patch.object(module.ir,'async_delete_issue',lambda hass,domain,key:self.issues.pop(key,None)),
+  ]
+  self.admin={};self.issues={}
+  for p in self.patches:p.start();self.addCleanup(p.stop)
+  self.services={}
+  self.hass=NS(data={},config=NS(path=lambda name:str(Path(__file__).resolve().parents[1]/'profiles.json'),config_dir='/tmp'),async_add_executor_job=AsyncMock(side_effect=lambda f,*a:f(*a)),
+   bus=NS(async_listen=Mock(return_value=lambda:None),async_fire=Mock()),services=NS(async_register=lambda d,n,h,**k:self.services.__setitem__(n,h),async_remove=lambda d,n:self.services.pop(n,None)),
+   config_entries=NS(async_reload=AsyncMock()),states=NS(is_state=Mock(return_value=False),get=Mock()))
+  self.unloads=[]
+  self.entry=NS(options={'manage_dashboard':False},async_on_unload=self.unloads.append,add_update_listener=lambda f:(lambda:None),entry_id='e1')
+ async def test_setup_wires_card_dashboard_route_and_reload_service(self):
+  self.assertTrue(await module.async_setup_entry(self.hass,self.entry))
+  version=json.loads((Path(__file__).resolve().parents[1]/'custom_components/echo_experience/manifest.json').read_text())['version']
+  self.assertEqual(self.calls,{'static':True,'resource':version,'dashboard':(version,False),'route':True})
+  self.assertIn('reload',self.admin,'reload is registered through the admin-only helper');self.assertNotIn('reload',self.services)
+  self.assertIn('dismiss_timer',self.services)
+  await self.admin['reload'](NS(data={}))
+  self.hass.config_entries.async_reload.assert_awaited_once_with('e1')
+  self.assertEqual(self.issues,{})
+  for unload in self.unloads:unload()
+  self.assertNotIn('reload',self.services)
+ async def test_frontend_failure_does_not_block_the_stop_route_and_raises_a_repair(self):
+  module.frontend.async_ensure_resource.side_effect=RuntimeError('lovelace not ready')
+  self.assertTrue(await module.async_setup_entry(self.hass,self.entry))
+  self.assertTrue(self.calls['route'])
+  self.assertEqual(self.issues['setup_failed_frontend']['translation_placeholders'],{'error':'lovelace not ready'});self.assertNotIn('setup_failed_stop_route',self.issues)
+  module.frontend.async_ensure_resource.side_effect=None
+  await module.async_setup_entry(self.hass,self.entry)
+  self.assertNotIn('setup_failed_frontend',self.issues,'a clean setup clears the issue')
+ async def test_route_failure_is_a_visible_repair(self):
+  module.StopRoute.async_start.side_effect=RuntimeError('agent manager missing')
+  self.assertTrue(await module.async_setup_entry(self.hass,self.entry))
+  self.assertIn('setup_failed_stop_route',self.issues)
+ async def test_api_prompt_carries_ringing_guidance(self):
+  runtime=Experience(self.hass,{'devices':validate_profiles({'devices':profiles()})['devices']})
+  self.hass.config_entries.async_entries=lambda domain:[]
+  api=module.ExperienceAPI(self.hass,runtime)
+  instance=await api.async_get_api_instance(NS(device_id='device-kitchen'))
+  self.assertIn('ringing',instance.api_prompt);self.assertIn('dismiss',instance.api_prompt)
+  self.assertEqual({t.name for t in instance.tools},{'echo_timer','echo_weather','echo_convert','echo_music','echo_show'})

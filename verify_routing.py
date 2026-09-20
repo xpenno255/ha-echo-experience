@@ -3,7 +3,7 @@ import asyncio,json,time
 from pathlib import Path
 from ha_client import ROOT,commands
 from verify_live import run
-from deploy import AUDIT
+from tooling import AUDIT
 
 async def main():
     p=AUDIT

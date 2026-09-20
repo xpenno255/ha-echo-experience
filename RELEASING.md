@@ -16,12 +16,14 @@ version's section of `CHANGELOG.md`.
 4. Run the Python and frontend checks. Commit the intended files and push to main
    or merge a reviewed pull request.
 5. Confirm both the Checks and release jobs succeed, then verify the GitHub tag
-   and release. Record deployment separately after following the existing backup,
-   config-validation and device-idle checks.
+   and release. Record deployment separately: HACS/manual install, idle Core restart,
+   Repairs review and the physical Echo checks in the README.
 
-The release contains GitHub's source archives. It is a versioned source snapshot,
-not an automatic Home Assistant deployment or a promise of HACS update delivery.
-Local credentials, audit captures and backups remain excluded from Git.
+The release contains GitHub's source archives, which is what HACS installs
+(`hacs.json` has no `zip_release`). Installing a release into Home Assistant is a
+separate step: HACS update (or manual copy) followed by a Core restart while idle, then
+the Repairs checks described in the README. Local credentials, audit captures and
+backups remain excluded from Git.
 
 Documentation or tooling changes may keep the same integration version. The
 workflow leaves an existing release unchanged; it never retags a published

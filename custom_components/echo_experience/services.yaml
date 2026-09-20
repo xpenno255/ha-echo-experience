@@ -1,0 +1,18 @@
+dismiss_timer:
+  name: Dismiss timer
+  description: Silence a ringing (finished) timer alarm on the Echo that owns the given voice device. Never touches other Echos.
+  fields:
+    device_id:
+      name: Device
+      description: Device ID of the Echo satellite or one of its companion voice satellites.
+      required: true
+      selector:
+        device:
+    name:
+      name: Timer name
+      description: Only dismiss the ringing timer with this name.
+      selector:
+        text:
+reload:
+  name: Reload
+  description: Re-read echo_experience.json and rebuild the dashboard and the voice stop route without restarting Core.

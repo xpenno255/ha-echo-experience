@@ -74,7 +74,4 @@ Source: [HACS 2.0.5 background tasks](https://github.com/hacs/integration/blob/2
 For a future stale entry, refresh its update information in HACS; this checks
 releases without installing them.
 
-Echo Experience itself is a separate private repository deployed directly via
-`deploy.py`; it is not registered as a HACS-managed integration. Commits alone do
-not create a Home Assistant update entity or installable HACS release. Version
-0.3.1 is deployed directly; a HACS release/update path is separate future work.
+Echo Experience itself is a separate repository. Since 0.6.0 it installs as a single HACS custom repository (or by manual copy of a release archive); before that it was deployed directly with a script. Commits alone do not create a Home Assistant update entity; a tagged release does.
