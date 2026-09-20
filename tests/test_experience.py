@@ -131,6 +131,18 @@ class RuntimeTest(unittest.IsolatedAsyncioTestCase):
   with self.assertRaisesRegex(ValueError,'did not confirm'):await self.runtime.execute(self.profiles[0],'timer',{'operation':'cancel'})
   self.assertEqual([t['id'] for t in self.runtime.ringing_timers(self.profiles[0])],['t1'])
   self.assertEqual(self.runtime.dismissals,{})
+ async def test_unknown_display_state_is_unconfirmed_not_silenced(self):
+  # Voice Satellite 2026.9.10 renders native Kiosk alerts with no DOM element; a card that cannot ask the session must not guess.
+  self.finish()
+  async def answer():
+   for _ in range(50):
+    await asyncio.sleep(0)
+    requests=[c.args[1]['dismiss']['request'] for c in self.hass.bus.async_fire.call_args_list if 'dismiss' in c.args[1]]
+    if requests:
+     self.runtime.display_report(self.profiles[0],{'operation':'dismissed','request':requests[-1],'timers':[],'present':False,'dismissed':False,'unknown':True});return
+  asyncio.ensure_future(answer())
+  with self.assertRaisesRegex(ValueError,'did not confirm'):await self.runtime.execute(self.profiles[0],'timer',{'operation':'cancel'})
+  self.assertEqual([t['id'] for t in self.runtime.ringing_timers(self.profiles[0])],['t1'],'ringing state kept until a real answer')
  async def test_alert_already_gone_clears_ringing_state(self):
   self.finish();self.report(dismissed=False,present=False)
   result=await self.runtime.execute(self.profiles[0],'timer',{'operation':'cancel'})

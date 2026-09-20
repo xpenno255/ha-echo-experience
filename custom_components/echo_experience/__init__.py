@@ -186,6 +186,9 @@ class Experience:
         except TimeoutError:
             return {'status':'unconfirmed','timers':[t['name'] for t in ringing]}
         finally:self.dismissals.pop(token,None)
+        if report.get('unknown'):
+            # The display could not tell whether anything is ringing; say so rather than guess either way.
+            return {'status':'unconfirmed','timers':[t['name'] for t in ringing]}
         if report.get('dismissed') or not report.get('present'):
             self.forget(p,ids)
             return {'status':'dismissed' if report.get('dismissed') else 'not_ringing','timers':[t['name'] for t in ringing]}
@@ -209,7 +212,7 @@ class Experience:
         if token:
             entry=self.dismissals.get(token)
             if not entry or entry['profile']!=p['id']:return {'status':'ignored'}
-            if not entry['future'].done():entry['future'].set_result({'dismissed':bool(args.get('dismissed')),'present':bool(args.get('present'))})
+            if not entry['future'].done():entry['future'].set_result({'dismissed':bool(args.get('dismissed')),'present':bool(args.get('present')),'unknown':bool(args.get('unknown'))})
             return {'status':'recorded'}
         if not args.get('present') and self.forget(p,ids):
             # Silenced on the device itself (tap or stop word); keep the server's view honest for just those alarms.

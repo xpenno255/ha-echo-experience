@@ -32,18 +32,28 @@ let ambient=new sandbox.Card();ambient.config={device:'kitchen',ambient:true};am
  same(calls[0].args,{operation:'dismissed',request:'abc',timers:['t1'],present:true,dismissed:true});assert.equal(taps,2,'two taps within 400 ms');same(ring.data.ringing,[]);
  const stuck=card(pasta());stuck.ownerDocument=makeDoc(1,()=>{});await stuck.dismiss({request:'def',timers:[{id:'t1'}]});
  assert.equal(calls[1].args.dismissed,false,'a surviving alert is never reported as dismissed');assert.equal(stuck.data.ringing.length,1);
+ // No DOM alert and no Voice Satellite session: the card cannot know whether the device is sounding, so it says so.
  const gone=card(pasta());gone.ownerDocument=makeDoc(0,()=>{throw new Error('no gesture without an alert');});await gone.dismiss({request:'ghi',timers:[{id:'t1'}]});
- same(calls[2].args,{operation:'dismissed',request:'ghi',timers:['t1'],present:false,dismissed:false});
- const idle=card(pasta());idle.ownerDocument=makeDoc(0,()=>{});idle.checkRinging();idle.checkRinging();assert.equal(calls.length,3,'needs three quiet ticks');idle.checkRinging();
- same(calls[3].args,{operation:'dismissed',timers:['t1'],present:false,dismissed:false});same(idle.data.ringing,[]);
- const recent=card([{id:'t1',name:'Pasta',finished_at:Date.now()/1000}]);recent._hass={callWS:async()=>{throw new Error('too early');}};recent.ownerDocument=makeDoc(0,()=>{});
+ same(calls[2].args,{operation:'dismissed',request:'ghi',timers:[],present:false,dismissed:false,unknown:true});assert.equal(gone.data.ringing.length,1,'unknown state clears nothing');
+ const idle=card(pasta());idle.ownerDocument=makeDoc(0,()=>{});for(let i=0;i<5;i++)idle.checkRinging();assert.equal(calls.length,3,'no silence report without evidence');assert.equal(idle.data.ringing.length,1);
+ // With the session present (Voice Satellite 2026.9.10+, native Kiosk alerts, no DOM element) its alertActive flag decides.
+ const withSession=(alertActive,onDismiss)=>{const doc=makeDoc(0,()=>{throw new Error('DOM gesture must not be used when the session is available');});doc.defaultView.__vsSession={timer:{alertActive,dismissAlert(){onDismiss?.(this);}}};return doc;};
+ const native=card(pasta());native.ownerDocument=withSession(true,t=>{t.alertActive=false;});
+ await native.dismiss({request:'nat',timers:[{id:'t1',name:'Pasta'}]});same(calls[3].args,{operation:'dismissed',request:'nat',timers:['t1'],present:true,dismissed:true});same(native.data.ringing,[]);
+ const nativeStuck=card(pasta());nativeStuck.ownerDocument=withSession(true,()=>{});
+ await nativeStuck.dismiss({request:'nst',timers:[{id:'t1'}]});assert.equal(calls[4].args.dismissed,false,'session still ringing is never reported as dismissed');assert.equal(nativeStuck.data.ringing.length,1);
+ const nativeQuiet=card(pasta());nativeQuiet.ownerDocument=withSession(false,()=>{throw new Error('nothing to dismiss');});
+ await nativeQuiet.dismiss({request:'nq',timers:[{id:'t1'}]});same(calls[5].args,{operation:'dismissed',request:'nq',timers:['t1'],present:false,dismissed:false});
+ const nativeIdle=card(pasta());nativeIdle.ownerDocument=withSession(false);nativeIdle.checkRinging();nativeIdle.checkRinging();assert.equal(calls.length,6,'needs three quiet ticks');nativeIdle.checkRinging();
+ same(calls[6].args,{operation:'dismissed',timers:['t1'],present:false,dismissed:false});same(nativeIdle.data.ringing,[]);
+ const recent=card([{id:'t1',name:'Pasta',finished_at:Date.now()/1000}]);recent._hass={callWS:async()=>{throw new Error('too early');}};recent.ownerDocument=withSession(false);
  for(let i=0;i<5;i++)recent.checkRinging();assert.equal(recent.data.ringing.length,1,'a just-finished alert may still be deferred by Voice Satellite');
  // Only the requested ids are cleared locally; a timer that finished after the request keeps ringing.
  const partial=card([...pasta(),{id:'t2',name:'Eggs',finished_at:0}]);partial.ownerDocument=makeDoc(1,(doc,e)=>{if(e.type==='keydown')doc.alerts=0;});
- await partial.dismiss({request:'jkl',timers:[{id:'t1'}]});same(partial.data.ringing.map(t=>t.id),['t2']);same(calls[4].args.timers,['t1']);
+ await partial.dismiss({request:'jkl',timers:[{id:'t1'}]});same(partial.data.ringing.map(t=>t.id),['t2']);same(calls[7].args.timers,['t1']);
  // Gesture replay: no second tap once the first already cleared the alert.
  let single=0;const quick=card(pasta());quick.ownerDocument=makeDoc(1,(doc,e)=>{if(e.type==='click'){single++;doc.alerts=0;}});
- await quick.dismiss({request:'mno',timers:[{id:'t1'}]});assert.equal(single,1,'second tap withheld after the first cleared the alert');assert.equal(calls[5].args.dismissed,true);
+ await quick.dismiss({request:'mno',timers:[{id:'t1'}]});assert.equal(single,1,'second tap withheld after the first cleared the alert');assert.equal(calls[8].args.dismissed,true);
  // Browser ownership: a second dashboard (phone/laptop) or a browser running another satellite never acts or reports.
  const before=calls.length;
  for(const [label,opts] of [['no Voice Satellite UI',{ui:false}],['another satellite',{satellite:'assist_satellite.bedroom'}],['no satellite known',{satellite:null}]]){
@@ -59,5 +69,5 @@ let ambient=new sandbox.Card();ambient.config={device:'kitchen',ambient:true};am
  a.view='guide';a.receive({device:'kitchen',timer_event:{event_type:'finished'}});assert.equal(a.view,'guide','a pinned guide stays');
  const other=new sandbox.Card();other.config={device:'kitchen'};other.data={timers:[]};other.render=()=>{};other.dismiss=()=>{throw new Error('foreign dismissal');};
  other.receive({device:'bedroom',dismiss:{request:'zzz'}});
- console.log('38 frontend behaviour assertions passed');
+ console.log('47 frontend behaviour assertions passed');
 })().catch(err=>{console.error(err);process.exit(1);});

@@ -118,7 +118,7 @@ The verification tools read credentials from the untracked `.env` file or enviro
 - Voice timers follow Home Assistant's native lifecycle: browser navigation/reload preserves them while HA keeps running; Core restart does not promise to restore them. Do not restart Core during an active timer.
 - Current screen results and the selected speaker are in memory and reset on integration/Core restart. Manual follow-up context is retained by the conversation agent per voice session, not globally across Echos.
 - The source uses the installed HA 2026.9.2 TimerManager API to read paused timers accurately and enforce ownership, `conversation.get_agent_manager().register_trigger` for the stop phrases, and Lovelace's `dashboards`/`resources` storage objects. None of these is a public API; `hacs.json` states a minimum HA version only. Each feature is isolated so a failure becomes a repair issue or log line, not a failed setup. Recheck these interfaces when upgrading HA.
-- Voice Satellite mini-card layouts render their timer alert inside a shadow root and are not supported for voice dismissal.
+- Voice dismissal talks to Voice Satellite's browser session (`window.__vsSession.timer`, 2026.9.10+), which covers both native Kiosk alerts and the older DOM alert. Without that session the card falls back to the DOM gesture, and with neither it reports the state as unknown rather than silenced.
 - Only one physical Kiosk Echo was installed during development. Automated two-profile tests verify routing and ownership; end-to-end multi-device audio/display validation requires the additional physical Echo.
 
 ## Validation

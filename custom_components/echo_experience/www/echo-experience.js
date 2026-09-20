@@ -1,18 +1,22 @@
-/* Echo Experience 0.5.1 — quiet gradient home, device-scoped playback, ambient view and voice dismissal of ringing timers. */
+/* Echo Experience 0.6.1 — quiet gradient home, device-scoped playback, ambient view and voice dismissal of ringing timers. */
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const icon = name => `<ha-icon icon="mdi:${name}"></ha-icon>`;
 const clock = date => date.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
 const duration = seconds => {const n=Math.max(0,Math.ceil(seconds));return n>=3600?`${Math.floor(n/3600)}:${String(Math.floor(n%3600/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`:`${Math.floor(n/60)}:${String(n%60).padStart(2,'0')}`;};
 const weatherIcon = c => ({sunny:'weather-sunny','clear-night':'weather-night',partlycloudy:'weather-partly-cloudy',cloudy:'weather-cloudy',rainy:'weather-rainy',pouring:'weather-pouring',snowy:'weather-snowy',fog:'weather-fog',windy:'weather-windy','lightning-rainy':'weather-lightning-rainy'}[c]||'weather-cloudy');
 const condition = c => ({partlycloudy:'Partly cloudy','clear-night':'Clear tonight','lightning-rainy':'Thundery showers'}[c]||String(c||'Unavailable').replace(/-/g,' '));
-// Voice Satellite (2026.9.7) renders one .vs-timer-alert for every finished timer inside its global #voice-satellite-ui
-// element and only dismisses it from its own document listeners: Escape, or two taps/clicks 1–399 ms apart. It exposes
-// no service or WebSocket command for this, so the Echo's browser session replays those gestures; Voice Satellite then
-// plays its done chime and clears the alarm. The mini card renders .vs-mini-timer-alert inside its own shadow root,
-// out of reach of a document query, so mini-card layouts are not supported.
+// Voice Satellite keeps one browser-wide session at window.__vsSession whose timer manager tracks the ringing state
+// (timer.alertActive) and owns dismissal (timer.dismissAlert(): done chime, native Kiosk alert cleared through
+// kioskSatellite.setVoiceTimerAlert on 2026.9.10+, DOM alert and blur removed, stop model disarmed). That flag is the
+// only truthful source: since Kiosk Satellite gained native timer alerts the .vs-timer-alert element is not rendered at
+// all, so a DOM query says "nothing ringing" while the device is sounding. The DOM gesture (Escape, two taps within
+// 400 ms) stays as a fallback for builds without the session global.
 const alertSelector = '.vs-timer-alert';
 const wait = ms => new Promise(r=>setTimeout(r,ms));
-const alertPresent = doc => !!doc.querySelector(alertSelector);
+const vsTimer = win => { try{return win.__vsSession?.timer||null;}catch(e){return null;} };
+// null = unknown (no session to ask), true/false = the session's own answer.
+const alertState = doc => { const t=vsTimer(doc.defaultView||window); return t&&'alertActive' in t?!!t.alertActive:(doc.querySelector(alertSelector)?true:null); };
+const alertPresent = doc => alertState(doc)===true;
 // Which satellite this browser runs. Voice Satellite resolves it the same way (bundle: Ya()/Qa()): the localStorage key
 // "vs-satellite-entity" holds the entity it validated against hass.entities, falling back to satellite_entity inside the
 // "vs-panel-config" JSON it hydrates from voice_satellite/get_panel_settings. window.__vsExternalSettings.get().satellite
@@ -28,6 +32,12 @@ const hostsSatellite = (doc,satellite) => !!(satellite&&doc.getElementById?.('vo
 const dismissNativeAlert = async (doc=document) => {
   if(!alertPresent(doc))return false;
   const win=doc.defaultView||window;
+  const t=vsTimer(win);
+  if(t&&typeof t.dismissAlert==='function'){
+    try{t.dismissAlert();}catch(e){}
+    for(let i=0;i<6&&t.alertActive;i++)await wait(150);
+    return !t.alertActive;
+  }
   doc.dispatchEvent(new win.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));
   if(!alertPresent(doc))return true;
   doc.body.dispatchEvent(new win.MouseEvent('click',{bubbles:true,cancelable:true}));
@@ -97,7 +107,10 @@ class EchoExperienceCard extends HTMLElement {
   async dismiss(request){
     // Runs only in the Echo's own browser session, then reports the outcome so the voice reply is honest.
     if(!this.hostsSatellite())return;
-    const doc=this.ownerDocument||document;const present=alertPresent(doc);const dismissed=present&&await dismissNativeAlert(doc);
+    const doc=this.ownerDocument||document;const state=alertState(doc);
+    // Unknown state (no session to ask and no DOM alert) is reported as such, never as "silenced".
+    if(state===null){try{await this._hass.callWS({type:'echo_experience/action',device:this.config.device,action:'timer',args:{operation:'dismissed',request:request.request,timers:[],present:false,dismissed:false,unknown:true}});}catch(err){this.error=err.message;}return;}
+    const present=state;const dismissed=present&&await dismissNativeAlert(doc);
     const timers=(request.timers||[]).map(t=>t.id);
     if(this.data&&(dismissed||!present))this.data.ringing=(this.data.ringing||[]).filter(t=>!timers.includes(t.id));
     try{await this._hass.callWS({type:'echo_experience/action',device:this.config.device,action:'timer',args:{operation:'dismissed',request:request.request,timers,present,dismissed}});}
@@ -109,7 +122,8 @@ class EchoExperienceCard extends HTMLElement {
     // are not dismissed later. Wait a few seconds because Voice Satellite can defer showing the alert briefly.
     const ringing=this.data?.ringing||[];if(!ringing.length||this.config.ambient||!this._hass||!this.hostsSatellite())return;
     const settled=ringing.every(t=>Date.now()/1000-t.finished_at>5);
-    this._alertMissing=settled&&!alertPresent(this.ownerDocument||document)?(this._alertMissing||0)+1:0;
+    // Only the session's own flag may declare an alarm gone; with no session there is no evidence, so stay quiet.
+    this._alertMissing=settled&&alertState(this.ownerDocument||document)===false?(this._alertMissing||0)+1:0;
     if(this._alertMissing<3)return;this._alertMissing=0;const timers=ringing.map(t=>t.id);this.data.ringing=[];
     this._hass.callWS({type:'echo_experience/action',device:this.config.device,action:'timer',args:{operation:'dismissed',timers,present:false,dismissed:false}}).catch(()=>{});
     this.render();

@@ -1,5 +1,12 @@
 # Changes
 
+## 0.6.1 - dismiss native Kiosk timer alerts
+
+- Fix a false "timer stopped" while the alarm kept sounding. Voice Satellite 2026.9.10 with Kiosk Satellite 2026.9.62+ hands finished-timer alerts to the native Android layer and no longer renders a `.vs-timer-alert` element, so the card saw "no alert", the server recorded the alarm as already silenced and the reply claimed success.
+- The card now asks Voice Satellite's own browser session (`window.__vsSession.timer`): its `alertActive` flag decides whether anything is ringing and its `dismissAlert()` performs the dismissal (done chime, native alert cleared, blur and stop model reset). The Escape/double-tap DOM gesture remains only as a fallback for builds without the session global.
+- When neither a session nor a DOM alert is available the card reports the state as unknown; the server answers "couldn't confirm" instead of "already silenced", and unsolicited silence reports require the session flag. Nothing is ever cleared on the absence of evidence.
+- Tests: 124 Python and 47 frontend assertions (native session dismiss, still-ringing session, quiet session, unknown state, no silence report without evidence).
+
 ## 0.6.0 - single HACS-installable integration
 
 - Everything the SMB deployment did now happens inside the integration: the card is served from `/echo_experience/echo-experience.js?v=<version>` and its Lovelace resource is created or updated (the old `/local` resource is removed; YAML-mode resources get a repair issue); the `echo-home` dashboard is filled from the profiles; the fast voice stop route is registered in code. `deploy.py`, `stop_automation.py`, `dashboard.json` and the `smbprotocol` requirement are gone; `tooling.py` keeps the audit path for the verification scripts.
