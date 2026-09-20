@@ -10,6 +10,8 @@ Dashboard: <https://homeassistant.xpennohome.uk/echo-home/echo_show_8>
 
 The private repository contains the integration, installed dashboard definition and frontend, device profiles, agent settings, design history, tests and retired automation reference. Credentials, screenshots, audit logs and backups stay outside Git.
 
+Versioned GitHub releases start at **v0.4.1**. After checks pass on main, a new manifest version is tagged and released automatically using its changelog notes. See [RELEASING.md](RELEASING.md) for the release and deployment process. Feature requests and bugs are tracked in the repository's GitHub Issues.
+
 For local deployment, copy `.env.example` to `.env` and fill in the Home Assistant and Samba credentials. Install `requirements-dev.txt` in a Python 3.14 virtual environment. Run `python deploy.py` to copy the owned files and register the dashboard. Add Echo Experience through Home Assistant integrations after its initial installation. Python integration changes need a Core restart; profile changes need only an integration reload. Frontend changes need a kiosk reload. Private deployment backups default to `.backups/`.
 
 ## Everyday use

@@ -14,8 +14,47 @@ jobs:
           cache-dependency-path: requirements-dev.txt
       - run: pip install -r requirements-dev.txt
       - run: python -m unittest discover -s tests -v
+      - run: python scripts/prepare_release.py --output-dir "$RUNNER_TEMP/echo-release"
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - run: node --check www/echo-experience.js
       - run: node tests/test_card.cjs www/echo-experience.js
+  release:
+    needs: checks
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: echo-experience-release
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - run: python scripts/prepare_release.py --output-dir "$RUNNER_TEMP/echo-release"
+      - name: Publish a release for a new manifest version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(cat "$RUNNER_TEMP/echo-release/version.txt")
+          tag="v$version"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists; keeping its tag and notes unchanged."
+            exit 0
+          fi
+          if git rev-parse --verify "refs/tags/$tag" >/dev/null 2>&1; then
+            if [ "$(git rev-list -n 1 "$tag")" != "$GITHUB_SHA" ]; then
+              echo "Tag $tag points at a different commit; refusing to publish or move it."
+              exit 1
+            fi
+          fi
+          gh release create "$tag" --target "$GITHUB_SHA" \
+            --title "Echo Experience $tag" \
+            --notes-file "$RUNNER_TEMP/echo-release/notes.md"
