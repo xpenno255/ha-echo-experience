@@ -2,13 +2,14 @@
 import asyncio
 import json
 import logging
+import secrets
 import time
 from datetime import timedelta
 from pathlib import Path
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.components.intent.const import TIMER_DATA
-from homeassistant.core import callback
+from homeassistant.core import callback, SupportsResponse
 from homeassistant.helpers import llm
 from homeassistant.auth.permissions.const import POLICY_READ, POLICY_CONTROL
 from homeassistant.util import dt as dt_util
@@ -20,6 +21,8 @@ from .core import validate_profiles, route_profile, convert, VIEWS, normalize_ti
 
 DOMAIN='echo_experience'
 EVENT='echo_experience_update'
+# A finished alarm keeps sounding until dismissed; forget it after this long if the display never reports.
+RINGING_TTL=3600
 _LOGGER=logging.getLogger(__name__)
 
 async def async_setup(hass, config):
@@ -35,6 +38,10 @@ async def async_setup_entry(hass, entry):
     entry.async_on_unload(llm.async_register_api(hass,ExperienceAPI(hass,runtime)))
     entry.async_on_unload(hass.bus.async_listen('voice_satellite_chat',runtime.chat))
     entry.async_on_unload(hass.bus.async_listen('voice_satellite_timer',runtime.timer_event))
+    async def dismiss_timer(call):
+        return await runtime.dismiss_for_device(call.data['device_id'],call.data.get('name'),call.data.get('cancel_running',False))
+    hass.services.async_register(DOMAIN,'dismiss_timer',dismiss_timer,schema=vol.Schema({vol.Required('device_id'):str,vol.Optional('name'):str,vol.Optional('cancel_running'):bool}),supports_response=SupportsResponse.OPTIONAL)
+    entry.async_on_unload(lambda:hass.services.async_remove(DOMAIN,'dismiss_timer'))
     runtime.ducking=DuckingManager(hass,runtime.profiles)
     await runtime.ducking.async_start()
     return True
@@ -53,6 +60,9 @@ class Experience:
         self.locks={}
         self.music_players={}
         self.music_catalog_cache={}
+        self.ringing={}
+        self.dismissals={}
+        self.dismiss_timeout=4
 
     def profile(self,slug):
         return next((p for p in self.profiles if p['id']==slug),None)
@@ -64,8 +74,14 @@ class Experience:
                  'total_seconds':t.created_seconds,'is_active':t.is_active,'sampled_at':time.time()}
                 for t in manager.timers.values() if t.device_id==p['device_id']]
 
+    def ringing_timers(self,p):
+        """Finished timers whose alarm is sounding; core drops these from manager.timers before the FINISHED event."""
+        entries=self.ringing.get(p['id'],{})
+        for key in [k for k,t in entries.items() if time.time()-t['finished_at']>RINGING_TTL]:entries.pop(key)
+        return sorted(entries.values(),key=lambda t:t['finished_at'])
+
     def snapshot(self,p):
-        return {'profile':p,'timers':self.timers(p),'result':self.results.get(p['id']),
+        return {'profile':p,'timers':self.timers(p),'ringing':self.ringing_timers(p),'result':self.results.get(p['id']),
                 'music_player':self.music_players.get(p['id'],p['music_player']),
                 'forecast':self.forecasts.get(p['weather'])}
 
@@ -90,8 +106,47 @@ class Experience:
     def timer_event(self,event):
         p=route_profile(self.profiles,satellite=event.data.get('entity_id'))
         if p:
+            data=event.data
+            if data.get('event_type')=='finished' and data.get('timer_id'):
+                self.ringing.setdefault(p['id'],{})[data['timer_id']]={'id':data['timer_id'],'name':data.get('name') or 'Timer','total_seconds':data.get('total_seconds'),'finished_at':time.time()}
             # Native Voice Satellite owns audio and completion/dismissal; no duplicate alarm.
-            self.hass.bus.async_fire(EVENT,{'device':p['id'],'timers':self.timers(p),'timer_event':dict(event.data)})
+            self.hass.bus.async_fire(EVENT,{'device':p['id'],'timers':self.timers(p),'ringing':self.ringing_timers(p),'timer_event':dict(data)})
+
+    async def dismiss(self,p,ringing):
+        """Ask this Echo's dashboard to trigger Voice Satellite's own dismissal and report what happened."""
+        token=secrets.token_hex(8)
+        future=asyncio.get_running_loop().create_future()
+        self.dismissals[token]=future
+        self.hass.bus.async_fire(EVENT,{'device':p['id'],'dismiss':{'request':token,'timers':[{'id':t['id'],'name':t['name']} for t in ringing]}})
+        try:
+            async with asyncio.timeout(self.dismiss_timeout):report=await future
+        except TimeoutError:
+            return {'status':'unconfirmed','timers':[t['name'] for t in ringing]}
+        finally:self.dismissals.pop(token,None)
+        if report.get('dismissed') or not report.get('present'):
+            # Voice Satellite shows one alert for every finished timer, so a dismissal (or its absence) covers them all.
+            self.ringing.pop(p['id'],None)
+            return {'status':'dismissed' if report.get('dismissed') else 'not_ringing','timers':[t['name'] for t in ringing]}
+        return {'status':'failed','timers':[t['name'] for t in ringing]}
+
+    async def dismiss_for_device(self,device_id,name=None,cancel_running=False):
+        """Service entry point for the fast sentence route: silence this device's ringing alarm, never another Echo's."""
+        p=route_profile(self.profiles,device_id=device_id)
+        if not p:return {'status':'unknown_device'}
+        wanted=normalize_timer_name(name)
+        ringing=[t for t in self.ringing_timers(p) if not wanted or normalize_timer_name(t['name'])==wanted]
+        if ringing:
+            result=await self.dismiss(p,ringing)
+            if result['status']=='dismissed':await self.publish(p,'timers')
+            return result
+        if not cancel_running:return {'status':'not_ringing'}
+        # An explicit "stop the timer" with nothing ringing means the countdown itself, if it is unambiguous.
+        running=[t for t in self.timers(p) if not wanted or normalize_timer_name(t['name'])==wanted]
+        if not running:return {'status':'not_ringing'}
+        if len(running)>1:return {'status':'ambiguous','timers':[t['name'] for t in running]}
+        self.hass.data[TIMER_DATA].cancel_timer(running[0]['id'])
+        await self.publish(p,'timers')
+        return {'status':'cancelled','timers':[running[0]['name']]}
 
     @callback
     def chat(self,event):
@@ -216,8 +271,16 @@ class Experience:
             manager=self.hass.data.get(TIMER_DATA)
             if not manager:raise ValueError('Timer manager unavailable')
             op=args.get('operation','start')
+            if op=='dismissed':
+                # The dashboard reports the outcome of a dismissal request; never an LLM-visible operation.
+                future=self.dismissals.get(str(args.get('request','')))
+                if future and not future.done():future.set_result({'dismissed':bool(args.get('dismissed')),'present':bool(args.get('present'))})
+                elif not args.get('present') and self.ringing.pop(p['id'],None):
+                    # Silenced on the device itself (tap or stop word); keep the server's view honest.
+                    self.hass.bus.async_fire(EVENT,{'device':p['id'],'timers':self.timers(p),'ringing':[]})
+                return {'status':'recorded'}
             if op=='status':
-                return {'timers':self.timers(p)}
+                return {'timers':self.timers(p),'ringing':self.ringing_timers(p)}
             if op=='start':
                 seconds=int(args.get('seconds',0))
                 if not 1<=seconds<=86400:raise ValueError('Choose 1 second to 24 hours')
@@ -228,11 +291,28 @@ class Experience:
                 if not any(key not in before and timer.device_id==p['device_id'] for key,timer in manager.timers.items()):
                     raise ValueError('Home Assistant did not create the timer. Check the satellite connection.')
             else:
-                timer=manager.timers.get(args.get('timer_id'))
-                if timer is None and not args.get('timer_id'):
-                    name=str(args.get('name','')).casefold().strip()
-                    matches=[t for t in manager.timers.values() if t.device_id==p['device_id'] and (not name or normalize_timer_name(t.name)==normalize_timer_name(name))]
-                    if len(matches)!=1:raise ValueError('Name the timer to change; there is no unique matching timer on this Echo')
+                wanted=normalize_timer_name(args.get('name'))
+                requested=args.get('timer_id')
+                ringing=[t for t in self.ringing_timers(p) if (t['id']==requested if requested else (not wanted or normalize_timer_name(t['name'])==wanted))]
+                if ringing and op in ('cancel','dismiss'):
+                    result=await self.dismiss(p,ringing)
+                    if result['status']=='dismissed':
+                        await self.publish(p,'timers')
+                        return {'timers':self.timers(p),'ringing':[],'status':'dismissed','dismissed':result['timers'],'note':'The alarm has been silenced. Confirm briefly.'}
+                    if result['status']!='not_ringing':raise ValueError('The Echo display did not confirm the alarm was silenced. Tap the alert or say stop again.')
+                    if not any(t.device_id==p['device_id'] for t in manager.timers.values()):
+                        return {'timers':[],'ringing':[],'status':'already_silenced','note':'That alarm had already been silenced on the Echo; nothing is running.'}
+                    ringing=[]
+                elif ringing:raise ValueError('The '+ringing[0]['name']+' timer has finished and its alarm is sounding; dismiss it instead')
+                if op=='dismiss':
+                    others=', '.join(t['name'] for t in self.ringing_timers(p))
+                    running=len(self.timers(p))
+                    raise ValueError(('No timer alarm is sounding on this Echo' if not others else f'No ringing timer matches; ringing: {others}')+(f'; {running} timer(s) are still running' if running else ''))
+                timer=manager.timers.get(requested)
+                if timer is None and not requested:
+                    matches=[t for t in manager.timers.values() if t.device_id==p['device_id'] and (not wanted or normalize_timer_name(t.name)==wanted)]
+                    if not matches:raise ValueError('No timer is running or ringing on this Echo'+(f' named {wanted}' if wanted else ''))
+                    if len(matches)>1:raise ValueError('Name the timer to change; there is no unique matching timer on this Echo')
                     timer=matches[0]
                 if timer is None or timer.device_id!=p['device_id']:raise ValueError('This timer does not belong to this Echo')
                 if op=='cancel':manager.cancel_timer(timer.id)
@@ -241,7 +321,7 @@ class Experience:
                 elif op=='add':manager.add_time(timer.id,60)
                 else:raise ValueError('Unsupported timer operation')
             await self.publish(p,'timers')
-            return {'timers':self.timers(p),'status':'completed'}
+            return {'timers':self.timers(p),'ringing':self.ringing_timers(p),'status':'completed'}
         raise ValueError('Unsupported action')
 
 class ActionTool(llm.Tool):
@@ -279,7 +359,7 @@ class ExperienceAPI(llm.API):
         if p:
             speakers=', '.join(x['name'] for x in p['speakers'])
             tools.extend([
-                ActionTool(self.runtime,p,'echo_timer','Manage native voice timers on THIS Echo only. Start a named timer with a duration in seconds; status lists remaining seconds. Pause, resume, cancel or add one minute using its name (omit only if exactly one exists). Never create or guess timer.* entities.',{vol.Required('operation'):vol.In(['start','status','pause','resume','cancel','add']),vol.Optional('name'):str,vol.Optional('seconds'):vol.All(vol.Coerce(int),vol.Range(min=1,max=86400))}),
+                ActionTool(self.runtime,p,'echo_timer','Manage native voice timers on THIS Echo only. Start a named timer with a duration in seconds; status lists running timers with remaining seconds plus any ringing (finished) alarms. Pause, resume, cancel or add one minute using its name (omit only if exactly one exists). A finished timer whose alarm is sounding is no longer running: "stop", "stop the timer", "dismiss" or "cancel" while it rings means dismiss. cancel silences a ringing alarm first and otherwise cancels the running timer; dismiss only silences alarms. Never create or guess timer.* entities.',{vol.Required('operation'):vol.In(['start','status','pause','resume','cancel','dismiss','add']),vol.Optional('name'):str,vol.Optional('seconds'):vol.All(vol.Coerce(int),vol.Range(min=1,max=86400))}),
                 ActionTool(self.runtime,p,'echo_weather','Get the local forecast and display it on THIS Echo. Use for weather and rain questions. Choose today, tomorrow, next_hours (12 hours), or week.',{vol.Optional('period',default='today'):vol.In(['today','tomorrow','next_hours','week'])}),
                 ActionTool(self.runtime,p,'echo_convert','Calculate a unit conversion exactly and display the result. Use for temperatures, weights, volumes and length/distance (millimetres, centimetres, metres, kilometres, inches, feet, yards, miles). Both singular and plural unit names are accepted. Cups/pints need their stated standard; never assume ingredient density.',{vol.Required('value'):vol.Coerce(float),vol.Required('from_unit'):str,vol.Required('to_unit'):str}),
                 ActionTool(self.runtime,p,'echo_music','Play music/radio or control playback on this Echo. Default is its selected music speaker. Optional speaker must be one of: '+speakers+'. Always set media_type for play/search: track for a song, album for an album, artist only when query is the band/artist name. The artist field is a separate filter; naming a performer does not make a song an artist request. Put only the title in query and the performer in artist. For album requests use query for the album title and omit the album field; album is only a filter for a track. Only set version if the user explicitly requests one. Standard studio releases are preferred automatically; do not ask about remasters or editions before calling this tool. Search resolves a title without playing. Play resolves tracks/artists/albums before queuing. If status is needs_clarification or not_found, ask a short question using the result; nothing has played. Never guess a URI. volume is 0–100.',{vol.Required('action'):vol.In(['play','search','pause','resume','next','previous','stop','volume']),vol.Optional('query'):str,vol.Optional('media_type'):vol.In(['track','artist','album','playlist','radio','podcast']),vol.Optional('artist'):str,vol.Optional('album'):str,vol.Optional('version'):str,vol.Optional('speaker'):str,vol.Optional('volume'):vol.All(vol.Coerce(float),vol.Range(min=0,max=100))}),

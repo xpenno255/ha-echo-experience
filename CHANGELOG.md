@@ -1,5 +1,14 @@
 # Changes
 
+## 0.5.0 - dismiss a ringing timer by voice
+
+- Fix "stop timer" failing while a finished timer is sounding (#5). Home Assistant removes a timer from its manager before Voice Satellite fires the finished event, so the cancel path found nothing. The integration now records finished timers per Echo as ringing until the alarm is dismissed.
+- Dismiss through Voice Satellite's own mechanism. It exposes no service or WebSocket command for a ringing alert, so the Echo's dashboard card replays its native Escape/double-tap dismissal in the device's browser and reports back. Voice replies only claim success after that confirmation; otherwise they say the alarm could not be confirmed stopped.
+- `echo_timer` gains a `dismiss` operation, `cancel` silences a ringing alarm first, `status` lists ringing alarms, and a new `echo_experience.dismiss_timer` service (device-scoped, optional name and `cancel_running`) serves the fast sentence route.
+- The voice stop automation now runs bare "stop", "stop the timer", "stop the alarm", "dismiss the timer" and related phrases through that service on the originating Echo before any music stop. Explicit "stop music/Sonos" phrases never touch timers. "Stop the timer" with nothing ringing cancels the single running timer or asks which one. Run `python stop_automation.py` (or a normal `deploy.py`) to install the updated route.
+- Timers view shows finished alarms as "Finished" cards and opens on completion unless a guide is pinned. Alarms silenced on the device by tap or stop word clear the server's ringing state.
+- Add expiry-to-dismissal regressions: 10 Python tests (ringing tracking, display round-trip, unconfirmed and already-silenced outcomes, per-Echo scoping, service fallback, expiry) and 10 frontend assertions for the gesture replay and honest reporting. Physical Echo voice test still to be recorded after deployment.
+
 ## 0.4.1 - favourite-artist regression suite
 
 - Add 386 artist, album and track matching cases across the user's 20 favourite artists, with independently sourced canonical metadata and synthetic release variants.

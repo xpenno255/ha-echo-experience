@@ -1,5 +1,5 @@
 const fs=require('node:fs');const vm=require('node:vm');const assert=require('node:assert/strict');
-const sandbox={HTMLElement:class{attachShadow(){this.shadowRoot={querySelectorAll:()=>[],activeElement:null};}},customElements:{get:()=>false,define(){}},window:{},console,Date,Math,String,Number,Set,Map,CSS:{escape:x=>x},setInterval,clearInterval};
+const sandbox={HTMLElement:class{attachShadow(){this.shadowRoot={querySelectorAll:()=>[],activeElement:null};}},customElements:{get:()=>false,define(){}},window:{},console,Date,Math,String,Number,Set,Map,CSS:{escape:x=>x},setInterval,clearInterval,setTimeout,clearTimeout,Promise};
 vm.createContext(sandbox);vm.runInContext(fs.readFileSync(process.argv[2],'utf8')+'\nthis.Card=EchoExperienceCard;this.escapeText=esc;',sandbox);
 let a=new sandbox.Card();a.config={device:'kitchen'};a.data={timers:[]};a.render=()=>{};a.refresh=()=>{};
 a.receive({device:'bedroom',result:{view:'guide',payload:{speech:'Private bedroom reply'}}});assert.equal(a.view,'home');assert.equal(a.result,undefined);
@@ -14,4 +14,31 @@ playback._hass.states['media_player.kitchen'].state='paused';playback.syncPlayba
 playback._hass.states['media_player.kitchen'].state='idle';playback.syncPlayback();assert.equal(playback.view,'home');
 playback.view='guide';playback._hass.states['media_player.kitchen'].state='playing';playback.syncPlayback();assert.equal(playback.view,'guide','Playback must not cover a guide');
 let ambient=new sandbox.Card();ambient.config={device:'kitchen',ambient:true};ambient.data=playback.data;ambient._hass=playback._hass;ambient.render=()=>{};ambient.syncPlayback();ambient.receive({device:'kitchen',result:{view:'music'}});assert.equal(ambient.view,'home','Screensaver stays on the clock');
-console.log('11 frontend behaviour assertions passed');
+// Ringing timer dismissal: the card replays Voice Satellite's own dismissal gestures in the Echo's browser and
+// reports honestly. A fake document stands in for the page that hosts the native .vs-timer-alert element.
+(async()=>{
+ const same=(a,b)=>assert.equal(JSON.stringify(a),JSON.stringify(b));
+ const makeDoc=(alerts,onGesture)=>{const doc={alerts,listeners:[],body:{},defaultView:{KeyboardEvent:class{constructor(t,o){this.type=t;this.key=o.key;}},MouseEvent:class{constructor(t){this.type=t;}}}};
+  doc.querySelector=()=>doc.alerts>0?{}:null;doc.dispatchEvent=e=>onGesture(doc,e);doc.body.dispatchEvent=e=>onGesture(doc,e);return doc;};
+ const calls=[];const ring=new sandbox.Card();ring.config={device:'kitchen'};ring.data={timers:[],ringing:[{id:'t1',name:'Pasta',finished_at:0}]};ring.render=()=>{};
+ ring._hass={callWS:async m=>{calls.push(m);return {};}};
+ let taps=0;ring.ownerDocument=makeDoc(1,(doc,e)=>{if(e.type==='click'&&++taps===2)doc.alerts=0;});
+ await ring.dismiss({request:'abc',timers:[{id:'t1',name:'Pasta'}]});
+ same(calls[0].args,{operation:'dismissed',request:'abc',present:true,dismissed:true});assert.equal(taps,2,'two taps within 400 ms');same(ring.data.ringing,[]);
+ const stuck=new sandbox.Card();stuck.config={device:'kitchen'};stuck.data={timers:[],ringing:[{id:'t1',name:'Pasta',finished_at:0}]};stuck.render=()=>{};stuck._hass={callWS:async m=>{calls.push(m);return {};}};
+ stuck.ownerDocument=makeDoc(1,()=>{});await stuck.dismiss({request:'def'});
+ assert.equal(calls[1].args.dismissed,false,'a surviving alert is never reported as dismissed');assert.equal(stuck.data.ringing.length,1);
+ const gone=new sandbox.Card();gone.config={device:'kitchen'};gone.data={timers:[],ringing:[{id:'t1',name:'Pasta',finished_at:0}]};gone.render=()=>{};gone._hass={callWS:async m=>{calls.push(m);return {};}};
+ gone.ownerDocument=makeDoc(0,()=>{throw new Error('no gesture without an alert');});await gone.dismiss({request:'ghi'});
+ same(calls[2].args,{operation:'dismissed',request:'ghi',present:false,dismissed:false});
+ const idle=new sandbox.Card();idle.config={device:'kitchen'};idle.data={timers:[],ringing:[{id:'t1',name:'Pasta',finished_at:0}]};idle.render=()=>{};idle._hass={callWS:async m=>{calls.push(m);return {};}};
+ idle.ownerDocument=makeDoc(0,()=>{});idle.checkRinging();idle.checkRinging();assert.equal(calls.length,3,'needs three quiet ticks');idle.checkRinging();
+ same(calls[3].args,{operation:'dismissed',present:false,dismissed:false});same(idle.data.ringing,[]);
+ const recent=new sandbox.Card();recent.config={device:'kitchen'};recent.data={timers:[],ringing:[{id:'t1',name:'Pasta',finished_at:Date.now()/1000}]};recent._hass={callWS:async()=>{throw new Error('too early');}};recent.ownerDocument=makeDoc(0,()=>{});
+ for(let i=0;i<5;i++)recent.checkRinging();assert.equal(recent.data.ringing.length,1,'a just-finished alert may still be deferred by Voice Satellite');
+ a.receive({device:'kitchen',ringing:[{id:'t1',name:'Pasta'}],timer_event:{event_type:'finished'}});assert.equal(a.view,'timers');assert.equal(a.data.ringing.length,1);
+ a.view='guide';a.receive({device:'kitchen',timer_event:{event_type:'finished'}});assert.equal(a.view,'guide','a pinned guide stays');
+ const other=new sandbox.Card();other.config={device:'kitchen'};other.data={timers:[]};other.render=()=>{};other.dismiss=()=>{throw new Error('foreign dismissal');};
+ other.receive({device:'bedroom',dismiss:{request:'zzz'}});
+ console.log('21 frontend behaviour assertions passed');
+})().catch(err=>{console.error(err);process.exit(1);});

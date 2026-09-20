@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace as NS
 from unittest.mock import AsyncMock, Mock
+import time
 import unittest
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -89,6 +90,78 @@ class RuntimeTest(unittest.IsolatedAsyncioTestCase):
   await self.runtime.execute(self.profiles[0],'convert',{'value':1,'from_unit':'kg','to_unit':'g'})
   self.assertNotIn('bedroom',self.runtime.results)
   self.assertEqual(self.runtime.results['kitchen']['payload']['result'],1000)
+ def finish(self,name='Pasta',timer_id='t1',device='kitchen'):
+  # Core pops the timer from manager.timers before Voice Satellite fires its FINISHED bus event.
+  self.hass.data.setdefault(TIMER_DATA,NS(timers={},cancel_timer=Mock()))
+  self.runtime.timer_event(NS(data={'entity_id':'assist_satellite.'+device,'event_type':'finished','timer_id':timer_id,'name':name,'total_seconds':60,'seconds_left':0,'is_active':True}))
+ def report(self,dismissed,present=True):
+  # Stand in for the Echo's dashboard: answer the dismissal request once it appears on the event bus.
+  async def answer():
+   for _ in range(50):
+    await asyncio.sleep(0)
+    requests=[c.args[1]['dismiss']['request'] for c in self.hass.bus.async_fire.call_args_list if 'dismiss' in c.args[1]]
+    if requests:
+     await self.runtime.execute(self.profiles[0],'timer',{'operation':'dismissed','request':requests[-1],'present':present,'dismissed':dismissed});return
+   raise AssertionError('no dismissal request was published')
+  self.reporter=asyncio.ensure_future(answer())
+ async def test_finished_timer_is_tracked_as_ringing_per_echo(self):
+  self.finish()
+  self.assertEqual([t['name'] for t in self.runtime.ringing_timers(self.profiles[0])],['Pasta'])
+  self.assertEqual(self.runtime.ringing_timers(self.profiles[1]),[])
+  self.assertEqual(self.hass.bus.async_fire.call_args.args[1]['ringing'][0]['id'],'t1')
+  status=await self.runtime.execute(self.profiles[0],'timer',{'operation':'status'})
+  self.assertEqual(status['ringing'][0]['name'],'Pasta');self.assertEqual(status['timers'],[])
+ async def test_cancel_while_ringing_dismisses_via_display(self):
+  self.finish();self.report(dismissed=True)
+  result=await self.runtime.execute(self.profiles[0],'timer',{'operation':'cancel','name':'pasta timer'})
+  self.assertEqual(result['status'],'dismissed');self.assertEqual(result['dismissed'],['Pasta'])
+  self.assertEqual(self.runtime.ringing_timers(self.profiles[0]),[])
+  self.hass.data[TIMER_DATA].cancel_timer.assert_not_called()
+  self.assertEqual(self.hass.bus.async_fire.call_args_list[1].args[1]['dismiss']['timers'],[{'id':'t1','name':'Pasta'}])
+ async def test_bare_dismiss_without_name_covers_all_ringing_on_this_echo_only(self):
+  self.finish('Pasta','t1');self.finish('Eggs','t2');self.finish('Bedroom','t3',device='bedroom');self.report(dismissed=True)
+  result=await self.runtime.execute(self.profiles[0],'timer',{'operation':'dismiss'})
+  self.assertEqual(sorted(result['dismissed']),['Eggs','Pasta'])
+  self.assertEqual([t['name'] for t in self.runtime.ringing_timers(self.profiles[1])],['Bedroom'])
+ async def test_unconfirmed_dismissal_is_reported_not_claimed(self):
+  self.runtime.dismiss_timeout=0.05
+  self.finish()
+  with self.assertRaisesRegex(ValueError,'did not confirm'):await self.runtime.execute(self.profiles[0],'timer',{'operation':'cancel'})
+  self.assertEqual([t['id'] for t in self.runtime.ringing_timers(self.profiles[0])],['t1'])
+  self.assertEqual(self.runtime.dismissals,{})
+ async def test_alert_already_gone_clears_ringing_state(self):
+  self.finish();self.report(dismissed=False,present=False)
+  result=await self.runtime.execute(self.profiles[0],'timer',{'operation':'cancel'})
+  self.assertEqual(result['status'],'already_silenced');self.assertEqual(self.runtime.ringing_timers(self.profiles[0]),[])
+ async def test_device_side_silence_report_clears_ringing(self):
+  self.finish()
+  await self.runtime.execute(self.profiles[0],'timer',{'operation':'dismissed','present':False,'dismissed':False})
+  self.assertEqual(self.runtime.ringing_timers(self.profiles[0]),[])
+  self.assertEqual(self.hass.bus.async_fire.call_args.args[1]['ringing'],[])
+ async def test_running_timer_cancel_still_works_and_named_ringing_is_separate(self):
+  running=NS(id='r1',name='Roast',device_id='device-kitchen',seconds_left=100,created_seconds=600,is_active=True)
+  self.hass.data[TIMER_DATA]=NS(timers={'r1':running},cancel_timer=Mock())
+  self.finish('Pasta','t1')
+  result=await self.runtime.execute(self.profiles[0],'timer',{'operation':'cancel','name':'roast'})
+  self.hass.data[TIMER_DATA].cancel_timer.assert_called_once_with('r1');self.assertEqual(result['ringing'][0]['name'],'Pasta')
+  with self.assertRaisesRegex(ValueError,'alarm is sounding'):await self.runtime.execute(self.profiles[0],'timer',{'operation':'pause','name':'pasta'})
+  with self.assertRaisesRegex(ValueError,'No ringing timer matches'):await self.runtime.execute(self.profiles[0],'timer',{'operation':'dismiss','name':'roast'})
+ async def test_dismiss_service_scopes_to_origin_device_and_falls_back_to_running(self):
+  self.assertEqual(await self.runtime.dismiss_for_device('unknown'),{'status':'unknown_device'})
+  self.assertEqual(await self.runtime.dismiss_for_device('device-kitchen'),{'status':'not_ringing'})
+  running=NS(id='r1',name='Roast',device_id='device-kitchen',seconds_left=100,created_seconds=600,is_active=True)
+  self.hass.data[TIMER_DATA]=NS(timers={'r1':running},cancel_timer=Mock())
+  self.assertEqual(await self.runtime.dismiss_for_device('device-kitchen'),{'status':'not_ringing'})
+  self.assertEqual(await self.runtime.dismiss_for_device('device-kitchen',cancel_running=True),{'status':'cancelled','timers':['Roast']})
+  self.hass.data[TIMER_DATA].cancel_timer.assert_called_once_with('r1')
+  self.finish('Bedroom','t3',device='bedroom');self.finish('Pasta','t1');self.report(dismissed=True)
+  result=await self.runtime.dismiss_for_device('device-kitchen')
+  self.assertEqual(result,{'status':'dismissed','timers':['Pasta']})
+  self.assertEqual([t['name'] for t in self.runtime.ringing_timers(self.profiles[1])],['Bedroom'])
+ async def test_stale_ringing_entries_expire(self):
+  self.finish()
+  self.runtime.ringing['kitchen']['t1']['finished_at']=time.time()-module.RINGING_TTL-1
+  self.assertEqual(self.runtime.ringing_timers(self.profiles[0]),[])
  async def test_music_request_targets_selected_device(self):
   await self.runtime.music(self.profiles[1],{'action':'pause'})
   call=self.hass.services.async_call.call_args

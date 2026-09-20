@@ -16,7 +16,7 @@ For local deployment, copy `.env.example` to `.env` and fill in the Home Assista
 
 ## Everyday use
 
-- “Set a pasta timer for twelve minutes.” / “How long is left?” / “Pause the pasta timer.” / “Cancel the pasta timer.”
+- “Set a pasta timer for twelve minutes.” / “How long is left?” / “Pause the pasta timer.” / “Cancel the pasta timer.” / “Stop” or “Stop the timer” while its alarm sounds.
 - “Play Absolute Radio.” / “Play Mammoth.” / “Pause the music.” / “Set the music volume to thirty percent.”
 - “Will it rain tomorrow?” / “What is the weather this week?”
 - “How do I defrost 400 grams of mince in my microwave?”
@@ -44,6 +44,8 @@ The **Echo Home** conversation agent is a separate subentry of the existing loca
 `www/echo-experience.js` is a dependency-free custom Lovelace card. There is no assistant conversation state in a global dashboard helper. A profile is chosen explicitly by each dashboard view. Unknown device IDs receive no Echo-specific control tools; unknown profiles fail closed. Timer changes verify the timer belongs to the profile's device. Music targets are restricted to its configured speaker list. Tracks, artists and albums are resolved before playback; see [music matching](MUSIC_MATCHING.md) for supported aliases, ambiguity handling and validation.
 
 The integration reacts to `voice_satellite_chat` and `voice_satellite_timer`. It does not infer control actions from spoken replies. Source lookups and tools publish structured results, while conversation events add the actual spoken answer. Namespaced tool names are normalised. Native Voice Satellite owns timer alarms and dismissal; this integration never creates a second alarm.
+
+Home Assistant removes a finished timer from its timer manager before Voice Satellite fires the `finished` event, so a ringing alarm is not a timer any more. The integration records finished timers per Echo as *ringing* until dismissed. Voice Satellite (2026.9.7) offers no service or WebSocket command to dismiss its alert; its only paths are the on-screen double tap, Escape and its stop word. The Echo's own dashboard card therefore replays that gesture in the device's browser when asked and reports whether the `.vs-timer-alert` element actually disappeared. `echo_timer` operations `cancel`/`dismiss` and the `echo_experience.dismiss_timer` service both wait up to four seconds for that report and never claim success without it. The fast sentence automation (see [VOICE_STOP.md](VOICE_STOP.md)) gives bare “stop” to a ringing alarm on the originating Echo first and to music otherwise; explicit music phrases skip timers. Alarms silenced on the device by tap or stop word are reported by the card so the server's ringing list stays honest; unreported entries expire after an hour.
 
 Weather uses the profile's weather entity for both speech and display. Forecasts are cached for ten minutes, with the retrieval time shown. Conversions use decimal arithmetic and defined units. Unspecified cup/pint/fluid-ounce standards and conversions between volume and mass are rejected for clarification.
 

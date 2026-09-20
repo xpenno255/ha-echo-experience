@@ -21,6 +21,21 @@ class StopRoutingTest(unittest.TestCase):
                              'ducking':{'additional_satellites':['assist_satellite.missing']}}],[])
         self.assertEqual(config['variables']['device_players'],{'kitchen':'media_player.kitchen'})
 
+    def test_bare_stop_dismisses_ringing_timer_before_music_and_explicit_music_skips_timers(self):
+        config=module.build([{'device_id':'kitchen','music_player':'media_player.kitchen'}],[])
+        commands=config['triggers'][0]['command']
+        self.assertIn('stop',commands);self.assertIn('stop [the] timer',commands);self.assertIn('stop music',commands)
+        self.assertFalse(any('{' in c for c in commands),'named timer phrases stay with the LLM tool')
+        dismiss,choose=config['actions']
+        self.assertEqual(dismiss['then'][0]['action'],'echo_experience.dismiss_timer')
+        self.assertIn('not music_phrase',dismiss['if'][0]['value_template'])
+        self.assertTrue(dismiss['then'][0]['continue_on_error'])
+        self.assertEqual(dismiss['then'][0]['data']['device_id'],'{{ origin_device }}')
+        outcomes=[c['conditions'][0]['value_template'] for c in choose['choose']]
+        self.assertLess(outcomes.index("{{ dismissal.status == 'dismissed' }}"),outcomes.index('{{ stop_players | length > 0 }}'))
+        self.assertIn("dismissal.status in ['unconfirmed', 'failed']",''.join(outcomes),'never claim an unconfirmed dismissal')
+        self.assertEqual(config['variables']['dismissal'],{'status':'skipped'})
+
     def test_shared_device_with_conflicting_targets_is_rejected(self):
         with self.assertRaisesRegex(ValueError,'conflicting'):
             module.build([{'device_id':'shared','music_player':'media_player.kitchen'},
