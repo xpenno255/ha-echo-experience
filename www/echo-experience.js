@@ -1,22 +1,39 @@
-/* Echo Experience 0.5.0 — quiet gradient home, device-scoped playback, ambient view and voice dismissal of ringing timers. */
+/* Echo Experience 0.5.1 — quiet gradient home, device-scoped playback, ambient view and voice dismissal of ringing timers. */
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const icon = name => `<ha-icon icon="mdi:${name}"></ha-icon>`;
 const clock = date => date.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
 const duration = seconds => {const n=Math.max(0,Math.ceil(seconds));return n>=3600?`${Math.floor(n/3600)}:${String(Math.floor(n%3600/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`:`${Math.floor(n/60)}:${String(n%60).padStart(2,'0')}`;};
 const weatherIcon = c => ({sunny:'weather-sunny','clear-night':'weather-night',partlycloudy:'weather-partly-cloudy',cloudy:'weather-cloudy',rainy:'weather-rainy',pouring:'weather-pouring',snowy:'weather-snowy',fog:'weather-fog',windy:'weather-windy','lightning-rainy':'weather-lightning-rainy'}[c]||'weather-cloudy');
 const condition = c => ({partlycloudy:'Partly cloudy','clear-night':'Clear tonight','lightning-rainy':'Thundery showers'}[c]||String(c||'Unavailable').replace(/-/g,' '));
-// Voice Satellite renders one .vs-timer-alert for every finished timer and only dismisses it from its own document
-// listeners: Escape, or two taps/clicks 1–399 ms apart. It exposes no service or WebSocket command for this, so the
-// Echo's browser session replays those gestures; Voice Satellite then plays its done chime and clears the alarm.
-const alertSelector = '.vs-timer-alert, .vs-mini-timer-alert';
+// Voice Satellite (2026.9.7) renders one .vs-timer-alert for every finished timer inside its global #voice-satellite-ui
+// element and only dismisses it from its own document listeners: Escape, or two taps/clicks 1–399 ms apart. It exposes
+// no service or WebSocket command for this, so the Echo's browser session replays those gestures; Voice Satellite then
+// plays its done chime and clears the alarm. The mini card renders .vs-mini-timer-alert inside its own shadow root,
+// out of reach of a document query, so mini-card layouts are not supported.
+const alertSelector = '.vs-timer-alert';
 const wait = ms => new Promise(r=>setTimeout(r,ms));
 const alertPresent = doc => !!doc.querySelector(alertSelector);
+// Which satellite this browser runs. Voice Satellite resolves it the same way (bundle: Ya()/Qa()): the localStorage key
+// "vs-satellite-entity" holds the entity it validated against hass.entities, falling back to satellite_entity inside the
+// "vs-panel-config" JSON it hydrates from voice_satellite/get_panel_settings. window.__vsExternalSettings.get().satellite
+// (its Kiosk-facing API) returns exactly that precedence, so it is tried first.
+const browserSatellite = (win) => {
+  try{const s=win.__vsExternalSettings?.get?.()?.satellite;if(s)return s;}catch(e){}
+  try{const s=win.localStorage?.getItem('vs-satellite-entity');if(s)return s;}catch(e){}
+  try{return JSON.parse(win.localStorage?.getItem('vs-panel-config')||'{}').satellite_entity||null;}catch(e){return null;}
+};
+// Only the browser that hosts this profile's Voice Satellite session may act on or report about its alarms. A second
+// dashboard (phone, laptop) subscribed to the same profile has no alert to clear and must stay silent.
+const hostsSatellite = (doc,satellite) => !!(satellite&&doc.getElementById?.('voice-satellite-ui')&&browserSatellite(doc.defaultView||window)===satellite);
 const dismissNativeAlert = async (doc=document) => {
   if(!alertPresent(doc))return false;
   const win=doc.defaultView||window;
   doc.dispatchEvent(new win.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));
   if(!alertPresent(doc))return true;
-  for(const gap of [0,60])await wait(gap),doc.body.dispatchEvent(new win.MouseEvent('click',{bubbles:true,cancelable:true}));
+  doc.body.dispatchEvent(new win.MouseEvent('click',{bubbles:true,cancelable:true}));
+  await wait(60);
+  // The first tap may already have cleared it (or the user did); a stray second tap would hit whatever is underneath.
+  if(alertPresent(doc))doc.body.dispatchEvent(new win.MouseEvent('click',{bubbles:true,cancelable:true}));
   for(let i=0;i<6&&alertPresent(doc);i++)await wait(150);
   return !alertPresent(doc);
 };
@@ -76,22 +93,25 @@ class EchoExperienceCard extends HTMLElement {
     if(event.timer_event?.event_type==='finished' && this.view!=='guide')this.view='timers';
     this.render();
   }
+  hostsSatellite(){return hostsSatellite(this.ownerDocument||document,this.data?.profile?.satellite);}
   async dismiss(request){
-    // Runs in the Echo's own browser session, then reports the outcome so the voice reply is honest.
+    // Runs only in the Echo's own browser session, then reports the outcome so the voice reply is honest.
+    if(!this.hostsSatellite())return;
     const doc=this.ownerDocument||document;const present=alertPresent(doc);const dismissed=present&&await dismissNativeAlert(doc);
-    if(this.data&&(dismissed||!present))this.data.ringing=[];
-    try{await this._hass.callWS({type:'echo_experience/action',device:this.config.device,action:'timer',args:{operation:'dismissed',request:request.request,present,dismissed}});}
+    const timers=(request.timers||[]).map(t=>t.id);
+    if(this.data&&(dismissed||!present))this.data.ringing=(this.data.ringing||[]).filter(t=>!timers.includes(t.id));
+    try{await this._hass.callWS({type:'echo_experience/action',device:this.config.device,action:'timer',args:{operation:'dismissed',request:request.request,timers,present,dismissed}});}
     catch(err){this.error=err.message;}
     this.render();
   }
   checkRinging(){
     // The alarm may be silenced by a tap or the stop word without any server call; report that so stale alarms
     // are not dismissed later. Wait a few seconds because Voice Satellite can defer showing the alert briefly.
-    const ringing=this.data?.ringing||[];if(!ringing.length||this.config.ambient||!this._hass)return;
+    const ringing=this.data?.ringing||[];if(!ringing.length||this.config.ambient||!this._hass||!this.hostsSatellite())return;
     const settled=ringing.every(t=>Date.now()/1000-t.finished_at>5);
     this._alertMissing=settled&&!alertPresent(this.ownerDocument||document)?(this._alertMissing||0)+1:0;
-    if(this._alertMissing<3)return;this._alertMissing=0;this.data.ringing=[];
-    this._hass.callWS({type:'echo_experience/action',device:this.config.device,action:'timer',args:{operation:'dismissed',present:false,dismissed:false}}).catch(()=>{});
+    if(this._alertMissing<3)return;this._alertMissing=0;const timers=ringing.map(t=>t.id);this.data.ringing=[];
+    this._hass.callWS({type:'echo_experience/action',device:this.config.device,action:'timer',args:{operation:'dismissed',timers,present:false,dismissed:false}}).catch(()=>{});
     this.render();
   }
   remaining(t){return t.is_active?Math.max(0,t.seconds_left-(Date.now()/1000-t.sampled_at)):t.seconds_left;}

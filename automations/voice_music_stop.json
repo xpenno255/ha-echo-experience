@@ -13,14 +13,7 @@
         "stop the sonos",
         "stop playing music",
         "turn off the music",
-        "stop sonos in here",
-        "stop [the] timer",
-        "stop [the] timers",
-        "stop [the] alarm",
-        "dismiss [the] timer",
-        "dismiss [the] alarm",
-        "turn off [the] timer",
-        "turn off [the] alarm"
+        "stop sonos in here"
       ]
     }
   ],
@@ -32,7 +25,6 @@
     "origin_device": "{{ trigger.device_id | default('', true) }}",
     "origin_area": "{{ area_id(origin_device) if origin_device else none }}",
     "stop_players": "{% if origin_device in device_players %}\n  {{ [device_players[origin_device]] }}\n{% elif origin_area %}\n  {{ integration_entities('sonos') | select('in', area_entities(origin_area))\n     | select('match', '^media_player\\.') | list }}\n{% else %}\n  {{ [] }}\n{% endif %}",
-    "timer_phrase": "{{ trigger.sentence | lower | regex_search('(timer|alarm)') }}",
     "music_phrase": "{{ trigger.sentence | lower | regex_search('(music|sonos)') }}",
     "dismissal": {
       "status": "skipped"
@@ -50,8 +42,7 @@
         {
           "action": "echo_experience.dismiss_timer",
           "data": {
-            "device_id": "{{ origin_device }}",
-            "cancel_running": "{{ timer_phrase }}"
+            "device_id": "{{ origin_device }}"
           },
           "response_variable": "dismissal",
           "continue_on_error": true
@@ -77,51 +68,12 @@
           "conditions": [
             {
               "condition": "template",
-              "value_template": "{{ dismissal.status == 'cancelled' }}"
-            }
-          ],
-          "sequence": [
-            {
-              "set_conversation_response": "Timer cancelled."
-            }
-          ]
-        },
-        {
-          "conditions": [
-            {
-              "condition": "template",
-              "value_template": "{{ dismissal.status == 'ambiguous' }}"
-            }
-          ],
-          "sequence": [
-            {
-              "set_conversation_response": "Which timer? Say its name."
-            }
-          ]
-        },
-        {
-          "conditions": [
-            {
-              "condition": "template",
               "value_template": "{{ dismissal.status in ['unconfirmed', 'failed'] }}"
             }
           ],
           "sequence": [
             {
               "set_conversation_response": "I couldn't confirm the timer alarm stopped. Tap the alert or say stop again."
-            }
-          ]
-        },
-        {
-          "conditions": [
-            {
-              "condition": "template",
-              "value_template": "{{ timer_phrase }}"
-            }
-          ],
-          "sequence": [
-            {
-              "set_conversation_response": "No timer is running or ringing here."
             }
           ]
         },

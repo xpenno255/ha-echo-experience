@@ -1,5 +1,16 @@
 # Changes
 
+## 0.5.1 - bind timer dismissal to the Echo's own browser
+
+- Only the browser hosting the profile's Voice Satellite session acts on a dismissal request or reports a silenced alarm. The card requires Voice Satellite's global `#voice-satellite-ui` element in its document and that browser's satellite (`window.__vsExternalSettings.get().satellite`, else localStorage `vs-satellite-entity`, else `satellite_entity` in `vs-panel-config`, the same precedence Voice Satellite uses) to equal the profile's satellite. A phone or laptop showing the same dashboard now stays silent instead of reporting a non-existent alert as gone.
+- Acknowledgments are bound to a profile and to the timer ids in the request. A report for another Echo's request or an unknown token is ignored and changes nothing; a confirmed dismissal or device-side silence clears only the listed alarms, so a timer that finishes after the request keeps ringing. The card sends `timers` with every report.
+- `dismissed` is no longer an `echo_timer` operation: the card's reports go through `Experience.display_report`, and tool arguments are validated against the tool schema before execution, so the model cannot clear ringing state or pass malformed values.
+- `echo_experience.dismiss_timer` checks that a calling user may control the target Echo's satellite and raises `Unauthorized` otherwise; automation and system contexts (no user) are allowed.
+- Companion satellites listed in a profile's `ducking.additional_satellites` resolve to their Echo through the entity registry, so a Home Assistant Voice device's device id reaches the right ringing list.
+- The stop automation drops its generic timer phrases ("stop the timer", "stop the alarm", "dismiss the timer", ...) and the service's `cancel_running` option: a sentence route cannot tell silencing an alarm from cancelling a countdown, and the LLM's `echo_timer` tool already handles both with the profile's context. Bare "stop" still silences a ringing alarm first, then stops music. Regenerate with `python stop_automation.py` or `deploy.py`.
+- Gesture replay withholds the second tap when the first already cleared the alert. Voice Satellite mini-card layouts render their alert inside a shadow root and are not supported.
+- Tests: 95 Python tests and 38 frontend assertions.
+
 ## 0.5.0 - dismiss a ringing timer by voice
 
 - Fix "stop timer" failing while a finished timer is sounding (#5). Home Assistant removes a timer from its manager before Voice Satellite fires the finished event, so the cancel path found nothing. The integration now records finished timers per Echo as ringing until the alarm is dismissed.

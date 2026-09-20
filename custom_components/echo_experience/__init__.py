@@ -10,7 +10,8 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.components.intent.const import TIMER_DATA
 from homeassistant.core import callback, SupportsResponse
-from homeassistant.helpers import llm
+from homeassistant.exceptions import Unauthorized
+from homeassistant.helpers import llm, entity_registry as er
 from homeassistant.auth.permissions.const import POLICY_READ, POLICY_CONTROL
 from homeassistant.util import dt as dt_util
 from .music import resolve_music
@@ -39,12 +40,22 @@ async def async_setup_entry(hass, entry):
     entry.async_on_unload(hass.bus.async_listen('voice_satellite_chat',runtime.chat))
     entry.async_on_unload(hass.bus.async_listen('voice_satellite_timer',runtime.timer_event))
     async def dismiss_timer(call):
-        return await runtime.dismiss_for_device(call.data['device_id'],call.data.get('name'),call.data.get('cancel_running',False))
-    hass.services.async_register(DOMAIN,'dismiss_timer',dismiss_timer,schema=vol.Schema({vol.Required('device_id'):str,vol.Optional('name'):str,vol.Optional('cancel_running'):bool}),supports_response=SupportsResponse.OPTIONAL)
+        return await dismiss_timer_service(hass,runtime,call)
+    hass.services.async_register(DOMAIN,'dismiss_timer',dismiss_timer,schema=vol.Schema({vol.Required('device_id'):str,vol.Optional('name'):str}),supports_response=SupportsResponse.OPTIONAL)
     entry.async_on_unload(lambda:hass.services.async_remove(DOMAIN,'dismiss_timer'))
     runtime.ducking=DuckingManager(hass,runtime.profiles)
     await runtime.ducking.async_start()
     return True
+
+async def dismiss_timer_service(hass,runtime,call):
+    """A user context must be allowed to control the target Echo's satellite; automation/system contexts carry no user."""
+    p=runtime.profile_for_device(call.data['device_id'])
+    if not p:return {'status':'unknown_device'}
+    if call.context.user_id:
+        user=await hass.auth.async_get_user(call.context.user_id)
+        if user is None or not user.permissions.check_entity(p['satellite'],POLICY_CONTROL):
+            raise Unauthorized(context=call.context,entity_id=p['satellite'],permission=POLICY_CONTROL)
+    return await runtime.dismiss_for_device(call.data['device_id'],call.data.get('name'))
 
 async def async_unload_entry(hass, entry):
     runtime=hass.data.pop(DOMAIN,None)
@@ -66,6 +77,25 @@ class Experience:
 
     def profile(self,slug):
         return next((p for p in self.profiles if p['id']==slug),None)
+
+    def device_of(self,entity_id):
+        """Entity registry lookup, kept separate so tests can stand in for it."""
+        entry=er.async_get(self.hass).async_get(entity_id)
+        return entry.device_id if entry else None
+
+    def profile_for_device(self,device_id):
+        """The Echo profile that owns a voice device: its own satellite or one of its ducking companions. No fallback."""
+        p=route_profile(self.profiles,device_id=device_id)
+        if p or not device_id:return p
+        matches=[p for p in self.profiles if any(self.device_of(s)==device_id for s in p.get('ducking',{}).get('additional_satellites',[]))]
+        return matches[0] if len(matches)==1 else None
+
+    def forget(self,p,timer_ids):
+        """Drop only the named ringing entries; anything that finished later keeps ringing."""
+        entries=self.ringing.get(p['id'],{})
+        popped=[entries.pop(i,None) for i in timer_ids]
+        if not entries:self.ringing.pop(p['id'],None)
+        return any(t is not None for t in popped)
 
     def timers(self,p):
         manager=self.hass.data.get(TIMER_DATA)
@@ -115,8 +145,10 @@ class Experience:
     async def dismiss(self,p,ringing):
         """Ask this Echo's dashboard to trigger Voice Satellite's own dismissal and report what happened."""
         token=secrets.token_hex(8)
+        ids=[t['id'] for t in ringing]
         future=asyncio.get_running_loop().create_future()
-        self.dismissals[token]=future
+        # Bound to this profile and these timers: a report from another Echo's card, or for another request, is ignored.
+        self.dismissals[token]={'future':future,'profile':p['id'],'timers':ids}
         self.hass.bus.async_fire(EVENT,{'device':p['id'],'dismiss':{'request':token,'timers':[{'id':t['id'],'name':t['name']} for t in ringing]}})
         try:
             async with asyncio.timeout(self.dismiss_timeout):report=await future
@@ -124,29 +156,34 @@ class Experience:
             return {'status':'unconfirmed','timers':[t['name'] for t in ringing]}
         finally:self.dismissals.pop(token,None)
         if report.get('dismissed') or not report.get('present'):
-            # Voice Satellite shows one alert for every finished timer, so a dismissal (or its absence) covers them all.
-            self.ringing.pop(p['id'],None)
+            self.forget(p,ids)
             return {'status':'dismissed' if report.get('dismissed') else 'not_ringing','timers':[t['name'] for t in ringing]}
         return {'status':'failed','timers':[t['name'] for t in ringing]}
 
-    async def dismiss_for_device(self,device_id,name=None,cancel_running=False):
+    async def dismiss_for_device(self,device_id,name=None):
         """Service entry point for the fast sentence route: silence this device's ringing alarm, never another Echo's."""
-        p=route_profile(self.profiles,device_id=device_id)
+        p=self.profile_for_device(device_id)
         if not p:return {'status':'unknown_device'}
         wanted=normalize_timer_name(name)
         ringing=[t for t in self.ringing_timers(p) if not wanted or normalize_timer_name(t['name'])==wanted]
-        if ringing:
-            result=await self.dismiss(p,ringing)
-            if result['status']=='dismissed':await self.publish(p,'timers')
-            return result
-        if not cancel_running:return {'status':'not_ringing'}
-        # An explicit "stop the timer" with nothing ringing means the countdown itself, if it is unambiguous.
-        running=[t for t in self.timers(p) if not wanted or normalize_timer_name(t['name'])==wanted]
-        if not running:return {'status':'not_ringing'}
-        if len(running)>1:return {'status':'ambiguous','timers':[t['name'] for t in running]}
-        self.hass.data[TIMER_DATA].cancel_timer(running[0]['id'])
-        await self.publish(p,'timers')
-        return {'status':'cancelled','timers':[running[0]['name']]}
+        if not ringing:return {'status':'not_ringing'}
+        result=await self.dismiss(p,ringing)
+        if result['status']=='dismissed':await self.publish(p,'timers')
+        return result
+
+    def display_report(self,p,args):
+        """The Echo's own dashboard reports a dismissal outcome or a device-side silence. Never an LLM-visible operation."""
+        token=str(args.get('request') or '')
+        ids=[i for i in (args.get('timers') or []) if isinstance(i,str)]
+        if token:
+            entry=self.dismissals.get(token)
+            if not entry or entry['profile']!=p['id']:return {'status':'ignored'}
+            if not entry['future'].done():entry['future'].set_result({'dismissed':bool(args.get('dismissed')),'present':bool(args.get('present'))})
+            return {'status':'recorded'}
+        if not args.get('present') and self.forget(p,ids):
+            # Silenced on the device itself (tap or stop word); keep the server's view honest for just those alarms.
+            self.hass.bus.async_fire(EVENT,{'device':p['id'],'timers':self.timers(p),'ringing':self.ringing_timers(p)})
+        return {'status':'recorded'}
 
     @callback
     def chat(self,event):
@@ -271,14 +308,7 @@ class Experience:
             manager=self.hass.data.get(TIMER_DATA)
             if not manager:raise ValueError('Timer manager unavailable')
             op=args.get('operation','start')
-            if op=='dismissed':
-                # The dashboard reports the outcome of a dismissal request; never an LLM-visible operation.
-                future=self.dismissals.get(str(args.get('request','')))
-                if future and not future.done():future.set_result({'dismissed':bool(args.get('dismissed')),'present':bool(args.get('present'))})
-                elif not args.get('present') and self.ringing.pop(p['id'],None):
-                    # Silenced on the device itself (tap or stop word); keep the server's view honest.
-                    self.hass.bus.async_fire(EVENT,{'device':p['id'],'timers':self.timers(p),'ringing':[]})
-                return {'status':'recorded'}
+            if op not in ('status','start','pause','resume','cancel','dismiss','add'):raise ValueError('Unsupported timer operation')
             if op=='status':
                 return {'timers':self.timers(p),'ringing':self.ringing_timers(p)}
             if op=='start':
@@ -329,7 +359,9 @@ class ActionTool(llm.Tool):
         self.runtime,self.profile=runtime,p
         self.name,self.description,self.parameters=name,description,vol.Schema(schema)
     async def async_call(self,hass,tool_input,llm_context):
-        try:return await self.runtime.execute(self.profile,self.name.removeprefix('echo_'),tool_input.tool_args,llm_context.context)
+        try:args=self.parameters(tool_input.tool_args)
+        except vol.Invalid as err:return {'error':'Invalid arguments: '+str(err),'retryable':False}
+        try:return await self.runtime.execute(self.profile,self.name.removeprefix('echo_'),args,llm_context.context)
         except (ValueError,KeyError) as err:return {'error':str(err),'retryable':False}
         except Exception:
             _LOGGER.exception('Echo tool failed: %s',self.name)
@@ -399,7 +431,8 @@ async def ws_subscribe(hass,connection,msg):
 async def ws_action(hass,connection,msg):
     try:
         runtime,p=access(hass,connection,msg['device'],POLICY_CONTROL)
-        result=await runtime.execute(p,msg['action'],msg['args'],connection.context(msg))
+        if msg['action']=='timer' and msg['args'].get('operation')=='dismissed':result=runtime.display_report(p,msg['args'])
+        else:result=await runtime.execute(p,msg['action'],msg['args'],connection.context(msg))
         connection.send_result(msg['id'],result)
     except Exception as err:
         connection.send_error(msg['id'],'echo_error',str(err))

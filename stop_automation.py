@@ -6,12 +6,10 @@ AUTOMATION_ID = '1757961047860'
 # originating Echo (echo_experience.dismiss_timer) and only stops music when nothing is ringing.
 MUSIC_COMMANDS = ['stop music', 'stop sonos', 'stop the music', 'stop the sonos',
                   'stop playing music', 'turn off the music', 'stop sonos in here']
-# Named dismissals ("stop the pasta timer") stay with the LLM's echo_timer tool: no wildcards here, so a
-# generic phrase can never be misread as a timer name and skip a ringing alarm.
-TIMER_COMMANDS = ['stop [the] timer', 'stop [the] timers', 'stop [the] alarm', 'dismiss [the] timer',
-                  'dismiss [the] alarm', 'turn off [the] timer', 'turn off [the] alarm']
-COMMANDS = ['stop', *MUSIC_COMMANDS, *TIMER_COMMANDS]
-TIMER_PHRASE_TEMPLATE = "{{ trigger.sentence | lower | regex_search('(timer|alarm)') }}"
+# "Stop the timer", "dismiss the alarm" and named dismissals have no sentence trigger: they stay with the LLM's
+# echo_timer tool, which already handles ringing alarms and running timers with the profile's full context. A
+# sentence route would have to guess between silencing an alarm and cancelling a countdown.
+COMMANDS = ['stop', *MUSIC_COMMANDS]
 MUSIC_PHRASE_TEMPLATE = "{{ trigger.sentence | lower | regex_search('(music|sonos)') }}"
 TARGET_TEMPLATE = """{% if origin_device in device_players %}
   {{ [device_players[origin_device]] }}
@@ -47,26 +45,19 @@ def build(profiles, entity_registry):
             'origin_device': "{{ trigger.device_id | default('', true) }}",
             'origin_area': "{{ area_id(origin_device) if origin_device else none }}",
             'stop_players': TARGET_TEMPLATE,
-            'timer_phrase': TIMER_PHRASE_TEMPLATE,
             'music_phrase': MUSIC_PHRASE_TEMPLATE,
             'dismissal': {'status': 'skipped'},
         },
         'actions': [
             {'if': [{'condition': 'template', 'value_template': '{{ origin_device in device_players and not music_phrase }}'}],
              'then': [{'action': 'echo_experience.dismiss_timer',
-                       'data': {'device_id': '{{ origin_device }}', 'cancel_running': '{{ timer_phrase }}'},
+                       'data': {'device_id': '{{ origin_device }}'},
                        'response_variable': 'dismissal', 'continue_on_error': True}]},
             {'choose': [
                 {'conditions': [{'condition': 'template', 'value_template': "{{ dismissal.status == 'dismissed' }}"}],
                  'sequence': [{'set_conversation_response': 'Timer stopped.'}]},
-                {'conditions': [{'condition': 'template', 'value_template': "{{ dismissal.status == 'cancelled' }}"}],
-                 'sequence': [{'set_conversation_response': 'Timer cancelled.'}]},
-                {'conditions': [{'condition': 'template', 'value_template': "{{ dismissal.status == 'ambiguous' }}"}],
-                 'sequence': [{'set_conversation_response': 'Which timer? Say its name.'}]},
                 {'conditions': [{'condition': 'template', 'value_template': "{{ dismissal.status in ['unconfirmed', 'failed'] }}"}],
                  'sequence': [{'set_conversation_response': "I couldn't confirm the timer alarm stopped. Tap the alert or say stop again."}]},
-                {'conditions': [{'condition': 'template', 'value_template': '{{ timer_phrase }}'}],
-                 'sequence': [{'set_conversation_response': 'No timer is running or ringing here.'}]},
                 {'conditions': [{'condition': 'template', 'value_template': '{{ stop_players | length > 0 }}'}],
                  'sequence': [
                      {'action': 'media_player.media_stop', 'target': {'entity_id': '{{ stop_players }}'}},
