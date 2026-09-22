@@ -1,5 +1,12 @@
 # Changes
 
+## 0.7.0 - music from other apps, artist phrases and shuffle
+
+- Music started outside the Echo (Sonos app, Spotify Connect, AirPlay) now opens the music view with its artwork and title (#6). Profiles gain `native_players`, defaulting to `ducking.players`. When the selected Music Assistant player is idle, the first playing (then paused) native player counts as this Echo's playback; its group coordinator is used when it reports the same state. Music Assistant wins when both play. Other rooms still never open the view, and guide/timer/weather views and the ambient screensaver keep precedence.
+- Pause, resume, next, previous, stop and shuffle (card buttons, `echo_music` and the voice stop route) target that same entity, so they reach a Sonos group started from the app instead of an idle queue. Play and volume still use the selected speaker; naming a speaker still overrides.
+- `echo_music` gains `action: shuffle` and a `shuffle` flag on play (#1). Every play sets shuffle explicitly before queuing: artists shuffle by default, and songs and albums play in order, so an earlier shuffle never scrambles an album. The flag overrides this ("shuffle the album …"); radio and podcasts are left alone. Results carry the queue's actual `shuffle` attribute; the prompt tells the model to report only that. The tool description maps "play songs by", "play some", "play music by" and "shuffle <artist>" to artist requests.
+- Tests: 134 Python and 55 frontend assertions (native detection and precedence, coordinator trust, control targeting, stop route, shuffle defaults/overrides/radio/unsupported speakers).
+
 ## 0.6.1 - dismiss native Kiosk timer alerts
 
 - Fix a false "timer stopped" while the alarm kept sounding. Voice Satellite 2026.9.10 with Kiosk Satellite 2026.9.62+ hands finished-timer alerts to the native Android layer and no longer renders a `.vs-timer-alert` element, so the card saw "no alert", the server recorded the alarm as already silenced and the reply claimed success.

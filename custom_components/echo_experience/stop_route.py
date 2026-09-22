@@ -118,8 +118,8 @@ class StopRoute:
             status=outcome.get('status')
             if status=='dismissed':return REPLY_TIMER
             if status in ('unconfirmed','failed'):return REPLY_UNCONFIRMED
-        speaker=self.runtime.music_players.get(p['id'],p['music_player'])
-        return await self.stop_players([speaker],user_input.context,p)
+        # The selected speaker, or the native coordinator when music was started from the Sonos app.
+        return await self.stop_players([self.runtime.playback_target(p)],user_input.context,p)
 
     async def stop_players(self,players,context,p=None):
         try:

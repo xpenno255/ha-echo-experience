@@ -109,6 +109,8 @@ Example profile (replace all IDs with actual entities):
 }
 ```
 
+`native_players` (optional) lists the native speaker entities behind the Music Assistant player, e.g. the Sonos members of the group; it defaults to `ducking.players`. When the Music Assistant player is idle but one of these is playing (Sonos app, Spotify Connect, AirPlay), the music view shows it and pause/next/stop, voice stop and shuffle act on that speaker's group coordinator. Music Assistant wins when both play.
+
 The verification tools read credentials from the untracked `.env` file or environment variables; credentials are not included in this project. `tooling.py` resolves the private audit directory (`.audit_path` or `echo_backup_dir`). Dashboard writes are tracked in `.storage/echo_experience.dashboard` (last generated config) and `.storage/echo_experience.dashboard_backups` (previous five configs).
 
 ## Recovery and practical limits

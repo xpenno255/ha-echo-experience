@@ -107,6 +107,10 @@ class RouteTest(unittest.IsolatedAsyncioTestCase):
         self.runtime.music_players.clear();self.hass.services.async_call.reset_mock()
         await self.registered[0][1](self.request('stop music',device_id='dev-kitchen'),None)
         self.assertEqual(self.hass.services.async_call.call_args.args[2]['entity_id'],['media_player.kitchen'],'default when nothing selected')
+    async def test_stop_reaches_music_started_from_the_sonos_app(self):
+        self.hass.states.get=lambda e:{'media_player.kitchen_a':NS(state='playing',attributes={'group_members':['media_player.kitchen_a']})}.get(e,NS(state='idle',attributes={}))
+        self.assertEqual(await self.handle('stop music',device_id='dev-kitchen'),REPLY_STOPPED)
+        self.assertEqual(self.hass.services.async_call.call_args.args[2]['entity_id'],['media_player.kitchen_a'])
     async def test_explicit_music_phrase_skips_timer_service(self):
         self.runtime.dismiss_for_device=AsyncMock(side_effect=AssertionError('must not be called'))
         self.assertEqual(await self.handle('stop the music',device_id='dev-kitchen'),REPLY_STOPPED)

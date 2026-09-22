@@ -20,6 +20,10 @@ def validate_profiles(config):
         p.setdefault('speakers',[{'entity_id':p['music_player'],'name':p['name']}])
         if p['music_player'] not in [x['entity_id'] for x in p['speakers']]:raise ValueError('Default speaker missing')
         if not all(x['entity_id'].startswith('media_player.') for x in p['speakers']):raise ValueError('Invalid speaker')
+        # Native players that make up this Echo's speaker, so playback started from the Sonos app or Spotify
+        # Connect (which leaves the Music Assistant entity idle) still shows and is controlled here.
+        native=p.setdefault('native_players',list((p.get('ducking') or {}).get('players',[])))
+        if not isinstance(native,list) or not all(isinstance(e,str) and re.fullmatch(r'media_player\.[a-z0-9_]+',e) for e in native):raise ValueError('Invalid native players')
         cfg=p.get('ducking')
         if cfg is not None:
             if not isinstance(cfg,dict):raise ValueError('Invalid ducking configuration')

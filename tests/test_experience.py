@@ -242,6 +242,75 @@ class RuntimeTest(unittest.IsolatedAsyncioTestCase):
   self.assertEqual(call.args[:2],('media_player','media_pause'))
   self.assertEqual(call.args[2]['entity_id'],'media_player.bedroom')
 
+class NativePlaybackTest(unittest.IsolatedAsyncioTestCase):
+ """Music started from the Sonos app leaves the Music Assistant entity idle; controls and shuffle follow what plays."""
+ async def asyncSetUp(self):
+  p=profiles();p[0]['ducking']={'players':['media_player.kitchen_sonos','media_player.dining_sonos']}
+  self.profiles=validate_profiles({'devices':p})['devices']
+  self.states={'media_player.kitchen':NS(state='idle',attributes={'supported_features':32768,'shuffle':False}),
+   'media_player.kitchen_sonos':NS(state='idle',attributes={'group_members':['media_player.kitchen_sonos','media_player.dining_sonos'],'supported_features':32768,'shuffle':False}),
+   'media_player.dining_sonos':NS(state='idle',attributes={'group_members':['media_player.kitchen_sonos','media_player.dining_sonos']}),
+   'media_player.bedroom':NS(state='playing',attributes={})}
+  self.hass=NS(data={},states=NS(get=lambda e:self.states.get(e),is_state=lambda e,v:getattr(self.states.get(e),'state',None)==v),bus=NS(async_fire=Mock()),services=NS(async_call=AsyncMock()))
+  self.runtime=Experience(self.hass,{'devices':self.profiles})
+  self.kitchen=self.profiles[0]
+ def calls(self,service):return [c.args[2] for c in self.hass.services.async_call.call_args_list if c.args[1]==service]
+ def test_native_players_default_to_ducking_players(self):
+  self.assertEqual(self.kitchen['native_players'],['media_player.kitchen_sonos','media_player.dining_sonos'])
+  self.assertEqual(self.profiles[1]['native_players'],[])
+ def test_target_precedence(self):
+  self.assertEqual(self.runtime.playback_target(self.kitchen),'media_player.kitchen','idle everywhere: selected')
+  self.states['media_player.dining_sonos'].state='playing'
+  self.assertEqual(self.runtime.playback_target(self.kitchen),'media_player.dining_sonos','coordinator not playing: the member itself')
+  self.states['media_player.kitchen_sonos'].state='playing'
+  self.assertEqual(self.runtime.playback_target(self.kitchen),'media_player.kitchen_sonos','native member: its coordinator')
+  self.states['media_player.kitchen'].state='playing'
+  self.assertEqual(self.runtime.playback_target(self.kitchen),'media_player.kitchen','Music Assistant wins when both play')
+  self.assertEqual(self.runtime.playback_target(self.profiles[1]),'media_player.bedroom')
+ def test_playing_beats_paused(self):
+  self.states['media_player.kitchen'].state='paused';self.states['media_player.kitchen_sonos'].state='playing'
+  self.assertEqual(self.runtime.playback_target(self.kitchen),'media_player.kitchen_sonos')
+ async def test_transport_targets_native_coordinator(self):
+  self.states['media_player.kitchen_sonos'].state='playing'
+  for action,service in [('pause','media_pause'),('next','media_next_track'),('stop','media_stop')]:
+   await self.runtime.music(self.kitchen,{'action':action})
+   self.assertEqual(self.calls(service)[-1]['entity_id'],'media_player.kitchen_sonos',action)
+  self.assertEqual(self.runtime.music_players.get('kitchen'),'media_player.kitchen','selection unchanged')
+ async def test_named_speaker_and_other_rooms_are_not_redirected(self):
+  self.states['media_player.kitchen_sonos'].state='playing'
+  await self.runtime.music(self.kitchen,{'action':'pause','speaker':'media_player.kitchen'})
+  self.assertEqual(self.calls('media_pause')[-1]['entity_id'],'media_player.kitchen')
+  await self.runtime.music(self.profiles[1],{'action':'pause'})
+  self.assertEqual(self.calls('media_pause')[-1]['entity_id'],'media_player.bedroom')
+ async def play(self,args,kind='artist'):
+  async def resolve(*a):return {'status':'matched','match':{'uri':'library://artist/1','name':'Alter Bridge'},'media_type':kind}
+  self.kitchen['music_assistant_entry']='ma'
+  with patch.object(module,'resolve_music',resolve):return await self.runtime.music(self.kitchen,{'action':'play','query':'Alter Bridge','media_type':kind,**args})
+ async def test_artist_play_shuffles_by_default_and_album_resets_it(self):
+  await self.play({})
+  self.assertEqual(self.calls('shuffle_set'),[{'entity_id':'media_player.kitchen','shuffle':True}])
+  self.states['media_player.kitchen'].attributes['shuffle']=True
+  await self.play({},kind='album')
+  self.assertEqual(self.calls('shuffle_set')[-1],{'entity_id':'media_player.kitchen','shuffle':False},'a later album plays in order')
+  names=[c.args[1] for c in self.hass.services.async_call.call_args_list]
+  self.assertLess(names.index('shuffle_set'),names.index('play_media'),'shuffle is set before queuing')
+ async def test_explicit_shuffle_overrides_default_and_unchanged_state_is_not_resent(self):
+  result=await self.play({'shuffle':False})
+  self.assertEqual(self.calls('shuffle_set'),[],'already off')
+  self.assertIs(result['shuffle'],False)
+  await self.play({'shuffle':True},kind='album')
+  self.assertEqual(self.calls('shuffle_set'),[{'entity_id':'media_player.kitchen','shuffle':True}])
+ async def test_radio_never_touches_shuffle(self):
+  await self.runtime.music(self.kitchen,{'action':'play','query':'Absolute Radio','media_type':'radio'})
+  self.assertEqual(self.calls('shuffle_set'),[])
+ async def test_shuffle_action_targets_what_is_playing_and_reports_real_state(self):
+  self.states['media_player.kitchen_sonos'].state='playing'
+  result=await self.runtime.music(self.kitchen,{'action':'shuffle','shuffle':True})
+  self.assertEqual(self.calls('shuffle_set'),[{'entity_id':'media_player.kitchen_sonos','shuffle':True}])
+  self.assertEqual((result['player'],result['shuffle']),('media_player.kitchen_sonos',False),'reports the entity state, not the request')
+  self.states['media_player.kitchen_sonos'].state='idle';self.states['media_player.kitchen'].attributes['supported_features']=0
+  with self.assertRaisesRegex(ValueError,'cannot shuffle'):await self.runtime.music(self.kitchen,{'action':'shuffle','shuffle':False})
+
 if __name__=='__main__':unittest.main()
 
 class SetupTest(unittest.IsolatedAsyncioTestCase):
@@ -298,3 +367,6 @@ class SetupTest(unittest.IsolatedAsyncioTestCase):
   instance=await api.async_get_api_instance(NS(device_id='device-kitchen'))
   self.assertIn('ringing',instance.api_prompt);self.assertIn('dismiss',instance.api_prompt)
   self.assertEqual({t.name for t in instance.tools},{'echo_timer','echo_weather','echo_convert','echo_music','echo_show'})
+  music=next(t for t in instance.tools if t.name=='echo_music')
+  self.assertEqual(music.parameters({'action':'shuffle','shuffle':False}),{'action':'shuffle','shuffle':False})
+  self.assertIn('Play songs by X',music.description)

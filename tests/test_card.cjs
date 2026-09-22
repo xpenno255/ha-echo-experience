@@ -13,6 +13,16 @@ playback._hass.states['media_player.kitchen'].state='playing';playback.syncPlayb
 playback._hass.states['media_player.kitchen'].state='paused';playback.syncPlayback();assert.equal(playback.view,'music','Pause retains artwork');
 playback._hass.states['media_player.kitchen'].state='idle';playback.syncPlayback();assert.equal(playback.view,'home');
 playback.view='guide';playback._hass.states['media_player.kitchen'].state='playing';playback.syncPlayback();assert.equal(playback.view,'guide','Playback must not cover a guide');
+// Music started from the Sonos app drives the native players while the Music Assistant entity stays idle.
+const native=new sandbox.Card();native.config={device:'kitchen'};native.data={profile:{music_player:'media_player.kitchen_ma',native_players:['media_player.kitchen_sonos','media_player.dining_sonos']},timers:[]};
+const group={group_members:['media_player.kitchen_sonos','media_player.dining_sonos']};
+native._hass={states:{'media_player.kitchen_ma':{state:'idle'},'media_player.kitchen_sonos':{state:'idle',attributes:group},'media_player.dining_sonos':{state:'idle',attributes:group},'media_player.living_sonos':{state:'playing'}}};
+native.syncPlayback();assert.equal(native.view,'home','another room playing natively stays out');
+native._hass.states['media_player.dining_sonos'].state='playing';assert.equal(native.activePlayer,'media_player.dining_sonos','an idle coordinator is not trusted');native._hass.states['media_player.kitchen_sonos'].state='playing';native.syncPlayback();assert.equal(native.view,'music','native playback opens music');
+assert.equal(native.activePlayer,'media_player.kitchen_sonos','controls go to the group coordinator');
+native._hass.states['media_player.kitchen_ma'].state='playing';assert.equal(native.activePlayer,'media_player.kitchen_ma','Music Assistant wins when both play');
+native._hass.states['media_player.kitchen_ma'].state='idle';native._hass.states['media_player.dining_sonos'].state='idle';native._hass.states['media_player.kitchen_sonos'].state='idle';native.syncPlayback();assert.equal(native.view,'home','stopping returns an auto-opened view');
+native.view='timers';native._hass.states['media_player.kitchen_sonos'].state='playing';native.syncPlayback();assert.equal(native.view,'timers','timers keep precedence');
 let ambient=new sandbox.Card();ambient.config={device:'kitchen',ambient:true};ambient.data=playback.data;ambient._hass=playback._hass;ambient.render=()=>{};ambient.syncPlayback();ambient.receive({device:'kitchen',result:{view:'music'}});assert.equal(ambient.view,'home','Screensaver stays on the clock');
 // Ringing timer dismissal: the card replays Voice Satellite's own dismissal gestures in the Echo's browser and
 // reports honestly. A fake document stands in for the page that hosts the native .vs-timer-alert element inside
@@ -69,5 +79,5 @@ let ambient=new sandbox.Card();ambient.config={device:'kitchen',ambient:true};am
  a.view='guide';a.receive({device:'kitchen',timer_event:{event_type:'finished'}});assert.equal(a.view,'guide','a pinned guide stays');
  const other=new sandbox.Card();other.config={device:'kitchen'};other.data={timers:[]};other.render=()=>{};other.dismiss=()=>{throw new Error('foreign dismissal');};
  other.receive({device:'bedroom',dismiss:{request:'zzz'}});
- console.log('47 frontend behaviour assertions passed');
+ console.log('55 frontend behaviour assertions passed');
 })().catch(err=>{console.error(err);process.exit(1);});

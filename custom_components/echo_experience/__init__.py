@@ -278,10 +278,25 @@ class Experience:
             return match[0]
         return self.music_players.get(p['id'],p['music_player'])
 
+    def playback_target(self,p):
+        """The entity actually carrying this Echo's music: the selected player when it is active, else a playing
+        native member's group coordinator (Sonos app, Spotify Connect, AirPlay). The card applies the same rule."""
+        selected=self.speaker(p,{})
+        def state(e):return getattr(self.hass.states.get(e),'state',None)
+        for wanted in ('playing','paused'):
+            if state(selected)==wanted:return selected
+            for e in p.get('native_players',[]):
+                if state(e)!=wanted:continue
+                members=(getattr(self.hass.states.get(e),'attributes',None) or {}).get('group_members') or []
+                return members[0] if members and state(members[0])==wanted else e
+        return selected
+
     async def music(self,p,args,context=None):
         player=self.speaker(p,args)
-        if not self.hass.states.get(player) or self.hass.states.is_state(player,'unavailable'):raise ValueError('That speaker is unavailable')
         action=args.get('action','play')
+        # Transport controls follow what is actually playing unless a speaker was named.
+        target=player if args.get('speaker') or action in ('play','search','select','volume') else self.playback_target(p)
+        if not self.hass.states.get(target) or self.hass.states.is_state(target,'unavailable'):raise ValueError('That speaker is unavailable')
         if action=='select':
             self.music_players[p['id']]=player
             return await self.publish(p,'music',{'player':player})
@@ -311,22 +326,46 @@ class Experience:
                     await self.publish(p,'answer',{'question':query,'speech':resolution.get('question') or resolution.get('message')})
                     return resolution
                 data={'entity_id':player,'media_id':resolution['match']['uri'],'enqueue':'replace','media_type':resolution.get('media_type',kind)}
+                kind=resolution.get('media_type',kind)
             elif action=='search':
                 raise ValueError('Search supports tracks, artists and albums')
             domain,service='music_assistant','play_media'
+            # Every play sets the queue's shuffle explicitly so an earlier shuffle never scrambles an album:
+            # artists shuffle unless told otherwise, everything else plays in order.
+            if kind not in ('radio','podcast'):await self.set_shuffle(player,args.get('shuffle',kind=='artist'),context)
         elif action=='volume':
             data={'entity_id':player,'volume_level':float(args['volume'])/100}
             if not 0<=data['volume_level']<=1:raise ValueError('Volume must be between 0 and 100')
             domain,service='media_player','volume_set'
+        elif action=='shuffle':
+            await self.set_shuffle(target,args.get('shuffle',True),context,force=True)
+            await self.publish(p,'music',{'player':player})
+            state=self.hass.states.get(target)
+            return {'status':'request_accepted','player':target,'shuffle':state.attributes.get('shuffle'),'note':'Confirm shuffle on or off only if the shuffle field matches the request.'}
         else:
             service={'pause':'media_pause','resume':'media_play','next':'media_next_track','previous':'media_previous_track','stop':'media_stop'}.get(action)
             if not service:raise ValueError('Unsupported music action')
-            domain,data='media_player',{'entity_id':player}
+            domain,data='media_player',{'entity_id':target}
         await self.hass.services.async_call(domain,service,data,blocking=True,context=context)
         self.music_players[p['id']]=player
         await self.publish(p,'music',{'player':player})
-        state=self.hass.states.get(player)
-        return {'match':resolution.get('match') if resolution else None,'status':'request_accepted','player':player,'state':state.state,'title':state.attributes.get('media_title'),'note':'The request was accepted; report playback as started only if state is playing.'}
+        state=self.hass.states.get(target)
+        result={'match':resolution.get('match') if resolution else None,'status':'request_accepted','player':target,'state':state.state,'title':state.attributes.get('media_title'),'note':'The request was accepted; report playback as started only if state is playing.'}
+        if action=='play':result['shuffle']=state.attributes.get('shuffle')
+        return result
+
+    async def set_shuffle(self,entity_id,shuffle,context,force=False):
+        state=self.hass.states.get(entity_id)
+        attrs=getattr(state,'attributes',None) or {}
+        if not attrs.get('supported_features',0)&32768:  # MediaPlayerEntityFeature.SHUFFLE_SET
+            if force:raise ValueError('That speaker cannot shuffle')
+            return
+        if not force and attrs.get('shuffle')==bool(shuffle):return
+        try:await self.hass.services.async_call('media_player','shuffle_set',{'entity_id':entity_id,'shuffle':bool(shuffle)},blocking=True,context=context)
+        except Exception:
+            if force:raise
+            # Playback still goes ahead; the result reports the queue's real shuffle state.
+            _LOGGER.warning('Could not set shuffle on %s',entity_id,exc_info=True)
 
     async def execute(self,p,action,args,context=None):
         if action=='weather':return await self.weather(p,args)
@@ -428,7 +467,7 @@ class ExperienceAPI(llm.API):
                 ActionTool(self.runtime,p,'echo_timer','Manage native voice timers on THIS Echo only. Start a named timer with a duration in seconds; status lists running timers with remaining seconds plus any ringing (finished) alarms. Pause, resume, cancel or add one minute using its name (omit only if exactly one exists). A finished timer whose alarm is sounding is no longer running: "stop", "stop the timer", "dismiss" or "cancel" while it rings means dismiss. cancel silences a ringing alarm first and otherwise cancels the running timer; dismiss only silences alarms. Never create or guess timer.* entities.',{vol.Required('operation'):vol.In(['start','status','pause','resume','cancel','dismiss','add']),vol.Optional('name'):str,vol.Optional('seconds'):vol.All(vol.Coerce(int),vol.Range(min=1,max=86400))}),
                 ActionTool(self.runtime,p,'echo_weather','Get the local forecast and display it on THIS Echo. Use for weather and rain questions. Choose today, tomorrow, next_hours (12 hours), or week.',{vol.Optional('period',default='today'):vol.In(['today','tomorrow','next_hours','week'])}),
                 ActionTool(self.runtime,p,'echo_convert','Calculate a unit conversion exactly and display the result. Use for temperatures, weights, volumes and length/distance (millimetres, centimetres, metres, kilometres, inches, feet, yards, miles). Both singular and plural unit names are accepted. Cups/pints need their stated standard; never assume ingredient density.',{vol.Required('value'):vol.Coerce(float),vol.Required('from_unit'):str,vol.Required('to_unit'):str}),
-                ActionTool(self.runtime,p,'echo_music','Play music/radio or control playback on this Echo. Default is its selected music speaker. Optional speaker must be one of: '+speakers+'. Always set media_type for play/search: track for a song, album for an album, artist only when query is the band/artist name. The artist field is a separate filter; naming a performer does not make a song an artist request. Put only the title in query and the performer in artist. For album requests use query for the album title and omit the album field; album is only a filter for a track. Only set version if the user explicitly requests one. Standard studio releases are preferred automatically; do not ask about remasters or editions before calling this tool. Search resolves a title without playing. Play resolves tracks/artists/albums before queuing. If status is needs_clarification or not_found, ask a short question using the result; nothing has played. Never guess a URI. volume is 0–100.',{vol.Required('action'):vol.In(['play','search','pause','resume','next','previous','stop','volume']),vol.Optional('query'):str,vol.Optional('media_type'):vol.In(['track','artist','album','playlist','radio','podcast']),vol.Optional('artist'):str,vol.Optional('album'):str,vol.Optional('version'):str,vol.Optional('speaker'):str,vol.Optional('volume'):vol.All(vol.Coerce(float),vol.Range(min=0,max=100))}),
+                ActionTool(self.runtime,p,'echo_music','Play music/radio or control playback on this Echo. Default is its selected music speaker. Optional speaker must be one of: '+speakers+'. Always set media_type for play/search: track for a song, album for an album, artist only when query is the band/artist name. The artist field is a separate filter; naming a performer does not make a song an artist request. Put only the title in query and the performer in artist. For album requests use query for the album title and omit the album field; album is only a filter for a track. Only set version if the user explicitly requests one. Standard studio releases are preferred automatically; do not ask about remasters or editions before calling this tool. Search resolves a title without playing. Play resolves tracks/artists/albums before queuing. "Play songs by X", "play some X", "play music by X" and "shuffle X" are artist requests: media_type artist, query X. Every play sets shuffle: artists shuffle by default, songs/albums play in order; pass shuffle true or false only when the user says so (e.g. "shuffle the album Y" is play, album, shuffle true). For "shuffle this", "shuffle on" or "stop shuffling" use action shuffle with shuffle true/false; it applies to what is playing now. Report shuffle only from the returned shuffle field. Pause/resume/next/previous/stop/shuffle act on whatever is currently playing on this Echo speaker, including music started from the Sonos app. If status is needs_clarification or not_found, ask a short question using the result; nothing has played. Never guess a URI. volume is 0–100.',{vol.Required('action'):vol.In(['play','search','pause','resume','next','previous','stop','volume','shuffle']),vol.Optional('shuffle'):bool,vol.Optional('query'):str,vol.Optional('media_type'):vol.In(['track','artist','album','playlist','radio','podcast']),vol.Optional('artist'):str,vol.Optional('album'):str,vol.Optional('version'):str,vol.Optional('speaker'):str,vol.Optional('volume'):vol.All(vol.Coerce(float),vol.Range(min=0,max=100))}),
                 ActionTool(self.runtime,p,'echo_show','Open a view on THIS Echo when asked to show the home screen, timers, music, weather, guides or home controls.',{vol.Required('view'):vol.In(VIEWS)})])
         return llm.APIInstance(api=self,api_prompt='Use Echo tools for this satellite\'s weather, music and conversions. Use echo_timer for timers and native Assist intents for home commands. A finished timer whose alarm is sounding is listed under ringing, not timers: for stop, dismiss, silence or cancel while it rings use echo_timer operation cancel or dismiss (naming it if given) and confirm only when the result status is dismissed. Use echo_guide for appliance instructions. Never substitute guessed manual instructions or forecast data.',llm_context=context,tools=tools)
 
