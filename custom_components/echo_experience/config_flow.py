@@ -2,7 +2,7 @@
 from homeassistant.config_entries import ConfigFlow, OptionsFlow
 from homeassistant.core import callback
 import voluptuous as vol
-from .core import validate_profiles
+from .core import validate_profiles, RUNTIMES
 import json
 
 class EchoExperienceFlow(ConfigFlow, domain='echo_experience'):
@@ -30,5 +30,11 @@ class EchoExperienceOptions(OptionsFlow):
     async def async_step_init(self, user_input=None):
         if user_input is not None:
             return self.async_create_entry(title='',data=user_input)
-        current=self.config_entry.options.get('manage_dashboard',True)
-        return self.async_show_form(step_id='init',data_schema=vol.Schema({vol.Required('manage_dashboard',default=current):bool}))
+        options=self.config_entry.options
+        fields={vol.Required('manage_dashboard',default=options.get('manage_dashboard',True)):bool}
+        # One runtime pin per loaded profile: auto follows the Kiosk, dashboard/native force that voice identity.
+        runtime=self.hass.data.get('echo_experience')
+        for p in getattr(runtime,'profiles',None) or []:
+            key='runtime_'+p['id']
+            fields[vol.Required(key,default=options.get(key,'auto') if options.get(key) in RUNTIMES else 'auto')]=vol.In(list(RUNTIMES))
+        return self.async_show_form(step_id='init',data_schema=vol.Schema(fields))

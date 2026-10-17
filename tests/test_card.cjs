@@ -23,6 +23,9 @@ assert.equal(native.activePlayer,'media_player.kitchen_sonos','controls go to th
 native._hass.states['media_player.kitchen_ma'].state='playing';assert.equal(native.activePlayer,'media_player.kitchen_ma','Music Assistant wins when both play');
 native._hass.states['media_player.kitchen_ma'].state='idle';native._hass.states['media_player.dining_sonos'].state='idle';native._hass.states['media_player.kitchen_sonos'].state='idle';native.syncPlayback();assert.equal(native.view,'home','stopping returns an auto-opened view');
 native.view='timers';native._hass.states['media_player.kitchen_sonos'].state='playing';native.syncPlayback();assert.equal(native.view,'timers','timers keep precedence');
+// The native Kiosk satellite is watched like the browser one, so a native turn re-renders the card.
+const watch=new sandbox.Card();watch.config={device:'kitchen'};let renders=0;watch.render=()=>{renders++;};watch.data={profile:{satellite:'assist_satellite.kitchen',native:{satellite:'assist_satellite.ks_kitchen'},music_player:'media_player.kitchen'},timers:[]};
+const before={states:{'assist_satellite.ks_kitchen':{state:'idle'}}};watch._hass=before;watch.hass={states:{'assist_satellite.ks_kitchen':{state:'listening'}}};assert.equal(renders,1,'native satellite change re-renders');
 let ambient=new sandbox.Card();ambient.config={device:'kitchen',ambient:true};ambient.data=playback.data;ambient._hass=playback._hass;ambient.render=()=>{};ambient.syncPlayback();ambient.receive({device:'kitchen',result:{view:'music'}});assert.equal(ambient.view,'home','Screensaver stays on the clock');
 // Ringing timer dismissal: the card replays Voice Satellite's own dismissal gestures in the Echo's browser and
 // reports honestly. A fake document stands in for the page that hosts the native .vs-timer-alert element inside
@@ -79,5 +82,5 @@ let ambient=new sandbox.Card();ambient.config={device:'kitchen',ambient:true};am
  a.view='guide';a.receive({device:'kitchen',timer_event:{event_type:'finished'}});assert.equal(a.view,'guide','a pinned guide stays');
  const other=new sandbox.Card();other.config={device:'kitchen'};other.data={timers:[]};other.render=()=>{};other.dismiss=()=>{throw new Error('foreign dismissal');};
  other.receive({device:'bedroom',dismiss:{request:'zzz'}});
- console.log('55 frontend behaviour assertions passed');
+ console.log('56 frontend behaviour assertions passed');
 })().catch(err=>{console.error(err);process.exit(1);});

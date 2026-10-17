@@ -23,7 +23,8 @@
         },
         "data_description": {
           "manage_dashboard": "When on, the integration keeps the echo-home dashboard in sync with the profiles. Turn off to keep a hand-edited dashboard."
-        }
+        },
+        "description": "Each runtime_<profile> field pins where that Echo's voice satellite runs: auto follows Kiosk Satellite (native when its ESPHome satellite is connected, otherwise the Voice Satellite browser runtime); dashboard or native forces that identity for new timers. Saving reloads Echo Experience, which forgets ringing alarms; change it only while no timer runs."
       }
     }
   },

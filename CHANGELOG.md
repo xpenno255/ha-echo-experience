@@ -1,5 +1,15 @@
 # Changes
 
+## 0.8.0 - Kiosk Satellite native runtime
+
+- Echo Experience now works when the Echo runs Kiosk Satellite's native Voice Satellite (an ESPHome Assist satellite) as well as the Voice Satellite browser integration, from the same build. Each profile gains a second voice identity, derived from the ESPHome device that owns its `kiosk_*` entities (or set explicitly as `native`), and Echo tools, the stop route, ducking, timer ownership and dashboard access accept either identity. This fixes "function echo_weather does not exist" in native mode.
+- Runtime selection: profile `runtime` `auto` (default), `dashboard` or `native`, plus a per-profile pin in the integration options (`runtime_<profile>`, stored in `.storage`) that overrides the file and auto-detection. `auto` uses native while its satellite is connected and holds the timer handler; voice-started timers stay on the satellite that heard them. `echo_experience/state` reports the mode, the active identity and both identities; timer entries carry their `runtime`.
+- Native timers start through Home Assistant's timer manager on the Kiosk device, follow `esphome.kiosk_satellite_timer` (including `dismissed`) and are silenced through `vs_list_timers` + `vs_cancel` with confirmation from the Kiosk. The Kiosk silences every ringing timer at once; replies name the others (`also_silenced`). `vs_cancel` is never sent when nothing rings.
+- Native answers come from the conversation chat log, tied to the asking Echo when its tools are built, and use the same answer/tool-view logic as `voice_satellite_chat`. Browser-origin and foreign conversations are ignored.
+- Echo tools now name their integration (`integration = echo_experience`), which Home Assistant 2026.10 reports as missing (enforced from 2027.10). No behaviour change.
+- Every native path fails soft (logged once) and the browser path is unchanged; the 0.7.0 test suite passes unmodified. Switch with the Kiosk's own `vsMigrate` (`groups: []`) and back with `vsRollback`; see the README section and `scripts/live_native_check.py` (phases A/B, `--runbook`).
+- Tests: 175 Python (41 new: identities and derivation, dual-identity gating, timer start/list/cancel/dismiss in both runtimes, Kiosk timer events, chat-log correlation with foreign and concurrent conversations, override precedence, auto-detection with the native satellite unavailable, fail-soft setup) and 56 frontend assertions.
+
 ## 0.7.0 - music from other apps, artist phrases and shuffle
 
 - Music started outside the Echo (Sonos app, Spotify Connect, AirPlay) now opens the music view with its artwork and title (#6). Profiles gain `native_players`, defaulting to `ducking.players`. When the selected Music Assistant player is idle, the first playing (then paused) native player counts as this Echo's playback; its group coordinator is used when it reports the same state. Music Assistant wins when both play. Other rooms still never open the view, and guide/timer/weather views and the ambient screensaver keep precedence.

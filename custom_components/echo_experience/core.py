@@ -5,6 +5,8 @@ import re
 
 VIEWS = ('home','timers','music','weather','guide','answer','controls')
 
+RUNTIMES = ('auto','dashboard','native')
+
 def validate_profiles(config):
     profiles=config.get('devices', [])
     if not profiles: raise ValueError('At least one device profile is required')
@@ -13,6 +15,13 @@ def validate_profiles(config):
         if len(set(values)) != len(values) or not all(values): raise ValueError('Duplicate or missing '+field)
     for p in profiles:
         if not re.fullmatch(r'[a-z0-9_]+',p['id']): raise ValueError('Invalid device slug')
+        # Optional native Kiosk Satellite identity (ESPHome) of the same physical Echo; derived at setup when absent.
+        native=p.get('native')
+        if native is not None:
+            if not isinstance(native,dict) or not isinstance(native.get('satellite'),str) or not native['satellite'].startswith('assist_satellite.') or not isinstance(native.get('device_id'),str) or not native['device_id']:raise ValueError('Invalid native identity')
+            if native.get('node') is not None and not (isinstance(native['node'],str) and re.fullmatch(r'[a-z0-9_]+',native['node'])):raise ValueError('Invalid native node')
+        p.setdefault('runtime','auto')
+        if p['runtime'] not in RUNTIMES:raise ValueError('Invalid runtime')
         for k,domain in [('satellite','assist_satellite.'),('music_player','media_player.'),('weather','weather.')]:
             if not p[k].startswith(domain): raise ValueError('Invalid '+k)
         p.setdefault('name',p['id'].replace('_',' ').title())
@@ -37,12 +46,42 @@ def validate_profiles(config):
             for key,default,low,high in [('volume_factor',0.1,0.01,1),('restore_delay',1,0,10),('max_duration',120,10,600)]:
                 value=cfg.setdefault(key,default)
                 if isinstance(value,bool) or not isinstance(value,(float,int)) or not math.isfinite(value) or not low<=value<=high:raise ValueError('Invalid ducking '+key)
-
+    check_identities(profiles)
     return config
 
+def identities(p):
+    """Every voice identity of one physical Echo: the browser (Voice Satellite) one, then the native ESPHome one."""
+    ids=[{'runtime':'dashboard','satellite':p.get('satellite'),'device_id':p.get('device_id')}]
+    native=p.get('native')
+    if native and native.get('satellite') and native.get('device_id'):
+        ids.append({'runtime':'native','satellite':native['satellite'],'device_id':native['device_id'],'node':native.get('node')})
+    return ids
+
+def identity(p, runtime):
+    return next((i for i in identities(p) if i['runtime']==runtime),None)
+
+def satellites(p):
+    return [i['satellite'] for i in identities(p)]
+
+def device_ids(p):
+    return [i['device_id'] for i in identities(p)]
+
+def check_identities(profiles):
+    """A satellite or device may belong to one identity of one profile only."""
+    for key in ('satellite','device_id'):
+        values=[i[key] for p in profiles for i in identities(p)]
+        if len(set(values))!=len(values):raise ValueError('Duplicate '+key+' across voice identities')
+
+def runtime_overrides(options):
+    """Per-profile runtime pins from the integration options (runtime_<profile id>: auto|dashboard|native)."""
+    return {k[len('runtime_'):]:v for k,v in (options or {}).items() if k.startswith('runtime_') and v in RUNTIMES}
+
+def match_identity(p, *, device_id=None, satellite=None):
+    return next((i for i in identities(p) if (device_id and i['device_id']==device_id) or (satellite and i['satellite']==satellite)),None)
+
 def route_profile(profiles, *, device_id=None, satellite=None):
-    """No default fallback: an unknown origin must never control another Echo."""
-    matches=[p for p in profiles if (device_id and p['device_id']==device_id) or (satellite and p['satellite']==satellite)]
+    """No default fallback: an unknown origin must never control another Echo. Any identity of a profile matches."""
+    matches=[p for p in profiles if match_identity(p,device_id=device_id,satellite=satellite)]
     return matches[0] if len(matches)==1 else None
 
 # SI factors; ounces are avoirdupois, not fluid ounces. Ambiguous cups/pints excluded.

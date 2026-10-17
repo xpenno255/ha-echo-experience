@@ -1,7 +1,7 @@
 # Native Kiosk Satellite runtime: design
 
-Status: Phase 1 draft, 2026-10-17. No code has changed yet. Target release: 0.8.0, a minor version because it adds a
-feature. The same build must keep the current browser runtime working without changes.
+Status: revision 2, implemented on branch `native-satellite` as 0.8.0 (a minor version because it adds a feature),
+offline-tested, awaiting the live test (2026-10-17). Section 10 lists what changed from the Phase 1 draft. The same build must keep the current browser runtime working without changes.
 
 **Goal.** Echo Experience currently depends on the Voice Satellite browser integration (`voice_satellite`). It should
 also work when the Echo Show 8 runs Kiosk Satellite's native Voice Satellite, which is a plain ESPHome Assist
@@ -298,3 +298,31 @@ The checks are scripted in `scripts/live_native_check.py`, to be written in Phas
 5. For the Echo switch, should the coordinator use `vsMigrate`/`vsRollback` or a raw `PATCH voice.runtime`?
    `vsMigrate` may also rewrite the ESPHome device's Assistant and wake-word selects, which already hold the right
    values.
+
+## 10. Changes from the Phase 1 draft (implementation, 2026-10-17)
+
+- **Answers (section 4): no chat-log subscription.** `async_subscribe_chat_logs` does not see the final answer:
+  assistant content added through `async_add_assistant_content` / `async_add_delta_content_stream` (how the Echo Home
+  fork streams) fires no `CONTENT_ADDED` (HA `conversation/chat_log.py:437-470`, only tool results at :497 and
+  `async_add_assistant_content_without_tools` at :430 notify), and a new conversation gets no `UPDATED` at the end
+  (:160-172). Instead `ExperienceAPI.async_get_api_instance` takes the live `ChatLog` from
+  `conversation.chat_log.current_chat_log` (present in 2026.9.2 and 2026.10.1) and a `native.TurnWatcher` task follows
+  that object until the first assistant message with text and no tool calls after the turn's user message (polled
+  every 0.25 s, at most 120 s, cancelled on unload or when the conversation's next turn starts). It works for voice and
+  for text runs with `device_id`, for any agent that builds its LLM API inside its chat log, and needs no `hass.data` key.
+- **Pin semantics (decision 1).** An options pin (`runtime_<profile>` dashboard/native) overrides the profile file,
+  auto-detection *and* the "timer on the asking satellite" rule. Observations are never filtered by the pin: browser
+  events, Kiosk events and chat-log answers are attributed by their own origin, and a ringing alarm is silenced where it
+  rings (each ringing entry carries its `runtime`; a mixed list is handled per runtime).
+- **Derivation** logs (info) instead of raising a repair issue: a dashboard-only Echo without native mode is normal.
+  The ESPHome node name is resolved lazily at first use (`entry.runtime_data.device_info.name`, else
+  `entry.data['device_name']`) because the ESPHome entry may not be connected when Echo Experience loads.
+- **Native dismiss** never sends `vs_cancel` unless `vs_list_timers` shows one of the requested timers as `finished`;
+  on a missing `dismissed` event it re-reads the list before deciding. `also_silenced` names the others the Kiosk
+  silenced (decision 2). The Kiosk stop word is not used (decision 3). Answers keep the dashboard answer view
+  (decision 4); the overlay/dashboard combination is a live-test item. The Echo switch uses `vsMigrate` with
+  `groups: []` (no settings or selects rewritten) and `vsRollback` (decision 5; VM:1627-1755).
+- **Fail-soft guards:** registry access (derivation), `TimerManager.start_timer` signature and `is_timer_device`,
+  `hass.services.has_service('esphome', …)` before each Kiosk action, the chat-log context variable; each logs once.
+- **Live checks:** `scripts/live_native_check.py` (phases A/B, pre-flight, mid-interaction abort, text runs with
+  `device_id`, read-only music status, a 2-minute "echo test" timer cancelled immediately, `--runbook`).

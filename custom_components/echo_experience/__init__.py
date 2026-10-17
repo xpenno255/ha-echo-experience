@@ -19,8 +19,8 @@ from .music import resolve_music
 from .music_fallback import resolve_with_fallback
 from .music_backend import MusicBackend
 from .ducking import DuckingManager
-from .core import validate_profiles, route_profile, convert, VIEWS, normalize_timer_name
-from . import frontend, dashboard
+from .core import validate_profiles, route_profile, convert, VIEWS, normalize_timer_name, identity, identities, match_identity, satellites, device_ids, runtime_overrides
+from . import frontend, dashboard, native
 from .stop_route import StopRoute
 
 DOMAIN='echo_experience'
@@ -41,6 +41,9 @@ async def async_setup_entry(hass, entry):
         return validate_profiles(json.loads(Path(hass.config.path('echo_experience.json')).read_text()))
     config=await hass.async_add_executor_job(read)
     runtime=Experience(hass,config)
+    runtime.overrides=runtime_overrides(entry.options)
+    # Native Kiosk Satellite identities come from the profile or the Kiosk ESPHome device; never fatal.
+    native.derive_identities(hass,runtime.profiles)
     hass.data[DOMAIN]=runtime
     version=await hass.async_add_executor_job(integration_version,hass)
     # The card, its resource, the dashboard and the stop route ship with the integration. A failure in one is a
@@ -67,6 +70,9 @@ async def async_setup_entry(hass, entry):
     entry.async_on_unload(llm.async_register_api(hass,ExperienceAPI(hass,runtime)))
     entry.async_on_unload(hass.bus.async_listen('voice_satellite_chat',runtime.chat))
     entry.async_on_unload(hass.bus.async_listen('voice_satellite_timer',runtime.timer_event))
+    entry.async_on_unload(hass.bus.async_listen(native.TIMER_EVENT,runtime.native_timer_event))
+    runtime.turns=native.TurnWatcher(hass,runtime.show_reply)
+    entry.async_on_unload(runtime.turns.close)
     async def dismiss_timer(call):
         return await dismiss_timer_service(hass,runtime,call)
     hass.services.async_register(DOMAIN,'dismiss_timer',dismiss_timer,schema=vol.Schema({vol.Required('device_id'):str,vol.Optional('name'):str}),supports_response=SupportsResponse.OPTIONAL)
@@ -81,8 +87,9 @@ async def dismiss_timer_service(hass,runtime,call):
     if not p:return {'status':'unknown_device'}
     if call.context.user_id:
         user=await hass.auth.async_get_user(call.context.user_id)
-        if user is None or not user.permissions.check_entity(p['satellite'],POLICY_CONTROL):
-            raise Unauthorized(context=call.context,entity_id=p['satellite'],permission=POLICY_CONTROL)
+        satellite=(match_identity(p,device_id=call.data['device_id']) or {'satellite':p['satellite']})['satellite']
+        if user is None or not user.permissions.check_entity(satellite,POLICY_CONTROL):
+            raise Unauthorized(context=call.context,entity_id=satellite,permission=POLICY_CONTROL)
     return await runtime.dismiss_for_device(call.data['device_id'],call.data.get('name'))
 
 async def async_options_updated(hass, entry):
@@ -105,6 +112,9 @@ class Experience:
         self.ringing={}
         self.dismissals={}
         self.dismiss_timeout=4
+        self.overrides={}
+        self.turns=None
+        self.native_waiters=[]
 
     def profile(self,slug):
         return next((p for p in self.profiles if p['id']==slug),None)
@@ -131,9 +141,10 @@ class Experience:
     def timers(self,p):
         manager=self.hass.data.get(TIMER_DATA)
         if manager is None:return []
+        owners={i['device_id']:i['runtime'] for i in identities(p)}
         return [{'id':t.id,'name':t.name or 'Timer','seconds_left':t.seconds_left,
-                 'total_seconds':t.created_seconds,'is_active':t.is_active,'sampled_at':time.time()}
-                for t in manager.timers.values() if t.device_id==p['device_id']]
+                 'total_seconds':t.created_seconds,'is_active':t.is_active,'sampled_at':time.time(),'runtime':owners[t.device_id]}
+                for t in manager.timers.values() if t.device_id in owners]
 
     def ringing_timers(self,p):
         """Finished timers whose alarm is sounding; core drops these from manager.timers before the FINISHED event."""
@@ -141,10 +152,25 @@ class Experience:
         for key in [k for k,t in entries.items() if time.time()-t['finished_at']>RINGING_TTL]:entries.pop(key)
         return sorted(entries.values(),key=lambda t:t['finished_at'])
 
+    def active_identity(self,p):
+        return native.active_identity(self.hass,p,self.overrides,self.hass.data.get(TIMER_DATA))
+
+    def timer_identity(self,p,origin=None):
+        """Where a new timer lives: a pinned runtime, else the asking satellite, else the active identity."""
+        if native.mode(p,self.overrides)=='auto' and origin:
+            found=match_identity(p,device_id=origin)
+            if found:return found
+        return self.active_identity(p)
+
+    def runtime_info(self,p):
+        active=self.active_identity(p)
+        return {'mode':native.mode(p,self.overrides),'active':active['runtime'] if active else None,
+                'identities':[{k:v for k,v in i.items() if k!='node'} for i in identities(p)]}
+
     def snapshot(self,p):
         return {'profile':p,'timers':self.timers(p),'ringing':self.ringing_timers(p),'result':self.results.get(p['id']),
                 'music_player':self.music_players.get(p['id'],p['music_player']),
-                'forecast':self.forecasts.get(p['weather'])}
+                'forecast':self.forecasts.get(p['weather']),'runtime':self.runtime_info(p)}
 
     async def publish(self,p,view,payload=None,wake=True):
         result={'view':view,'payload':payload or {},'timestamp':time.time()}
@@ -169,11 +195,71 @@ class Experience:
         if p:
             data=event.data
             if data.get('event_type')=='finished' and data.get('timer_id'):
-                self.ringing.setdefault(p['id'],{})[data['timer_id']]={'id':data['timer_id'],'name':data.get('name') or 'Timer','total_seconds':data.get('total_seconds'),'finished_at':time.time()}
+                self.ringing.setdefault(p['id'],{})[data['timer_id']]={'id':data['timer_id'],'name':data.get('name') or 'Timer','total_seconds':data.get('total_seconds'),'finished_at':time.time(),'runtime':'dashboard'}
             # Native Voice Satellite owns audio and completion/dismissal; no duplicate alarm.
             self.hass.bus.async_fire(EVENT,{'device':p['id'],'timers':self.timers(p),'ringing':self.ringing_timers(p),'timer_event':dict(data)})
 
+    @callback
+    def native_timer_event(self,event):
+        """esphome.kiosk_satellite_timer from the native runtime: same fields as voice_satellite_timer, plus dismissed."""
+        data=event.data
+        p=route_profile(self.profiles,device_id=data.get('device_id'))
+        ident=match_identity(p,device_id=data.get('device_id')) if p else None
+        if not ident or ident['runtime']!='native':return
+        kind,timer_id=data.get('event_type'),data.get('timer_id')
+        if kind=='finished' and timer_id:
+            self.ringing.setdefault(p['id'],{})[timer_id]={'id':timer_id,'name':data.get('name') or 'Timer','total_seconds':data.get('total_seconds'),'finished_at':time.time(),'runtime':'native'}
+        elif kind=='dismissed' and timer_id:
+            # Silenced on the Kiosk (tap, stop word or vs_cancel): the device's own report, never a guess.
+            self.forget(p,[timer_id])
+            for waiter in self.native_waiters:
+                if waiter['profile']==p['id']:
+                    waiter['ids'].discard(timer_id)
+                    if not waiter['ids'] and not waiter['future'].done():waiter['future'].set_result(True)
+        self.hass.bus.async_fire(EVENT,{'device':p['id'],'timers':self.timers(p),'ringing':self.ringing_timers(p),'timer_event':dict(data)})
+
     async def dismiss(self,p,ringing):
+        """Silence ringing alarms where they ring: the browser runtime through the Echo's dashboard, the native one
+        through the Kiosk itself. A mixed list (runtime switched while ringing) is handled per runtime."""
+        browser=[t for t in ringing if t.get('runtime','dashboard')!='native']
+        kiosk=[t for t in ringing if t.get('runtime')=='native']
+        if not kiosk:return await self.dismiss_dashboard(p,browser)
+        if not browser:return await self.dismiss_native(p,kiosk)
+        results=[await self.dismiss_dashboard(p,browser),await self.dismiss_native(p,kiosk)]
+        statuses={r['status'] for r in results}
+        status=next((s for s in ('failed','unconfirmed') if s in statuses),'not_ringing' if statuses=={'not_ringing'} else 'dismissed')
+        return {'status':status,'timers':[t['name'] for t in ringing]}
+
+    async def dismiss_native(self,p,ringing):
+        """Ask the Kiosk what rings, silence it with vs_cancel and wait for its dismissed events. vs_cancel silences
+        every ringing timer on the Kiosk at once; only a confirmed report counts as success."""
+        ident=identity(p,'native')
+        ids=[t['id'] for t in ringing]
+        names=[t['name'] for t in ringing]
+        finished=await native.list_ringing(self.hass,ident,self.dismiss_timeout)
+        if finished is None:return {'status':'unconfirmed','timers':names}
+        wanted={i for i in ids if i in finished}
+        if not wanted:
+            self.forget(p,ids)
+            return {'status':'not_ringing','timers':names}
+        others=[t['name'] for t in self.ringing_timers(p) if t['id'] in finished and t['id'] not in wanted]
+        waiter={'profile':p['id'],'ids':set(wanted),'future':asyncio.get_running_loop().create_future()}
+        self.native_waiters.append(waiter)
+        try:
+            if not await native.cancel_alert(self.hass,ident):return {'status':'unconfirmed','timers':names}
+            try:
+                async with asyncio.timeout(self.dismiss_timeout):await waiter['future']
+            except TimeoutError:
+                # The events may have been missed; only the Kiosk's own list may say the alert is gone.
+                again=await native.list_ringing(self.hass,ident,self.dismiss_timeout)
+                if again is None or wanted&again:return {'status':'unconfirmed','timers':names}
+        finally:self.native_waiters.remove(waiter)
+        self.forget(p,ids)
+        result={'status':'dismissed','timers':names}
+        if others:result['others']=others
+        return result
+
+    async def dismiss_dashboard(self,p,ringing):
         """Ask this Echo's dashboard to trigger Voice Satellite's own dismissal and report what happened."""
         token=secrets.token_hex(8)
         ids=[t['id'] for t in ringing]
@@ -221,18 +307,24 @@ class Experience:
 
     @callback
     def chat(self,event):
+        """voice_satellite_chat from the browser runtime."""
         p=route_profile(self.profiles,satellite=event.data.get('entity_id'))
         if not p:return
         data=event.data
-        names={(t.get('name') or '').split('__')[-1] for t in data.get('tool_calls',[])}
+        self.show_reply(p,data.get('stt_text',''),data.get('tts_text',''),[t.get('name') for t in data.get('tool_calls',[])])
+
+    @callback
+    def show_reply(self,p,question,speech,tool_names):
+        """Add a turn's spoken answer to the display (browser chat event or native conversation turn)."""
+        names={(n or '').split('__')[-1] for n in tool_names}
         recent=self.results.get(p['id'])
         if recent and time.time()-recent['timestamp']<90 and names.intersection({'query_home_documents','echo_guide','echo_convert','echo_weather','echo_music','echo_show','echo_timer'}):
-            updated={**recent,'payload':{**recent['payload'],'speech':data.get('tts_text',''),'question':data.get('stt_text','')}}
+            updated={**recent,'payload':{**recent['payload'],'speech':speech or '','question':question or ''}}
             self.results[p['id']]=updated
             self.hass.bus.async_fire(EVENT,{'device':p['id'],'result':updated})
-        elif data.get('tts_text') and not any('timer' in (n or '').lower() for n in names):
+        elif speech and not any('timer' in (n or '').lower() for n in names):
             # Display the actual answer. Never execute actions by matching spoken prose.
-            self.hass.async_create_task(self.publish(p,'answer',{'speech':data['tts_text'],'question':data.get('stt_text','')}))
+            self.hass.async_create_task(self.publish(p,'answer',{'speech':speech,'question':question or ''}))
 
     async def forecast(self,p):
         entity=p['weather']
@@ -367,7 +459,7 @@ class Experience:
             # Playback still goes ahead; the result reports the queue's real shuffle state.
             _LOGGER.warning('Could not set shuffle on %s',entity_id,exc_info=True)
 
-    async def execute(self,p,action,args,context=None):
+    async def execute(self,p,action,args,context=None,origin=None):
         if action=='weather':return await self.weather(p,args)
         if action=='music':return await self.music(p,args,context)
         if action=='convert':
@@ -390,8 +482,13 @@ class Experience:
                 before=set(manager.timers)
                 hours,remainder=divmod(seconds,3600)
                 minutes,secs=divmod(remainder,60)
-                await self.hass.services.async_call('voice_satellite','start_timer',{'entity_id':p['satellite'],'name':(normalize_timer_name(args.get('name')) or 'Timer')[:80],'hours':hours,'minutes':minutes,'seconds':secs},blocking=True,context=context)
-                if not any(key not in before and timer.device_id==p['device_id'] for key,timer in manager.timers.items()):
+                name=(normalize_timer_name(args.get('name')) or 'Timer')[:80]
+                target=self.timer_identity(p,origin)
+                if target['runtime']=='native':
+                    native.start_timer(self.hass,manager,target['device_id'],hours,minutes,secs,name)
+                else:
+                    await self.hass.services.async_call('voice_satellite','start_timer',{'entity_id':target['satellite'],'name':name,'hours':hours,'minutes':minutes,'seconds':secs},blocking=True,context=context)
+                if not any(key not in before and timer.device_id==target['device_id'] for key,timer in manager.timers.items()):
                     raise ValueError('Home Assistant did not create the timer. Check the satellite connection.')
             else:
                 wanted=normalize_timer_name(args.get('name'))
@@ -401,9 +498,11 @@ class Experience:
                     result=await self.dismiss(p,ringing)
                     if result['status']=='dismissed':
                         await self.publish(p,'timers')
-                        return {'timers':self.timers(p),'ringing':[],'status':'dismissed','dismissed':result['timers'],'note':'The alarm has been silenced. Confirm briefly.'}
+                        reply={'timers':self.timers(p),'ringing':self.ringing_timers(p),'status':'dismissed','dismissed':result['timers'],'note':'The alarm has been silenced. Confirm briefly.'}
+                        if result.get('others'):reply['also_silenced']=result['others'];reply['note']='The Echo silences every ringing alarm at once; these were silenced too. Confirm briefly.'
+                        return reply
                     if result['status']!='not_ringing':raise ValueError('The Echo display did not confirm the alarm was silenced. Tap the alert or say stop again.')
-                    if not any(t.device_id==p['device_id'] for t in manager.timers.values()):
+                    if not any(t.device_id in device_ids(p) for t in manager.timers.values()):
                         return {'timers':[],'ringing':[],'status':'already_silenced','note':'That alarm had already been silenced on the Echo; nothing is running.'}
                     ringing=[]
                 elif ringing:raise ValueError('The '+ringing[0]['name']+' timer has finished and its alarm is sounding; dismiss it instead')
@@ -413,11 +512,11 @@ class Experience:
                     raise ValueError(('No timer alarm is sounding on this Echo' if not others else f'No ringing timer matches; ringing: {others}')+(f'; {running} timer(s) are still running' if running else ''))
                 timer=manager.timers.get(requested)
                 if timer is None and not requested:
-                    matches=[t for t in manager.timers.values() if t.device_id==p['device_id'] and (not wanted or normalize_timer_name(t.name)==wanted)]
+                    matches=[t for t in manager.timers.values() if t.device_id in device_ids(p) and (not wanted or normalize_timer_name(t.name)==wanted)]
                     if not matches:raise ValueError('No timer is running or ringing on this Echo'+(f' named {wanted}' if wanted else ''))
                     if len(matches)>1:raise ValueError('Name the timer to change; there is no unique matching timer on this Echo')
                     timer=matches[0]
-                if timer is None or timer.device_id!=p['device_id']:raise ValueError('This timer does not belong to this Echo')
+                if timer is None or timer.device_id not in device_ids(p):raise ValueError('This timer does not belong to this Echo')
                 if op=='cancel':manager.cancel_timer(timer.id)
                 elif op=='pause':manager.pause_timer(timer.id)
                 elif op=='resume':manager.unpause_timer(timer.id)
@@ -431,10 +530,12 @@ class ActionTool(llm.Tool):
     def __init__(self,runtime,p,name,description,schema):
         self.runtime,self.profile=runtime,p
         self.name,self.description,self.parameters=name,description,vol.Schema(schema)
+        # HA 2026.10+ wants every tool to name its integration (reported, then enforced in 2027.10).
+        self.integration=DOMAIN
     async def async_call(self,hass,tool_input,llm_context):
         try:args=self.parameters(tool_input.tool_args)
         except vol.Invalid as err:return {'error':'Invalid arguments: '+str(err),'retryable':False}
-        try:return await self.runtime.execute(self.profile,self.name.removeprefix('echo_'),args,llm_context.context)
+        try:return await self.runtime.execute(self.profile,self.name.removeprefix('echo_'),args,llm_context.context,origin=getattr(llm_context,'device_id',None))
         except (ValueError,KeyError) as err:return {'error':str(err),'retryable':False}
         except Exception:
             _LOGGER.exception('Echo tool failed: %s',self.name)
@@ -444,6 +545,7 @@ class GuideTool(llm.Tool):
     def __init__(self,original,runtime,p):
         self.original,self.runtime,self.profile=original,runtime,p
         self.name,self.description,self.parameters='echo_guide',original.description,original.parameters
+        self.integration=DOMAIN
     async def async_call(self,hass,tool_input,llm_context):
         result=await self.original.async_call(hass,tool_input,llm_context)
         if self.profile:
@@ -456,6 +558,10 @@ class ExperienceAPI(llm.API):
         self.runtime=runtime
     async def async_get_api_instance(self,context):
         p=route_profile(self.runtime.profiles,device_id=context.device_id)
+        if p and self.runtime.turns is not None:
+            # Native turns are not described by any Voice Satellite chat event: follow this conversation's chat log.
+            try:self.runtime.turns.track(p,match_identity(p,device_id=context.device_id))
+            except Exception:_LOGGER.exception('Echo Experience could not follow this conversation')
         tools=[]
         for entry in self.hass.config_entries.async_entries('homeguide'):
             from custom_components.homeguide.api import HomeGuideAPI
@@ -475,7 +581,7 @@ def access(hass,connection,slug,policy):
     runtime=hass.data.get(DOMAIN)
     p=runtime.profile(slug) if runtime else None
     if not p:raise ValueError('Unknown Echo profile')
-    if not connection.user.permissions.check_entity(p['satellite'],policy):raise ValueError('Access denied')
+    if not any(connection.user.permissions.check_entity(s,policy) for s in satellites(p)):raise ValueError('Access denied')
     return runtime,p
 
 @websocket_api.websocket_command({vol.Required('type'):'echo_experience/state',vol.Required('device'):str,vol.Optional('forecast',default=False):bool})
