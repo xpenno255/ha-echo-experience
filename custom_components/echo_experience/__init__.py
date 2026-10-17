@@ -527,13 +527,23 @@ class Experience:
         raise ValueError('Unsupported action')
 
 class ActionTool(llm.Tool):
-    def __init__(self,runtime,p,name,description,schema):
+    def __init__(self,runtime,p,name,description,schema,aliases=None):
         self.runtime,self.profile=runtime,p
         self.name,self.description,self.parameters=name,description,vol.Schema(schema)
+        # Undeclared argument names models copy from similar tools, mapped onto the declared ones before validation.
+        self.aliases=aliases or {}
         # HA 2026.10+ wants every tool to name its integration (reported, then enforced in 2027.10).
         self.integration=DOMAIN
+    def unalias(self,args):
+        if not self.aliases or not isinstance(args,dict):return args
+        args=dict(args)
+        for alias,name in self.aliases.items():
+            if alias in args:
+                value=args.pop(alias)
+                args.setdefault(name,value)  # the declared name wins when both are sent
+        return args
     async def async_call(self,hass,tool_input,llm_context):
-        try:args=self.parameters(tool_input.tool_args)
+        try:args=self.parameters(self.unalias(tool_input.tool_args))
         except vol.Invalid as err:return {'error':'Invalid arguments: '+str(err),'retryable':False}
         try:return await self.runtime.execute(self.profile,self.name.removeprefix('echo_'),args,llm_context.context,origin=getattr(llm_context,'device_id',None))
         except (ValueError,KeyError) as err:return {'error':str(err),'retryable':False}
@@ -572,7 +582,7 @@ class ExperienceAPI(llm.API):
             tools.extend([
                 ActionTool(self.runtime,p,'echo_timer','Manage native voice timers on THIS Echo only. Start a named timer with a duration in seconds; status lists running timers with remaining seconds plus any ringing (finished) alarms. Pause, resume, cancel or add one minute using its name (omit only if exactly one exists). A finished timer whose alarm is sounding is no longer running: "stop", "stop the timer", "dismiss" or "cancel" while it rings means dismiss. cancel silences a ringing alarm first and otherwise cancels the running timer; dismiss only silences alarms. Never create or guess timer.* entities.',{vol.Required('operation'):vol.In(['start','status','pause','resume','cancel','dismiss','add']),vol.Optional('name'):str,vol.Optional('seconds'):vol.All(vol.Coerce(int),vol.Range(min=1,max=86400))}),
                 ActionTool(self.runtime,p,'echo_weather','Get the local forecast and display it on THIS Echo. Use for weather and rain questions. Choose today, tomorrow, next_hours (12 hours), or week.',{vol.Optional('period',default='today'):vol.In(['today','tomorrow','next_hours','week'])}),
-                ActionTool(self.runtime,p,'echo_convert','Calculate a unit conversion exactly and display the result. Use for temperatures, weights, volumes and length/distance (millimetres, centimetres, metres, kilometres, inches, feet, yards, miles). Both singular and plural unit names are accepted. Cups/pints need their stated standard; never assume ingredient density.',{vol.Required('value'):vol.Coerce(float),vol.Required('from_unit'):str,vol.Required('to_unit'):str}),
+                ActionTool(self.runtime,p,'echo_convert','Calculate a unit conversion exactly and display the result. Arguments: value (the number to convert), from_unit and to_unit. Use for temperatures, weights, volumes and length/distance (millimetres, centimetres, metres, kilometres, inches, feet, yards, miles). Both singular and plural unit names are accepted. Cups/pints need their stated standard; never assume ingredient density.',{vol.Required('value'):vol.Coerce(float),vol.Required('from_unit'):str,vol.Required('to_unit'):str},aliases={'amount':'value'}),
                 ActionTool(self.runtime,p,'echo_music','Play music/radio or control playback on this Echo. Default is its selected music speaker. Optional speaker must be one of: '+speakers+'. Always set media_type for play/search: track for a song, album for an album, artist only when query is the band/artist name. The artist field is a separate filter; naming a performer does not make a song an artist request. Put only the title in query and the performer in artist. For album requests use query for the album title and omit the album field; album is only a filter for a track. Only set version if the user explicitly requests one. Standard studio releases are preferred automatically; do not ask about remasters or editions before calling this tool. Search resolves a title without playing. Play resolves tracks/artists/albums before queuing. "Play songs by X", "play some X", "play music by X" and "shuffle X" are artist requests: media_type artist, query X. Every play sets shuffle: artists shuffle by default, songs/albums play in order; pass shuffle true or false only when the user says so (e.g. "shuffle the album Y" is play, album, shuffle true). For "shuffle this", "shuffle on" or "stop shuffling" use action shuffle with shuffle true/false; it applies to what is playing now. Report shuffle only from the returned shuffle field. Pause/resume/next/previous/stop/shuffle act on whatever is currently playing on this Echo speaker, including music started from the Sonos app. If status is needs_clarification or not_found, ask a short question using the result; nothing has played. Never guess a URI. volume is 0–100.',{vol.Required('action'):vol.In(['play','search','pause','resume','next','previous','stop','volume','shuffle']),vol.Optional('shuffle'):bool,vol.Optional('query'):str,vol.Optional('media_type'):vol.In(['track','artist','album','playlist','radio','podcast']),vol.Optional('artist'):str,vol.Optional('album'):str,vol.Optional('version'):str,vol.Optional('speaker'):str,vol.Optional('volume'):vol.All(vol.Coerce(float),vol.Range(min=0,max=100))}),
                 ActionTool(self.runtime,p,'echo_show','Open a view on THIS Echo when asked to show the home screen, timers, music, weather, guides or home controls.',{vol.Required('view'):vol.In(VIEWS)})])
         return llm.APIInstance(api=self,api_prompt='Use Echo tools for this satellite\'s weather, music and conversions. Use echo_timer for timers and native Assist intents for home commands. A finished timer whose alarm is sounding is listed under ringing, not timers: for stop, dismiss, silence or cancel while it rings use echo_timer operation cancel or dismiss (naming it if given) and confirm only when the result status is dismissed. Use echo_guide for appliance instructions. Never substitute guessed manual instructions or forecast data.',llm_context=context,tools=tools)

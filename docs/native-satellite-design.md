@@ -326,3 +326,36 @@ The checks are scripted in `scripts/live_native_check.py`, to be written in Phas
   `hass.services.has_service('esphome', …)` before each Kiosk action, the chat-log context variable; each logs once.
 - **Live checks:** `scripts/live_native_check.py` (phases A/B, pre-flight, mid-interaction abort, text runs with
   `device_id`, read-only music status, a 2-minute "echo test" timer cancelled immediately, `--runbook`).
+
+## 11. Live test 2026-10-17
+
+The coordinator ran it on the live install, which keeps the branch build:
+- HA 2026.10.1, Kiosk Satellite 2026.10.27, Echo Show 8.
+- Installed through HACS `hacs/repository/download` with version `native-satellite`. Installing the branch worked, and the
+  Core restart took 86 s.
+- The `runtime` block in `echo_experience/state` derived both identities on its own:
+  - browser: `assist_satellite.echo_show_8` / `3cbf784c…`
+  - native: `assist_satellite.amzn_echo_show_8_assist_satellite` / `f778d5de…`
+
+| Step | Result |
+| --- | --- |
+| Phase A (dashboard runtime on 0.8.0) | 20/20 checks passed |
+| Kiosk `vsMigrate` with `groups: []` | Worked (see the ESPHome select quirk below) |
+| Phase B (native runtime) | 23/23 checks passed |
+| Live ringing | Text run "Set a 5 second timer called ring test." as device `f778…` called `echo_timer` and created the timer on the native identity. It rang after 5.0 s. `echo_experience.dismiss_timer` returned `{"status":"dismissed","timers":["ring test"]}`. Afterwards `vs_list_timers` returned `[]` and the Echo Experience state was clean. |
+
+**ESPHome select quirk.** After `vsMigrate`, the ESPHome selects stayed `unavailable` until the ESPHome config entry
+`01M2KD1HY0ZR19EPPN026M24B0` was reloaded. Those are Assistant, Wake word and Finished speaking detection. After the
+reload they read Echo Home, Okay Nabu and aggressive. Voice and Echo Experience do not depend on these selects, but
+reloading the entry is now a README switch step.
+
+**TTS fetch latency (not an Echo Experience issue).** Native announcements and answers play through the same Kiosk
+SoundPlayer path. HA gives ESPHome devices a Nabu Casa cloud URL for TTS media: `get_url` prefers the external URL
+because HA serves SSL itself and `external_url` is unset. That adds about 110-250 ms per TTS fetch. HA's URLs are left
+unchanged on purpose, because the hostname resolves only on the LAN in public DNS.
+
+**Seen during the test, fixed afterwards.** In about 1 run in 5, `echo_convert` failed in both runtimes. The model
+copied `basic_utilities.unit_convert` and sent `amount` instead of `value`. Validation failed, the model retried with
+identical arguments, and the final speech was empty. Since then, `amount` has been accepted as an alias of `value`.
+The alias goes through the same float coercion, and `value` wins when both are sent. The tool description now names
+its arguments.

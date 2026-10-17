@@ -248,6 +248,8 @@ RUNBOOK = """Phase 3 runbook (Echo Experience 0.8.0 on branch {branch}). Run onl
    groups [] carries no settings over and rewrites no Assistant/wake-word selects (they already hold Echo Home / Okay Nabu).
    It stops the page engine, sets voice.enabled=true and voice.runtime=native, waits for HA to hold the satellite, and
    rolls back to the dashboard runtime by itself on failure. Allow ~90 s. Then wait until {native_satellite} is idle.
+   If select.amzn_echo_show_8_assistant / _wake_word / _finished_speaking_detection stay unavailable, reload the Kiosk's
+   ESPHome entry: call_service homeassistant.reload_config_entry {{"entry_id":"01M2KD1HY0ZR19EPPN026M24B0"}} (seen 2026-10-17).
    If auto-detection is ambiguous mid-switch, pin it (REST, admin token):
      POST /api/config/config_entries/options/flow  {{"handler":"<echo_experience entry_id>"}}
      POST /api/config/config_entries/options/flow/<flow_id>  {{"manage_dashboard":true,"runtime_{profile}":"native"}}

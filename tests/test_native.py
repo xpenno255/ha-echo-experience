@@ -398,6 +398,34 @@ class SetupWiringTest(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(runtime.turns.closed)
 
 
+class ConvertAliasTest(Base):
+    """Models copying basic_utilities.unit_convert send amount instead of value (seen live, about 1 in 5 runs)."""
+
+    async def convert(self, args):
+        self.hass.config_entries = NS(async_entries=Mock(return_value=[]))
+        tools = (await module.ExperienceAPI(self.hass, self.runtime).async_get_api_instance(NS(device_id='esp-kitchen'))).tools
+        tool = next(t for t in tools if t.name == 'echo_convert')
+        return tool, await tool.async_call(self.hass, NS(tool_name='echo_convert', tool_args=args), NS(context=None, device_id='esp-kitchen'))
+
+    async def test_amount_is_accepted_as_value_with_the_same_coercion(self):
+        for amount in (5, 5.0, '5', ' 5 '):
+            with self.subTest(amount=amount):
+                tool, result = await self.convert({'amount': amount, 'from_unit': 'km', 'to_unit': 'miles'})
+                self.assertAlmostEqual(result['result'], 3.1068559612, places=8)
+                self.assertEqual(result['value'], 5.0)
+
+    async def test_value_wins_and_bad_amounts_still_fail_validation(self):
+        tool, result = await self.convert({'value': 2, 'amount': 9, 'from_unit': 'kg', 'to_unit': 'g'})
+        self.assertEqual(result['result'], 2000, 'the declared name wins')
+        tool, result = await self.convert({'amount': 'lots', 'from_unit': 'kg', 'to_unit': 'g'})
+        self.assertIn('Invalid arguments', result['error']);self.assertFalse(result['retryable'])
+        tool, result = await self.convert({'from_unit': 'kg', 'to_unit': 'g'})
+        self.assertIn('Invalid arguments', result['error'])
+        self.assertNotIn('amount', str(tool.parameters.schema), 'the alias is accepted, never advertised')
+        self.assertIn('value (the number to convert)', tool.description)
+        self.assertEqual(module.ActionTool(self.runtime, self.kitchen, 'echo_show', '', {'view': str}).unalias({'amount': 1}), {'amount': 1}, 'only tools that declare aliases map them')
+
+
 class ChatLogTest(Base):
     """Native turns: the answer comes from the conversation's chat log, tied to the Echo when its tools are built."""
 
