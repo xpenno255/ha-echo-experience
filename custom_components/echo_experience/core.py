@@ -4,6 +4,24 @@ import math
 import re
 
 VIEWS = ('home','timers','music','weather','guide','answer','controls')
+# Music background per Echo, chosen in the integration options and stored there keyed by profile id.
+MUSIC_STYLES = ('wash','colour','bleed')
+DEFAULT_MUSIC_STYLE = 'wash'
+MUSIC_STYLES_OPTION = 'music_styles'
+
+def music_style(value):
+    return value if value in MUSIC_STYLES else DEFAULT_MUSIC_STYLE
+
+def stored_music_styles(options):
+    """The stored per-profile style mapping; anything malformed reads as empty rather than failing setup."""
+    styles=(options or {}).get(MUSIC_STYLES_OPTION)
+    return dict(styles) if isinstance(styles,dict) else {}
+
+def apply_profile_options(profiles, options):
+    """Give each runtime profile its own stored style, falling back to the default when missing or invalid."""
+    styles=stored_music_styles(options)
+    for p in profiles:p['music_style']=music_style(styles.get(p['id']))
+    return profiles
 
 def validate_profiles(config):
     profiles=config.get('devices', [])

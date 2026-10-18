@@ -137,7 +137,7 @@ class ResourceTest(unittest.IsolatedAsyncioTestCase):
             keys.update(re.findall(r"async_create_issue\(self\.hass,DOMAIN,'([a-z_]+)'",f.read_text()))
         keys.update(dashboard.ISSUES)
         setup=(ROOT/'custom_components/echo_experience/__init__.py').read_text()
-        features=re.findall(r"await feature\('([a-z_]+)'",setup);self.assertEqual(sorted(features),['dashboard','frontend','stop_route'])
+        features=re.findall(r"await feature\('([a-z_]+)'",setup);self.assertEqual(sorted(features),['dashboard','frontend','screen_hold','stop_route'])
         keys.discard('setup_failed_');keys.update('setup_failed_'+name for name in features)
         translations=json.loads((ROOT/'custom_components/echo_experience/translations/en.json').read_text())['issues']
         self.assertTrue(keys);self.assertEqual(keys-set(translations),set())

@@ -19,9 +19,10 @@ from .music import resolve_music
 from .music_fallback import resolve_with_fallback
 from .music_backend import MusicBackend
 from .ducking import DuckingManager
-from .core import validate_profiles, route_profile, convert, VIEWS, normalize_timer_name
+from .core import validate_profiles, route_profile, convert, VIEWS, normalize_timer_name, apply_profile_options
 from . import frontend, dashboard
 from .stop_route import StopRoute
+from .screen_hold import ScreenHold
 
 DOMAIN='echo_experience'
 EVENT='echo_experience_update'
@@ -40,6 +41,7 @@ async def async_setup_entry(hass, entry):
     def read():
         return validate_profiles(json.loads(Path(hass.config.path('echo_experience.json')).read_text()))
     config=await hass.async_add_executor_job(read)
+    apply_profile_options(config['devices'],entry.options)
     runtime=Experience(hass,config)
     hass.data[DOMAIN]=runtime
     version=await hass.async_add_executor_job(integration_version,hass)
@@ -60,6 +62,9 @@ async def async_setup_entry(hass, entry):
     runtime.stop_route=StopRoute(hass,runtime)
     await feature('stop_route',runtime.stop_route.async_start())
     entry.async_on_unload(runtime.stop_route.stop)
+    runtime.screen_hold=ScreenHold(hass,runtime)
+    await feature('screen_hold',runtime.screen_hold.async_start())
+    entry.async_on_unload(runtime.screen_hold.stop)
     entry.async_on_unload(entry.add_update_listener(async_options_updated))
     async def reload(call):await hass.config_entries.async_reload(entry.entry_id)
     async_register_admin_service(hass,DOMAIN,'reload',reload)
@@ -105,6 +110,7 @@ class Experience:
         self.ringing={}
         self.dismissals={}
         self.dismiss_timeout=4
+        self.screen_hold=None
 
     def profile(self,slug):
         return next((p for p in self.profiles if p['id']==slug),None)
@@ -126,6 +132,7 @@ class Experience:
         entries=self.ringing.get(p['id'],{})
         popped=[entries.pop(i,None) for i in timer_ids]
         if not entries:self.ringing.pop(p['id'],None)
+        if self.screen_hold:self.screen_hold.schedule(p)
         return any(t is not None for t in popped)
 
     def timers(self,p):
@@ -172,6 +179,7 @@ class Experience:
                 self.ringing.setdefault(p['id'],{})[data['timer_id']]={'id':data['timer_id'],'name':data.get('name') or 'Timer','total_seconds':data.get('total_seconds'),'finished_at':time.time()}
             # Native Voice Satellite owns audio and completion/dismissal; no duplicate alarm.
             self.hass.bus.async_fire(EVENT,{'device':p['id'],'timers':self.timers(p),'ringing':self.ringing_timers(p),'timer_event':dict(data)})
+            if self.screen_hold:self.screen_hold.schedule(p)
 
     async def dismiss(self,p,ringing):
         """Ask this Echo's dashboard to trigger Voice Satellite's own dismissal and report what happened."""
@@ -427,28 +435,36 @@ class Experience:
             return {'timers':self.timers(p),'ringing':self.ringing_timers(p),'status':'completed'}
         raise ValueError('Unsupported action')
 
+def tool_result(data,error=False):
+    """Home Assistant 2026.10+ expects an llm.ToolResult; older cores take the plain dict."""
+    return llm.ToolResult(data=data,error=error) if hasattr(llm,'ToolResult') else data
+
 class ActionTool(llm.Tool):
     def __init__(self,runtime,p,name,description,schema):
-        self.runtime,self.profile=runtime,p
+        self.runtime,self.profile,self.integration=runtime,p,DOMAIN
         self.name,self.description,self.parameters=name,description,vol.Schema(schema)
     async def async_call(self,hass,tool_input,llm_context):
+        return tool_result(*await self.run(tool_input,llm_context))
+    async def run(self,tool_input,llm_context):
         try:args=self.parameters(tool_input.tool_args)
-        except vol.Invalid as err:return {'error':'Invalid arguments: '+str(err),'retryable':False}
-        try:return await self.runtime.execute(self.profile,self.name.removeprefix('echo_'),args,llm_context.context)
-        except (ValueError,KeyError) as err:return {'error':str(err),'retryable':False}
+        except vol.Invalid as err:return {'error':'Invalid arguments: '+str(err),'retryable':False},True
+        try:return await self.runtime.execute(self.profile,self.name.removeprefix('echo_'),args,llm_context.context),False
+        except (ValueError,KeyError) as err:return {'error':str(err),'retryable':False},True
         except Exception:
             _LOGGER.exception('Echo tool failed: %s',self.name)
-            return {'error':'The requested action could not be completed. Do not claim success.','retryable':False}
+            return {'error':'The requested action could not be completed. Do not claim success.','retryable':False},True
 
 class GuideTool(llm.Tool):
     def __init__(self,original,runtime,p):
-        self.original,self.runtime,self.profile=original,runtime,p
+        self.original,self.runtime,self.profile,self.integration=original,runtime,p,DOMAIN
         self.name,self.description,self.parameters='echo_guide',original.description,original.parameters
     async def async_call(self,hass,tool_input,llm_context):
         result=await self.original.async_call(hass,tool_input,llm_context)
+        # HomeGuide may still answer with a plain dict; the wrapper reports it either way.
+        data=getattr(result,'data',result)
         if self.profile:
-            await self.runtime.publish(self.profile,'guide',{'appliance_id':tool_input.tool_args['appliance_id'],'question':tool_input.tool_args['query'],'guide':result})
-        return result
+            await self.runtime.publish(self.profile,'guide',{'appliance_id':tool_input.tool_args['appliance_id'],'question':tool_input.tool_args['query'],'guide':data})
+        return tool_result(data,getattr(result,'error',False))
 
 class ExperienceAPI(llm.API):
     def __init__(self,hass,runtime):

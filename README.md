@@ -25,6 +25,16 @@ Since 0.6.0 the integration is self-contained: it serves its own card, registers
 
 Profile changes: edit `echo_experience.json`, then call `echo_experience.reload` (admin only) or reload the integration. Reload resets selected speakers to their defaults and forgets ringing alarms. Integration updates through HACS need a Core restart, and a Core restart never swaps a custom element a browser has already loaded: reload the Kiosk browser (Kiosk Satellite remote admin → reload page, or power-cycle the Echo) after every update so it fetches the new versioned card.
 
+### Music background (0.8.0 and later)
+
+Settings → Devices & services → Echo Experience → **Configure**: keep or change *Manage the Echo Home dashboard*, pick an **Echo**, then choose its music background. Each Echo keeps its own choice; saving one Echo leaves the others and the dashboard setting as they were.
+
+- **Artwork wash** (default): blurred artwork behind a dark layer for readable text.
+- **Colour atmosphere**: colours sampled from the artwork; falls back to the theme palette when the image cannot be read.
+- **Full-bleed**: the artwork fills the background under a directional shade.
+
+Only the background changes. Every style keeps the same foreground: cover on the left, track details and controls on the right. Radio shows the station artwork the player supplies (Sonos with Absolute Radio provides a branded station picture in `entity_picture`); there is no separate logo lookup, so a player without artwork shows the usual fallback. A missing or unrecognised stored choice reads as Artwork wash. Choices live in the integration options, so `echo_experience.json` needs no edits. Saving reloads the integration; reload the Kiosk browser if the card does not pick up the change.
+
 ### Upgrading from 0.5.1 (SMB deployment)
 
 1. Install 0.6.0 through HACS or by copying the release's `custom_components/echo_experience` over the existing folder, and restart Core while idle.
@@ -50,7 +60,7 @@ Profile changes: edit `echo_experience.json`, then call `echo_experience.reload`
 - “What is 350 Fahrenheit in Celsius?” / “Convert 250 grams to ounces.”
 - Existing home commands such as “Turn on the kitchen lights.”
 
-The home screen uses the approved muted gradient, with a large clock and current weather beside the date. The cloud button opens the blue/slate weather view. The overflow menu holds touch shortcuts for Home, Timers, Music, Weather, HomeGuide, Controls and Conversions. The answer view is voice-first, with larger question/answer text and conversion results; no manual conversion form is shown. HomeGuide has a **Keep open** pin using Kiosk Hold mode; **Done** releases a pin set by that page. A pin intentionally enabled by the user survives normal idle time; if the page reloads while pinned, use **Pinned** to release it. A guide remains in its view until navigation, even when the screensaver covers the display.
+The home screen uses the approved muted gradient, with a large clock and current weather beside the date. The cloud button opens the blue/slate weather view. The overflow menu holds touch shortcuts for Home, Timers, Music, Weather, HomeGuide, Controls and Conversions. The answer view is voice-first: a muted question above a large answer (long answers scroll in their own panel), and conversions show the original amount small with the converted value large; no manual conversion form is shown. Timers state Running, Paused or Finished in words; one timer is shown large, several in a balanced grid, and a finished alarm is silenced through Voice Satellite (“stop” or tap the alert), not a card button. HomeGuide has a **Keep open** pin using Kiosk Hold mode; **Done** releases a pin set by that page. A pin intentionally enabled by the user survives normal idle time; if the page reloads while pinned, use **Pinned** to release it. A guide remains in its view until navigation, even when the screensaver covers the display.
 
 Playback on the profile's selected speaker switches an idle home screen to large artwork and available song/artist/album or station metadata. Pause retains the artwork, stop/idle returns an automatically opened player to home, and unrelated room playback cannot take over this Echo. Playback controls and speaker selection are behind the overflow menu. Guide/timer/weather views take precedence over an automatic music transition. `screensaver.md` documents the matching dim ambient view and Kiosk setup.
 
@@ -111,6 +121,8 @@ Example profile (replace all IDs with actual entities):
 
 `native_players` (optional) lists the native speaker entities behind the Music Assistant player, e.g. the Sonos members of the group; it defaults to `ducking.players`. When the Music Assistant player is idle but one of these is playing (Sonos app, Spotify Connect, AirPlay), the music view shows it and pause/next/stop, voice stop and shuffle act on that speaker's group coordinator. Music Assistant wins when both play.
 
+`kiosk_hold` (optional) is Kiosk's Hold mode switch. Besides pinning a guide, the integration turns it on while the Echo has a running timer or a ringing alarm, so the timers view stays at full brightness instead of the screensaver, and turns it off once no timer runs and no alarm rings. Paused timers do not hold the screen. It only releases a hold it set itself (a pinned guide keeps its own), takes the hold back if someone else releases it while a timer still runs, and records ownership in `.storage/echo_experience.screen_hold` so a hold left on across a restart is released.
+
 The verification tools read credentials from the untracked `.env` file or environment variables; credentials are not included in this project. `tooling.py` resolves the private audit directory (`.audit_path` or `echo_backup_dir`). Dashboard writes are tracked in `.storage/echo_experience.dashboard` (last generated config) and `.storage/echo_experience.dashboard_backups` (previous five configs).
 
 ## Recovery and practical limits
@@ -119,7 +131,7 @@ The verification tools read credentials from the untracked `.env` file or enviro
 - Removing/disabling Echo Experience does not remove native timers or Music Assistant. Select the old pipeline first so it does not depend on the removed LLM API.
 - Voice timers follow Home Assistant's native lifecycle: browser navigation/reload preserves them while HA keeps running; Core restart does not promise to restore them. Do not restart Core during an active timer.
 - Current screen results and the selected speaker are in memory and reset on integration/Core restart. Manual follow-up context is retained by the conversation agent per voice session, not globally across Echos.
-- The source uses the installed HA 2026.9.2 TimerManager API to read paused timers accurately and enforce ownership, `conversation.get_agent_manager().register_trigger` for the stop phrases, and Lovelace's `dashboards`/`resources` storage objects. None of these is a public API; `hacs.json` states a minimum HA version only. Each feature is isolated so a failure becomes a repair issue or log line, not a failed setup. Recheck these interfaces when upgrading HA.
+- The source uses the installed HA 2026.10.1 TimerManager API to read paused timers accurately and enforce ownership, `conversation.get_agent_manager().register_trigger` for the stop phrases, and Lovelace's `dashboards`/`resources` storage objects. None of these is a public API; `hacs.json` states a minimum HA version only. Each feature is isolated so a failure becomes a repair issue or log line, not a failed setup. Recheck these interfaces when upgrading HA.
 - Voice dismissal talks to Voice Satellite's browser session (`window.__vsSession.timer`, 2026.9.10+), which covers both native Kiosk alerts and the older DOM alert. Without that session the card falls back to the DOM gesture, and with neither it reports the state as unknown rather than silenced.
 - Only one physical Kiosk Echo was installed during development. Automated two-profile tests verify routing and ownership; end-to-end multi-device audio/display validation requires the additional physical Echo.
 

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
+  <title>Sample radio station logo (demo, fictional station)</title>
+  <rect width="600" height="600" fill="#FFCF3F"/>
+  <circle cx="300" cy="235" r="122" fill="#13315C"/>
+  <g fill="none" stroke="#FFCF3F" stroke-width="13" stroke-linecap="round">
+    <path d="M222 250 q26 -22 52 0 t52 0 t52 0"/>
+    <path d="M222 292 q26 -22 52 0 t52 0 t52 0"/>
+  </g>
+  <g fill="none" stroke="#FFCF3F" stroke-width="11" stroke-linecap="round">
+    <path d="M262 186 a54 54 0 0 1 76 0"/>
+    <path d="M240 160 a86 86 0 0 1 120 0"/>
+  </g>
+  <circle cx="300" cy="212" r="10" fill="#FFCF3F"/>
+  <text x="300" y="444" text-anchor="middle" font-family="Ubuntu Sans, Trebuchet MS, Verdana, sans-serif" font-weight="800" font-size="92" fill="#13315C" letter-spacing="-2">Canalside</text>
+  <text x="300" y="512" text-anchor="middle" font-family="Ubuntu Sans, Trebuchet MS, Verdana, sans-serif" font-weight="500" font-size="48" fill="#13315C">Radio 94.6</text>
+</svg>

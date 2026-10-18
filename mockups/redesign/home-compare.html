@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home: installed 0.8.0 vs proposed 0.8.1 (local preview)</title>
+<link rel="icon" href="data:,">
+<!--
+  LOCAL PREVIEW ONLY. Not part of the integration and never deployed.
+  Serve the repository root (port 8767) and open /mockups/redesign/home-compare.html
+  Each side is production-check.html in its own iframe, so the two card versions never share a custom-element registry:
+    Installed 0.8.0  card=baseline -> baseline/echo-experience-0.8.0.js, a byte-for-byte copy of the file installed on
+                     Home Assistant (manifest 0.8.0, sha256 25d602d6...c942375, copied 2026-10-05)
+    Proposed 0.8.1   the working copy, custom_components/echo_experience/www/echo-experience.js
+  Both use freeze=1 (same fixed clock, date and timer values, no countdown drift), the same sample weather and timers,
+  and the same iframe size. Frames stay loaded while you flick, so switching never reloads or resamples anything.
+  Query: v=old|new  t=plain|timers|many  size=960x600|1024x640|1280x800|390x844
+-->
+<style>
+  html, body { margin: 0; height: 100%; background: #0B1419; color: #EFE7CF; font: 15px/1.45 system-ui, sans-serif; }
+  body { display: grid; grid-template-rows: auto 1fr auto; }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding: 10px 14px; background: #16242C; border-bottom: 1px solid #ffffff1f; }
+  .group { display: inline-flex; border: 1px solid #ffffff33; border-radius: 10px; overflow: hidden; }
+  .group button { font: inherit; color: inherit; background: transparent; border: 0; padding: 7px 14px; cursor: pointer; }
+  .group button + button { border-left: 1px solid #ffffff33; }
+  .group button[aria-pressed=true] { background: #EFE7CF; color: #16242C; font-weight: 600; }
+  .group.version button { padding: 9px 20px; font-size: 16px; }
+  .now { font-weight: 600; font-size: 17px; min-width: 12ch; }
+  .now.old { color: #F0C987; } .now.new { color: #A2D5D0; }
+  label { display: inline-flex; gap: 6px; align-items: center; }
+  select { font: inherit; color: inherit; background: #0B1419; border: 1px solid #ffffff33; border-radius: 8px; padding: 6px 8px; }
+  .hint { color: #B7CBD7; font-size: 13px; }
+  .stage { position: relative; overflow: hidden; display: grid; place-items: center; }
+  .frame { position: absolute; left: 50%; top: 50%; transform-origin: center; border: 0; background: #000; box-shadow: 0 0 0 1px #ffffff26, 0 20px 50px #0008; }
+  .frame:not(.on) { visibility: hidden; }
+  .notes { padding: 6px 16px; background: #16242C; border-top: 1px solid #ffffff1f; max-height: 34vh; overflow: auto; }
+  .notes summary { cursor: pointer; padding: 2px 0; }
+  .notes summary b { font-weight: 600; }
+  .notes ul { margin: 6px 0 6px; padding-left: 20px; }
+  .notes li { margin: 2px 0; }
+  .notes .muted { color: #B7CBD7; }
+  a { color: #A2D5D0; }
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="group version" role="group" aria-label="Card version">
+    <button type="button" data-v="old">Old</button><button type="button" data-v="new">New</button>
+  </div>
+  <span class="now" id="now" aria-live="polite"></span>
+  <div class="group" role="group" aria-label="Sample state">
+    <button type="button" data-t="plain">Plain</button><button type="button" data-t="timers">With timers</button><button type="button" data-t="many">Many timers</button>
+  </div>
+  <label>Preview size <select id="size">
+    <option>960x600</option><option selected>1024x640</option><option>1280x800</option><option value="390x844">390x844 (phone)</option>
+  </select></label>
+  <span class="hint">Keys: O / N, or Space to flick. Sizes are browser viewports, not the Echo's exact pixels.</span>
+  <a href="production-check.html?view=answer&amp;answer=short&amp;links=1">Back to the preview gallery</a>
+</div>
+<div class="stage" id="stage"></div>
+<details class="notes" id="notes">
+  <summary><b>What changed on Home:</b> larger timer chips (countdown 19px to about 35px at 1024x640); clock, weather and strip use the shared side margin. Details</summary>
+  <ul>
+    <li><b>Timer chips</b> (the main visible change, with timers): name and countdown are larger and scale with the screen. At 1024x640 the countdown is about 35px, up from 19px, and the name about 24px, up from 19px. The strip stops before the weather button, long names end in "…", and the strip is capped above the clock; if timers ever need more rows than fit, they scroll inside it. Paused timers show "Paused" in an outlined tag with a dimmed time. Tapping a chip still opens Timers.</li>
+    <li><b>Edges</b>: the clock, weather button and timer strip use the same side margin as the other views (16 to 40px; 31px at 1024 wide) instead of 5% of the width (51px). The weather button and strip sit 20px from the top instead of 5% of the height; the clock sits 12px above the navigation instead of 4%.</li>
+    <li><b>Clock size</b>: still up to 21% of the width, now also capped at 32% of the card's height. On short screens it is slightly smaller (about 205px instead of 215px at 1024x640, 192px instead of 202px at 960x600); unchanged at 1280x800.</li>
+    <li class="muted">Not visible here: the card recomputes its height when the window resizes or rotates, so the navigation no longer sits below a stale height. Navigation, date, weather text and background are unchanged.</li>
+  </ul>
+</details>
+<script>
+'use strict';
+const q = new URLSearchParams(location.search);
+const pick = (v, ok, d) => ok.includes(v) ? v : d;
+const LABEL = { old: 'Installed 0.8.0', new: 'Proposed 0.8.1' };
+const TIMERS = { plain: 'empty', timers: 'multi', many: 'many' };
+const sizes = [...document.querySelectorAll('#size option')].map(o => o.value);
+let v = pick(q.get('v'), ['old', 'new'], 'new'), t = pick(q.get('t'), Object.keys(TIMERS), 'timers'), size = pick(q.get('size'), sizes, '1024x640');
+document.getElementById('size').value = size;
+const stage = document.getElementById('stage'), frames = new Map();
+function frame(ver, state) {
+  const key = ver + '|' + state + '|' + size;
+  if (!frames.has(key)) {
+    const [w, h] = size.split('x').map(Number), f = document.createElement('iframe');
+    f.className = 'frame'; f.width = w; f.height = h; f.title = LABEL[ver] + ' Home preview';
+    f.src = 'production-check.html?' + new URLSearchParams({ view: 'home', timers: TIMERS[state], freeze: '1', label: '0', ...(ver === 'old' ? { card: 'baseline' } : {}) });
+    stage.append(f); frames.set(key, f);
+  }
+  return frames.get(key);
+}
+function fit() {
+  const [w, h] = size.split('x').map(Number), r = stage.getBoundingClientRect();
+  const s = Math.min(1, (r.width - 24) / w, (r.height - 24) / h);
+  for (const f of frames.values()) f.style.transform = `translate(-50%, -50%) scale(${s})`;
+}
+function show() {
+  // Load both versions of the current state together, so flicking is instant and nothing reloads mid-comparison.
+  const on = frame(v, t); frame(v === 'old' ? 'new' : 'old', t);
+  for (const f of frames.values()) f.classList.toggle('on', f === on);
+  document.querySelectorAll('[data-v]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
+  document.querySelectorAll('[data-t]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.t === t)));
+  const now = document.getElementById('now'); now.textContent = LABEL[v]; now.className = 'now ' + v;
+  history.replaceState(null, '', '?' + new URLSearchParams({ v, t, size }));
+  fit();
+}
+document.querySelectorAll('[data-v]').forEach(b => b.onclick = () => { v = b.dataset.v; show(); });
+document.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { t = b.dataset.t; show(); });
+document.getElementById('size').onchange = e => { size = e.target.value; for (const f of frames.values()) f.remove(); frames.clear(); show(); };
+addEventListener('keydown', e => {
+  if (e.target.closest('select')) return;
+  if (e.key === 'o' || e.key === 'O') v = 'old'; else if (e.key === 'n' || e.key === 'N') v = 'new'; else if (e.key === ' ') { e.preventDefault(); v = v === 'old' ? 'new' : 'old'; } else return;
+  show();
+});
+addEventListener('resize', fit);
+document.getElementById('notes').addEventListener('toggle', fit);
+show();
+</script>
+</body>
+</html>

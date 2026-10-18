@@ -7,13 +7,15 @@ from pathlib import Path
 from types import SimpleNamespace as NS
 from unittest.mock import AsyncMock, Mock, patch
 from homeassistant.exceptions import Unauthorized
+from homeassistant.helpers import llm
+import voluptuous as vol
 import time
 import unittest
 
 ROOT=Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location('custom_components.echo_experience',ROOT/'custom_components/echo_experience/__init__.py',submodule_search_locations=[str(ROOT/'custom_components/echo_experience')])
 module=importlib.util.module_from_spec(spec);sys.modules[spec.name]=module;spec.loader.exec_module(module)
-from custom_components.echo_experience.core import convert,route_profile,validate_profiles,normalize_timer_name
+from custom_components.echo_experience.core import convert,route_profile,validate_profiles,normalize_timer_name,apply_profile_options,MUSIC_STYLES,DEFAULT_MUSIC_STYLE
 from custom_components.echo_experience import Experience, TIMER_DATA
 
 def profiles():
@@ -26,6 +28,16 @@ class CoreTest(unittest.TestCase):
   self.assertIsNone(route_profile(p,device_id='unknown'))
   self.assertIsNone(route_profile(p))
   self.assertIsNone(route_profile(p,device_id='device-bedroom',satellite='assist_satellite.kitchen'))
+ def test_music_style_defaults_and_is_independent_per_profile(self):
+  self.assertEqual(MUSIC_STYLES,('wash','colour','bleed'));self.assertEqual(DEFAULT_MUSIC_STYLE,'wash')
+  for options in [{},None,{'music_styles':'bleed'},{'music_styles':None}]:
+   with self.subTest(options=options):
+    p=apply_profile_options(validate_profiles({'devices':profiles()})['devices'],options)
+    self.assertEqual([x['music_style'] for x in p],['wash','wash'])
+  p=apply_profile_options(validate_profiles({'devices':profiles()})['devices'],{'manage_dashboard':False,'music_styles':{'bedroom':'bleed','kitchen':'neon','gone':'colour'}})
+  self.assertEqual({x['id']:x['music_style'] for x in p},{'kitchen':'wash','bedroom':'bleed'},'invalid falls back; unknown ids ignored')
+  p=apply_profile_options(validate_profiles({'devices':profiles()})['devices'],{'music_styles':{'kitchen':'colour'}})
+  self.assertEqual({x['id']:x['music_style'] for x in p},{'kitchen':'colour','bedroom':'wash'})
  def test_timer_name_suffix(self):
   self.assertEqual(normalize_timer_name(' Check Timer '),normalize_timer_name('check'))
   self.assertNotEqual(normalize_timer_name('tea'),normalize_timer_name('steak'))
@@ -183,10 +195,19 @@ class RuntimeTest(unittest.IsolatedAsyncioTestCase):
   with self.assertRaisesRegex(ValueError,'Unsupported timer operation'):await self.runtime.execute(self.profiles[0],'timer',{'operation':'dismissed','present':False,'dismissed':True})
   tool=next(t for t in await self.tools() if t.name=='echo_timer')
   result=await tool.async_call(self.hass,NS(tool_name='echo_timer',tool_args={'operation':'dismissed','present':False,'dismissed':True}),NS(context=None))
-  self.assertIn('Invalid arguments',result['error']);self.assertFalse(result['retryable'])
+  self.assertIsInstance(result,llm.ToolResult);self.assertTrue(result.error)
+  self.assertIn('Invalid arguments',result.data['error']);self.assertFalse(result.data['retryable'])
   result=await tool.async_call(self.hass,NS(tool_name='echo_timer',tool_args={'operation':'start','seconds':'soon'}),NS(context=None))
-  self.assertIn('Invalid arguments',result['error']);self.hass.services.async_call.assert_not_called()
+  self.assertIn('Invalid arguments',result.data['error']);self.hass.services.async_call.assert_not_called()
   self.assertEqual([t['id'] for t in self.runtime.ringing_timers(self.profiles[0])],['t1'])
+ async def test_tools_name_their_integration(self):
+  self.assertEqual({t.integration for t in await self.tools()},{'echo_experience'})
+ async def test_guide_tool_wraps_a_plain_dict_answer(self):
+  original=NS(description='Guide',parameters=vol.Schema({}),async_call=AsyncMock(return_value={'answer':'Descale monthly'}))
+  self.runtime.publish=AsyncMock()
+  result=await module.GuideTool(original,self.runtime,self.profiles[0]).async_call(self.hass,NS(tool_args={'appliance_id':'kettle','query':'descale?'}),None)
+  self.assertEqual((result.data,result.error),({'answer':'Descale monthly'},False))
+  self.assertEqual(self.runtime.publish.call_args.args[2]['guide'],{'answer':'Descale monthly'})
  async def tools(self):
   self.hass.config_entries=NS(async_entries=Mock(return_value=[]))
   api=module.ExperienceAPI(self.hass,self.runtime)
@@ -323,6 +344,7 @@ class SetupTest(unittest.IsolatedAsyncioTestCase):
    patch.object(module.frontend,'async_ensure_resource',AsyncMock(side_effect=lambda hass,v:self.calls.setdefault('resource',v))),
    patch.object(module.dashboard,'async_manage',AsyncMock(side_effect=lambda hass,profiles,v,enabled=True:self.calls.setdefault('dashboard',(v,enabled)))),
    patch.object(module.StopRoute,'async_start',AsyncMock(side_effect=lambda:self.calls.setdefault('route',True))),
+   patch.object(module.ScreenHold,'async_start',AsyncMock(side_effect=lambda:self.calls.setdefault('hold',True))),
    patch.object(module.DuckingManager,'async_start',AsyncMock()),
    patch.object(module.llm,'async_register_api',lambda hass,api:(lambda:None)),
    patch.object(module,'async_register_admin_service',lambda hass,d,n,h,**k:self.admin.__setitem__(n,h)),
@@ -340,7 +362,7 @@ class SetupTest(unittest.IsolatedAsyncioTestCase):
  async def test_setup_wires_card_dashboard_route_and_reload_service(self):
   self.assertTrue(await module.async_setup_entry(self.hass,self.entry))
   version=json.loads((Path(__file__).resolve().parents[1]/'custom_components/echo_experience/manifest.json').read_text())['version']
-  self.assertEqual(self.calls,{'static':True,'resource':version,'dashboard':(version,False),'route':True})
+  self.assertEqual(self.calls,{'static':True,'resource':version,'dashboard':(version,False),'route':True,'hold':True})
   self.assertIn('reload',self.admin,'reload is registered through the admin-only helper');self.assertNotIn('reload',self.services)
   self.assertIn('dismiss_timer',self.services)
   await self.admin['reload'](NS(data={}))
@@ -348,6 +370,16 @@ class SetupTest(unittest.IsolatedAsyncioTestCase):
   self.assertEqual(self.issues,{})
   for unload in self.unloads:unload()
   self.assertNotIn('reload',self.services)
+ async def test_stored_music_style_reaches_profile_snapshot(self):
+  device=json.loads((Path(__file__).resolve().parents[1]/'profiles.json').read_text())['devices'][0]['id']
+  self.entry.options={'manage_dashboard':False,'music_styles':{device:'colour'}}
+  self.assertTrue(await module.async_setup_entry(self.hass,self.entry))
+  runtime=self.hass.data[module.DOMAIN]
+  self.assertEqual(runtime.snapshot(runtime.profile(device))['profile']['music_style'],'colour')
+  self.entry.options={'manage_dashboard':False,'music_styles':{device:'bogus'}}
+  await module.async_setup_entry(self.hass,self.entry)
+  runtime=self.hass.data[module.DOMAIN]
+  self.assertEqual(runtime.snapshot(runtime.profile(device))['profile']['music_style'],'wash')
  async def test_frontend_failure_does_not_block_the_stop_route_and_raises_a_repair(self):
   module.frontend.async_ensure_resource.side_effect=RuntimeError('lovelace not ready')
   self.assertTrue(await module.async_setup_entry(self.hass,self.entry))

@@ -18,12 +18,39 @@
     "step": {
       "init": {
         "title": "Echo Experience options",
+        "description": "Choose whether the integration manages the dashboard, then pick an Echo to set its music background.",
         "data": {
-          "manage_dashboard": "Manage the Echo Home dashboard"
+          "manage_dashboard": "Manage the Echo Home dashboard",
+          "device": "Echo"
         },
         "data_description": {
-          "manage_dashboard": "When on, the integration keeps the echo-home dashboard in sync with the profiles. Turn off to keep a hand-edited dashboard."
+          "manage_dashboard": "When on, the integration keeps the echo-home dashboard in sync with the profiles. Turn off to keep a hand-edited dashboard.",
+          "device": "The Echo whose music background you want to change. Each Echo keeps its own choice."
         }
+      },
+      "music_style": {
+        "title": "Music background",
+        "description": "Background for the music view on {device}. Cover, details and controls stay in the same place in every style.",
+        "data": {
+          "music_style": "Music background"
+        },
+        "data_description": {
+          "music_style": "Artwork wash is the default."
+        }
+      }
+    },
+    "error": {
+      "invalid_profiles": "Check echo_experience.json: no Echo profiles could be read, so only dashboard management can be changed.",
+      "unknown_device": "That Echo is not in echo_experience.json.",
+      "invalid_style": "Choose one of the listed music backgrounds."
+    }
+  },
+  "selector": {
+    "music_style": {
+      "options": {
+        "wash": "Artwork wash",
+        "colour": "Colour atmosphere",
+        "bleed": "Full-bleed"
       }
     }
   },
@@ -71,6 +98,10 @@
     "setup_failed_stop_route": {
       "title": "Voice stop route unavailable",
       "description": "Registering the fast voice stop phrases failed: {error}. “Stop” will fall through to the conversation agent until this is fixed. See the log, then reload Echo Experience."
+    },
+    "setup_failed_screen_hold": {
+      "title": "Timer screen hold unavailable",
+      "description": "Setting up the timer screen hold failed: {error}. The Echo may dim to its screensaver while a timer runs. See the log, then reload Echo Experience."
     }
   }
 }

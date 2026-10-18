@@ -1,5 +1,36 @@
 # Changes
 
+## 0.8.3 - keep timers on screen
+
+- While an Echo has a running timer or a ringing alarm, the integration turns on its Kiosk Hold mode (`kiosk_hold`), so the timers view stays at full brightness instead of dimming to the screensaver. The hold is released once no timer runs and no alarm rings; paused timers do not hold the screen. A hold someone else set (a pinned guide) is left alone, and taken back if released while a timer still runs. Ownership is stored in `.storage/echo_experience.screen_hold` so a hold left on across a restart is released. A failure to set this up raises a repair issue and does not affect anything else.
+- Tests: 151 Python tests (hold on start, release on cancel and dismissal, ringing alarms, paused and other-room timers, someone else's hold, restart clean-up, unavailable switch, failed switch call).
+
+## 0.8.2 - recover after restarts, Home Assistant 2026.10 tools
+
+- Fix the "Unknown command" error that stayed on the Echo after Home Assistant restarted until a button was pressed. While Home Assistant starts, the Kiosk browser reconnects before Echo Experience has registered its commands. The card now retries with backoff (1 s, doubling, up to 30 s), subscribes again after every reconnect, so live updates come back, and clears the connection error once data arrives. Errors from actions are left alone.
+- The Echo tools (`echo_timer`, `echo_weather`, `echo_convert`, `echo_music`, `echo_show`, `echo_guide`) now name their integration and return `llm.ToolResult` (with `error` set on failures) on Home Assistant 2026.10+, which removes the deprecation warnings that would become failures in 2027.10/2027.11. Older cores still get the plain result. HomeGuide answers are passed through either way.
+- Tests run against Home Assistant 2026.10.1 (hassil 3.12.1, intents 2026.10.6): 143 Python tests and 148 frontend assertions, including restart recovery and tool tagging.
+
+## 0.8.1 - answer, conversion and timer layouts
+
+- Answers: the question sits muted above a large, left-aligned answer. Short answers get open space; long ones scroll inside a bounded panel above the navigation. A very long question is capped and scrolls on its own, so the answer always keeps room. Plain text only, line breaks kept, everything escaped; the empty state is unchanged.
+- Conversions: the original amount and unit are secondary, the converted value and unit primary. Long values or unit names step the type down and wrap instead of overflowing. Same payload and en-GB number formatting.
+- Timers: each card spells out its state with an icon and a word (Running, Paused, Finished), not colour alone. One timer gets a large countdown and larger controls (hour-long h:mm:ss countdowns step down to fit); two sit side by side, three or four in a balanced grid, more in a scrolling grid. Cards keep the server's order. Finished alarms are shown first with "Say stop or tap the alert"; there is no card-side dismiss button, so Voice Satellite keeps owning the alert and its dismissal. Pause/Resume, +1 min, Cancel, the name/minutes form and its validation are unchanged; the empty state keeps the form below it.
+- Home: the clock is inset by the shell padding (the same edge as the other views and the approved mockup) and sized by both width and the card's height, resting just above the navigation. The weather button and timer strip use the same inset.
+- Home timer chips are larger and easier to read across the room: the countdown grows from 19px to about 35px at 1024x640 (up to 38px), the name to about 24px, both scaled by width and the card's height. The strip stops before the weather button, long names end in an ellipsis, paused timers show an outlined "Paused" tag with a dimmed time, and extra rows scroll inside a strip capped above the clock. Tapping a chip still opens Timers. The timer strip on other views is unchanged.
+- The card recomputes its height on window resize or rotation without re-rendering, so the navigation no longer stays below a stale height and a focused form keeps its text.
+- Production-card fixture: `?view=answer&answer=short|long|long-question|conversion|zero|negative|large|long-unit|empty`, `?view=timers&timers=empty|single|paused|hours|multi|many|ringing|ringing-multi`, `links=1` for a preview list, `freeze=1` for a fixed clock and countdowns. Fixture timer actions change only local sample timers.
+- Local Home comparison: `mockups/redesign/home-compare.html` flicks between the installed 0.8.0 card (`mockups/redesign/baseline/echo-experience-0.8.0.js`, a byte-for-byte copy of the file on Home Assistant) and the proposed 0.8.1 card, plain or with timers, at the same size and frozen time. Each runs in its own iframe. Preview only; nothing in it is deployed.
+- Tests: frontend assertions for answer escaping and layouts, conversion zero/negative/large values, empty/single/multiple/paused/finished timers, unchanged action payloads, form preservation, ambient no-change, resize handling, and larger Home-only timer chips that still open Timers.
+
+## 0.8.0 - redesigned card and per-Echo music backgrounds
+
+- Integration options (Configure) now pick an Echo and its music background: **Artwork wash** (default), **Colour atmosphere** or **Full-bleed**. Choices are stored in the entry options under `music_styles`, keyed by profile id, so `echo_experience.json` needs no edits. Saving keeps *Manage the Echo Home dashboard*, other Echoes' choices and any other stored options, then reloads through the existing options-update path. Missing or invalid stored values, and Echoes removed from the profiles, fall back to Artwork wash.
+- Each runtime profile carries `music_style`, sent to the card in the existing state snapshot (`profile.music_style`); no new websocket command.
+- Every style keeps the same foreground: cover left, details and controls right. Only the background changes. Colour atmosphere falls back to the theme palette when the artwork cannot be sampled.
+- Radio shows the station artwork the player supplies in `entity_picture` (Sonos provides a branded Absolute Radio picture). There is no separate logo lookup; players without artwork show the usual fallback.
+- Card redesign: Home, Music, Weather, HomeGuide and Controls follow the approved mockups with live data. Reload the Kiosk browser after updating so it loads the new versioned card.
+
 ## 0.7.0 - music from other apps, artist phrases and shuffle
 
 - Music started outside the Echo (Sonos app, Spotify Connect, AirPlay) now opens the music view with its artwork and title (#6). Profiles gain `native_players`, defaulting to `ducking.players`. When the selected Music Assistant player is idle, the first playing (then paused) native player counts as this Echo's playback; its group coordinator is used when it reports the same state. Music Assistant wins when both play. Other rooms still never open the view, and guide/timer/weather views and the ambient screensaver keep precedence.

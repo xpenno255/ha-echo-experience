@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
+  <title>Sample illustrated cover (demo artwork)</title>
+  <defs>
+    <pattern id="stripes" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(-32)">
+      <rect width="28" height="28" fill="#F2542D"/>
+      <rect width="11" height="28" fill="#FF7A3D"/>
+    </pattern>
+    <pattern id="checks" width="40" height="40" patternUnits="userSpaceOnUse">
+      <rect width="40" height="40" fill="#FFF4E0"/>
+      <rect width="20" height="20" fill="#1E1033"/>
+      <rect x="20" y="20" width="20" height="20" fill="#1E1033"/>
+    </pattern>
+    <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <rect width="22" height="22" fill="#540D6E"/>
+      <circle cx="11" cy="11" r="3.4" fill="#EE4266"/>
+    </pattern>
+  </defs>
+  <rect width="600" height="600" fill="url(#stripes)"/>
+  <circle cx="410" cy="200" r="158" fill="#FFD23F"/>
+  <g fill="none" stroke="#F2542D" stroke-width="12">
+    <circle cx="410" cy="200" r="124"/>
+    <circle cx="410" cy="200" r="88"/>
+    <circle cx="410" cy="200" r="52"/>
+  </g>
+  <circle cx="410" cy="200" r="20" fill="#1E1033"/>
+  <path d="M-10 70 L60 30 L120 80 L190 25 L250 90 L320 40" fill="none" stroke="#FFF4E0" stroke-width="16" stroke-linejoin="round"/>
+  <g fill="#3BCEAC">
+    <path d="M60 170 L110 250 L10 250 Z"/>
+    <path d="M190 120 L225 180 L155 180 Z"/>
+    <path d="M520 420 L560 480 L480 480 Z"/>
+  </g>
+  <circle cx="150" cy="300" r="46" fill="#1E1033"/>
+  <circle cx="150" cy="300" r="22" fill="#3BCEAC"/>
+  <path d="M0 405 C110 320 210 390 300 345 S470 255 600 330 V600 H0 Z" fill="url(#dots)"/>
+  <path d="M0 470 C130 420 250 505 370 455 S535 410 600 450 V600 H0 Z" fill="#0E7C7B"/>
+  <path d="M0 470 C130 420 250 505 370 455 S535 410 600 450" fill="none" stroke="#FFD23F" stroke-width="10"/>
+  <g fill="#FFF4E0">
+    <circle cx="80" cy="510" r="9"/>
+    <circle cx="235" cy="520" r="6"/>
+    <circle cx="420" cy="500" r="11"/>
+    <circle cx="540" cy="390" r="7"/>
+    <circle cx="300" cy="80" r="8"/>
+  </g>
+  <rect y="548" width="600" height="52" fill="url(#checks)"/>
+  <path d="M250 250 q20 -40 40 0 t40 0 t40 0" fill="none" stroke="#1E1033" stroke-width="10" stroke-linecap="round"/>
+</svg>

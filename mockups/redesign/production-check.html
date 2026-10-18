@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Echo Experience production card check (sample fixture)</title>
+<link rel="icon" href="data:,">
+<!--
+  SAMPLE FIXTURE ONLY. Not part of the integration and never deployed.
+  Loads the REAL production card from ../../custom_components/echo_experience/www/echo-experience.js,
+  so serve the repository root (e.g. port 8766), then open
+  /mockups/redesign/production-check.html?view=music&style=wash&sample=photo
+  Query:
+    view    home | music | weather | guide | controls | timers | answer   (default music)
+    style   wash | colour | bleed                                        (default wash)
+    sample  photo | busy | radio | radio-unknown | none | broken | idle  (default photo)
+    guide   answer      HomeGuide shows a sample question/answer instead of the library grid
+    answer  conversion | short | long | long-question | empty | zero | negative | large | long-unit   (view=answer; default conversion)
+    timers  empty | single | paused | hours | multi | many | ringing | ringing-multi | 1
+            (1 = the original two sample timers, one paused; ringing = one finished alarm; ringing-multi = a finished
+             alarm plus two timers; many = six timers)
+    links   1           shows a panel of preview links for the answer, conversion and timer states
+    ambient 1           screensaver mode (no navigation, not interactive)
+    paused  1           music sample paused instead of playing
+    label   0           hides the "Sample fixture" tag for clean screenshots
+    freeze  1           fixes the clock at Mon 5 Oct 18:45 local time and stops every countdown (Date is frozen)
+    card    baseline    loads baseline/echo-experience-0.8.0.js, a byte-for-byte snapshot of the card installed on
+                        Home Assistant (0.8.0), instead of the working copy. Preview only; used by home-compare.html.
+  home-compare.html flicks between the installed 0.8.0 and proposed 0.8.1 Home in isolated iframes.
+  window.echoFixture exposes { card, calls, states, setSample, setStyle, go, setState }.
+  Mock hass: callWS/callService are recorded in echoFixture.calls and only change these local sample states.
+-->
+<style>
+  html, body { margin: 0; height: 100%; background: #000; }
+  .fixture-tag {
+    position: fixed; z-index: 99; left: 8px; bottom: 8px; pointer-events: none;
+    font: 600 12px/1.2 system-ui, sans-serif; color: #2B2A26; background: #EFE7CF;
+    padding: 4px 8px; border-radius: 6px; opacity: .9;
+  }
+  .fixture-links {
+    position: fixed; z-index: 99; right: 8px; top: 8px; max-height: calc(100% - 16px); overflow: auto;
+    font: 13px/1.5 system-ui, sans-serif; background: #EFE7CF; color: #2B2A26; padding: 8px 12px; border-radius: 8px;
+  }
+  .fixture-links a { display: block; color: #1B3F66; }
+</style>
+</head>
+<body>
+<p class="fixture-tag" id="fixture-tag">Sample fixture, not live data</p>
+<nav class="fixture-links" id="fixture-links" hidden aria-label="Fixture previews"></nav>
+<script>
+'use strict';
+/* ---------- Local stand-ins for HA's ha-card / ha-icon (no network) ---------- */
+customElements.define('ha-card', class extends HTMLElement {});
+const P = (d, fill) => ({ d, fill });
+const ICONS = {
+  'home-outline': [P('M3.5 11 12 4l8.5 7'), P('M5.5 9.5V20h13V9.5'), P('M10 20v-5.5h4V20')],
+  'timer-outline': [P('M12 21a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z'), P('M12 9v4.5l3 2'), P('M9.5 2.5h5')],
+  'timer-sand': [P('M6 3h12M6 21h12M7 3c0 5 10 5 10 9s-10 4-10 9M17 3c0 5-10 5-10 9s10 4 10 9')],
+  'music': [P('M9 18V5.5l11-2V16'), P('M9 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z'), P('M20 16a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z')],
+  'weather-partly-cloudy': [P('M9 5.3a3.2 3.2 0 1 0 0 6.4'), P('M9 2.5v1.2M3 8.5h1.2M4.8 4.3l.9.9M13.2 4.3l-.9.9'), P('M9.5 20.5h8a3.5 3.5 0 0 0 .3-7 5 5 0 0 0-9.4 0 3.5 3.5 0 0 0 1.1 7Z')],
+  'weather-cloudy': [P('M7 19h10.5a4 4 0 0 0 .4-8A6 6 0 0 0 6.6 12 3.6 3.6 0 0 0 7 19Z')],
+  'weather-sunny': [P('M12 16.2a4.2 4.2 0 1 0 0-8.4 4.2 4.2 0 0 0 0 8.4Z'), P('M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6')],
+  'weather-night': [P('M19 14.5A8 8 0 0 1 9.5 5a8 8 0 1 0 9.5 9.5Z')],
+  'weather-rainy': [P('M7 15h10.5a3.8 3.8 0 0 0 .4-7.6A6 6 0 0 0 6.6 8.6 3.3 3.3 0 0 0 7 15Z'), P('m8.5 18-1 2.5M12.5 18l-1 2.5M16.5 18l-1 2.5')],
+  'weather-pouring': [P('M7 14h10.5a3.8 3.8 0 0 0 .4-7.6A6 6 0 0 0 6.6 7.6 3.3 3.3 0 0 0 7 14Z'), P('m8 16.5-1.5 4M12 16.5l-1.5 4M16 16.5l-1.5 4')],
+  'weather-snowy': [P('M7 14h10.5a3.8 3.8 0 0 0 .4-7.6A6 6 0 0 0 6.6 7.6 3.3 3.3 0 0 0 7 14Z'), P('M8 18h.01M12 20h.01M16 18h.01')],
+  'weather-fog': [P('M7 12h10.5a3.8 3.8 0 0 0 .4-7.6A6 6 0 0 0 6.6 5.6 3.3 3.3 0 0 0 7 12Z'), P('M4 16h16M6 19.5h12')],
+  'weather-windy': [P('M3 9h11a3 3 0 1 0-3-3M3 13h15a3 3 0 1 1-3 3M3 17h7')],
+  'weather-lightning-rainy': [P('M7 14h10.5a3.8 3.8 0 0 0 .4-7.6A6 6 0 0 0 6.6 7.6 3.3 3.3 0 0 0 7 14Z'), P('m12 14-2 4h4l-2 4')],
+  'cloud-question': [P('M7 19h10.5a4 4 0 0 0 .4-8A6 6 0 0 0 6.6 12 3.6 3.6 0 0 0 7 19Z'), P('M10.5 12.5a1.7 1.7 0 1 1 2.3 1.6c-.5.2-.8.6-.8 1.1M12 17h.01')],
+  'book-open-page-variant-outline': [P('M12 6.5C10 5 7 4.5 3.5 5v13.5c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5Z'), P('M12 6.5V20')],
+  'book-open-outline': [P('M12 6.5C10 5 7 4.5 3.5 5v13.5c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5Z'), P('M12 6.5V20')],
+  'tune-variant': [P('M4 7h9M17 7h3M4 17h3M11 17h9'), P('M15 9.2a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4ZM9 19.2a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4Z')],
+  'tune': [P('M4 7h9M17 7h3M4 17h3M11 17h9'), P('M15 9.2a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4ZM9 19.2a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4Z')],
+  'play': [P('M8 5.2v13.6a.8.8 0 0 0 1.2.7l10.6-6.8a.8.8 0 0 0 0-1.4L9.2 4.5A.8.8 0 0 0 8 5.2Z', true)],
+  'pause': [P('M6 5h4v14H6zM14 5h4v14h-4z', true)],
+  'stop': [P('M6 6h12v12H6z', true)],
+  'skip-previous': [P('M17.5 6v12a.7.7 0 0 1-1.1.6L8 12.6a.7.7 0 0 1 0-1.2l8.4-6a.7.7 0 0 1 1.1.6Z', true), P('M6 5.5v13')],
+  'skip-next': [P('M6.5 6v12a.7.7 0 0 0 1.1.6l8.4-6a.7.7 0 0 0 0-1.2l-8.4-6a.7.7 0 0 0-1.1.6Z', true), P('M18 5.5v13')],
+  'shuffle-variant': [P('M3.5 7h3c4.5 0 6.5 10 11 10h3'), P('M3.5 17h3c1.7 0 3-1.4 4-3M13.5 10c1-1.6 2.3-3 4-3h3'), P('m18 4.5 2.5 2.5L18 9.5M18 14.5l2.5 2.5-2.5 2.5')],
+  'shuffle-disabled': [P('M3.5 7h3c4.5 0 6.5 10 11 10h3'), P('M3.5 17h3c1.7 0 3-1.4 4-3M13.5 10c1-1.6 2.3-3 4-3h3'), P('M3 3l18 18')],
+  'volume-medium': [P('M4 9.5h3.5L12 5.5v13l-4.5-4H4z'), P('M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11')],
+  'speaker': [P('M6 3h12v18H6z'), P('M12 17.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z'), P('M12 7.2h.01')],
+  'radio': [P('M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z', true), P('M8.2 15.8a5.4 5.4 0 0 1 0-7.6M15.8 8.2a5.4 5.4 0 0 1 0 7.6M5.3 18.7a9.5 9.5 0 0 1 0-13.4M18.7 5.3a9.5 9.5 0 0 1 0 13.4')],
+  'access-point': [P('M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z', true), P('M8.2 15.8a5.4 5.4 0 0 1 0-7.6M15.8 8.2a5.4 5.4 0 0 1 0 7.6M5.3 18.7a9.5 9.5 0 0 1 0-13.4M18.7 5.3a9.5 9.5 0 0 1 0 13.4')],
+  'magnify': [P('M10.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13Z'), P('m15.5 15.5 5 5')],
+  'chevron-left': [P('M14.5 5.5 8 12l6.5 6.5')],
+  'chevron-right': [P('m9.5 5.5 6.5 6.5-6.5 6.5')],
+  'dots-horizontal': [P('M6 12h.01M12 12h.01M18 12h.01')],
+  'dots-vertical': [P('M12 6h.01M12 12h.01M12 18h.01')],
+  'close': [P('M6 6l12 12M18 6 6 18')],
+  'plus': [P('M5.5 12h13M12 5.5v13')],
+  'minus': [P('M5.5 12h13')],
+  'check': [P('m5 12.5 4.5 4.5L19 7.5')],
+  'pin-outline': [P('M9 3.5h6l-1 6 3 3H7l3-3-1-6Z'), P('M12 12.5v8')],
+  'pin': [P('M9 3.5h6l-1 6 3 3H7l3-3-1-6Z', true), P('M12 12.5v8')],
+  'microphone-outline': [P('M9 3h6v11H9z'), P('M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21')],
+  'alarm-light': [P('M6 18v-6a6 6 0 0 1 12 0v6'), P('M4 21h16M12 2v2M3 7l1.5 1M21 7l-1.5 1')],
+  'microwave': [P('M2.5 5h19v14h-19z'), P('M5 7.5h10v9H5z'), P('M18 8.5v1M18 12v1M18 15.5v1')],
+  'stove': [P('M6 4h12a1 1 0 0 1 1 1v15H5V5a1 1 0 0 1 1-1Z'), P('M5 11h14'), P('M9.5 15h5')],
+  'coffee-maker-outline': [P('M5 3.5h14v4H5z'), P('M6.5 7.5v13h11v-13'), P('M9.5 12.5h5v4.5a1.5 1.5 0 0 1-1.5 1.5h-2A1.5 1.5 0 0 1 9.5 17Z')],
+  'radiator': [P('M5 6.5v12M9.5 6.5v12M14 6.5v12M18.5 6.5v12'), P('M3.5 9h17M3.5 16h17')],
+  'tumble-dryer': [P('M4 2.5h16v19H4z'), P('M4 7h16'), P('M12 18.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z')],
+  'lightbulb': [P('M9 17.5h6M9.8 20.5h4.4'), P('M12 3a6 6 0 0 0-3.6 10.8c.6.5.9 1.1.9 1.9v.3h5.4v-.3c0-.8.3-1.4.9-1.9A6 6 0 0 0 12 3Z', true)],
+  'lightbulb-outline': [P('M9 17.5h6M9.8 20.5h4.4'), P('M12 3a6 6 0 0 0-3.6 10.8c.6.5.9 1.1.9 1.9v.3h5.4v-.3c0-.8.3-1.4.9-1.9A6 6 0 0 0 12 3Z')],
+  'lightbulb-off-outline': [P('M9 17.5h6M9.8 20.5h4.4'), P('M12 3a6 6 0 0 0-3.6 10.8c.6.5.9 1.1.9 1.9v.3h5.4v-.3c0-.8.3-1.4.9-1.9A6 6 0 0 0 12 3Z'), P('M3 3l18 18')],
+  'thermostat': [P('M10 13.6V5a2 2 0 0 1 4 0v8.6a4 4 0 1 1-4 0Z'), P('M12 9v7')],
+  'fire': [P('M12 21a6.5 6.5 0 0 0 6.5-6.5c0-4.2-3.3-6.3-4-10.5-2.6 1.6-3.7 4.1-3.7 6.2-1-.7-1.6-1.8-1.8-3-1.7 1.8-3.5 4.3-3.5 7.3A6.5 6.5 0 0 0 12 21Z', true)],
+  'water-outline': [P('M12 3.5s-6 6.6-6 10.6a6 6 0 0 0 12 0c0-4-6-10.6-6-10.6Z')],
+  'calculator-variant-outline': [P('M5 3h14v18H5z'), P('M8 7h8M8 12h2M14 12h2M8 16h2M14 16h2')],
+  'information-outline': [P('M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z'), P('M12 11v5M12 8h.01')],
+  'power': [P('M12 3v8'), P('M7 6.5a7 7 0 1 0 10 0')],
+};
+customElements.define('ha-icon', class extends HTMLElement {
+  static get observedAttributes() { return ['icon']; }
+  connectedCallback() { this.draw(); }
+  attributeChangedCallback() { if (this.isConnected) this.draw(); }
+  draw() {
+    const root = this.shadowRoot || this.attachShadow({ mode: 'open' });
+    const name = (this.getAttribute('icon') || '').replace(/^mdi:/, '');
+    const ns = 'http://www.w3.org/2000/svg';
+    const style = document.createElement('style');
+    style.textContent = ':host{display:inline-flex;vertical-align:middle;flex:none;width:var(--mdc-icon-size,24px);height:var(--mdc-icon-size,24px)}svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.f{fill:currentColor;stroke:none}';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true');
+    for (const p of ICONS[name] || [P('M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z')]) {
+      const path = document.createElementNS(ns, 'path'); path.setAttribute('d', p.d); if (p.fill) path.setAttribute('class', 'f'); svg.append(path);
+    }
+    root.replaceChildren(style, svg);
+  }
+});
+
+/* ---------- Sample data (fixture only) ---------- */
+const q = new URLSearchParams(location.search);
+if (q.get('freeze') === '1') {
+  // One fixed instant for every Date in this document, so old/new comparisons match and countdowns never drift.
+  const FIXED = new Date(2026, 9, 5, 18, 45, 0).getTime(), RealDate = Date;
+  window.Date = class extends RealDate { constructor(...a) { a.length ? super(...a) : super(FIXED); } static now() { return FIXED; } };
+}
+const CARD_SRC = q.get('card') === 'baseline' ? 'baseline/echo-experience-0.8.0.js' : '../../custom_components/echo_experience/www/echo-experience.js';
+const pick = (v, ok, d) => ok.includes(v) ? v : d;
+const VIEW = pick(q.get('view'), ['home', 'music', 'weather', 'guide', 'controls', 'timers', 'answer'], 'music');
+const STYLE = q.get('style') || 'wash';
+const SAMPLE = pick(q.get('sample'), ['photo', 'busy', 'radio', 'radio-unknown', 'none', 'broken', 'idle'], 'photo');
+const AMBIENT = q.get('ambient') === '1';
+if (q.get('label') === '0') document.getElementById('fixture-tag').remove();
+const asset = p => new URL(p, location.href).pathname; // same-origin root-relative, as HA's own proxy URLs are
+const nowIso = () => new Date().toISOString();
+// media_player supported_features bits
+const F = { PAUSE: 1, SEEK: 2, VOLUME_SET: 4, PREVIOUS: 16, NEXT: 32, PLAY_MEDIA: 512, STOP: 4096, PLAY: 16384, SHUFFLE: 32768 };
+const SONG_FEATURES = F.PAUSE | F.SEEK | F.VOLUME_SET | F.PREVIOUS | F.NEXT | F.PLAY_MEDIA | F.STOP | F.PLAY | F.SHUFFLE;
+const RADIO_FEATURES = F.VOLUME_SET | F.PLAY_MEDIA | F.STOP | F.PLAY;
+const PLAYER = 'media_player.kitchen_sonos_group_ma';
+const SAMPLES = {
+  photo: { media_title: 'Heather Light (sample)', media_artist: 'Sample Artist', media_album_name: 'Sample Album', media_content_type: 'music', media_duration: 252, media_position: 98, entity_picture: asset('../assets/heather-landscape.jpg'), supported_features: SONG_FEATURES },
+  busy: { media_title: 'Paper Suns (sample)', media_artist: 'Sample Illustrated Band', media_album_name: 'Bright Things, Loudly', media_content_type: 'music', media_duration: 201, media_position: 47, entity_picture: asset('assets/sample-illustration.svg'), supported_features: SONG_FEATURES },
+  radio: { media_title: 'Sample breakfast show', media_artist: 'Sample presenter', media_channel: 'Sample Radio 94.6', media_content_type: 'music', media_content_id: 'aac://http://stream.invalid/sample', entity_picture: asset('assets/sample-radio-logo.svg'), supported_features: RADIO_FEATURES },
+  'radio-unknown': { media_title: 'Sample stream without station data', media_content_type: 'music', media_content_id: 'http://stream.invalid/sample', entity_picture: asset('assets/sample-radio-logo.svg'), supported_features: RADIO_FEATURES },
+  none: { media_title: 'An Unusually Long Sample Song Title That Keeps Going Past the Edge of the Screen (Extended Live Version)', media_artist: 'The Northern Lights Sample Collective featuring Members of the City Philharmonic Orchestra', media_album_name: 'Recorded Live at the Town Hall: Winter Sessions, Volume Two (Deluxe Edition)', media_content_type: 'music', media_duration: 734, media_position: 312, supported_features: SONG_FEATURES },
+  broken: { media_title: 'Artwork that fails to load (sample)', media_artist: 'Sample Artist', media_content_type: 'music', media_duration: 180, media_position: 20, entity_picture: asset('assets/does-not-exist.jpg'), supported_features: SONG_FEATURES },
+  idle: {},
+};
+function playerState(name, playing) {
+  const base = { friendly_name: 'Kitchen Sonos', volume_level: 0.35, shuffle: false, group_members: [PLAYER], ...SAMPLES[name] };
+  if (base.media_duration) base.media_position_updated_at = nowIso();
+  return { entity_id: PLAYER, state: name === 'idle' ? 'idle' : playing ? 'playing' : 'paused', attributes: base };
+}
+const LIBRARY = [
+  { id: 'air_fryer', name: 'Air fryer', manufacturer: 'Ninja', model: 'AF500UK', region: 'UK' },
+  { id: 'coffee_machine', name: 'Coffee machine', manufacturer: 'Sage', model: '', region: '' },
+  { id: 'microwave', name: 'Microwave', manufacturer: 'Panasonic', model: 'NN-ST46KB', region: 'UK' },
+  { id: 'radiator_valves', name: 'Radiator valves', manufacturer: 'Honeywell', model: 'HR92', region: '' },
+  { id: 'tumble_dryer', name: 'Tumble dryer', manufacturer: 'LG', model: '', region: '' },
+];
+const light = (name, on) => ({ state: on ? 'on' : 'off', attributes: { friendly_name: name, supported_color_modes: ['brightness'] } });
+const climate = (name, current, target, action) => ({ state: 'heat', attributes: { friendly_name: name, current_temperature: current, temperature: target, hvac_action: action, hvac_modes: ['off', 'heat'], min_temp: 5, max_temp: 30, target_temp_step: 0.5, supported_features: 1 } });
+const states = {
+  [PLAYER]: playerState(VIEW === 'music' || q.get('sample') ? SAMPLE : 'idle', q.get('paused') !== '1'),
+  'weather.met_office_weoley_castle': { state: 'partlycloudy', attributes: { friendly_name: 'Met Office Weoley Castle (sample)', temperature: 14, temperature_unit: '°C' } },
+  'assist_satellite.echo_show_8': { state: 'idle', attributes: {} },
+  'switch.amzn_echo_show_8_hold_mode': { state: 'off', attributes: {} },
+  'sensor.homeguide_library': { state: String(LIBRARY.length), attributes: { appliances: LIBRARY } },
+  'light.kitchen_diner_lights_all': light('Kitchen Diner Lights All', true),
+  'light.kitchen_spot_lights': light('Kitchen Spot Lights', true),
+  'light.kitchen_lamp_lights': light('Kitchen Lamp Lights', false),
+  'light.kitchen_wall_lights': light('Kitchen Wall Lights', false),
+  'climate.kitchen': climate('Kitchen', 22.1, 19, 'idle'),
+  'climate.living_room': climate('Living Room', 18.2, 20, 'heating'),
+};
+for (const [id, s] of Object.entries(states)) s.entity_id = id;
+const profile = {
+  id: 'echo_show_8', name: 'Kitchen Echo', satellite: 'assist_satellite.echo_show_8', music_player: PLAYER,
+  weather: 'weather.met_office_weoley_castle', kiosk_hold: 'switch.amzn_echo_show_8_hold_mode',
+  speakers: [{ entity_id: PLAYER, name: 'Kitchen Sonos' }, { entity_id: 'media_player.dining_room_sonos', name: 'Dining room Sonos' }],
+  native_players: [], music_style: STYLE,
+  controls: ['light.kitchen_diner_lights_all', 'light.kitchen_spot_lights', 'light.kitchen_lamp_lights', 'light.kitchen_wall_lights', 'climate.kitchen', 'climate.living_room'],
+};
+function forecast() {
+  const t = new Date(); t.setMinutes(0, 0, 0);
+  const conds = ['partlycloudy', 'partlycloudy', 'cloudy', 'cloudy', 'rainy', 'pouring', 'cloudy', 'partlycloudy', 'clear-night', 'clear-night'];
+  const rain = [10, 10, 20, 35, 70, 85, 40, 15, 5, null];
+  const hourly = Array.from({ length: 24 }, (_, i) => ({ datetime: new Date(t.getTime() + (i + 1) * 3600e3).toISOString(), condition: conds[i % conds.length], temperature: 14 - Math.round(i / 4), precipitation_probability: rain[i % rain.length] }));
+  const daily = [['partlycloudy', 16, 8, 30], ['rainy', 13, 7, 80], ['cloudy', 14, 9, 45], ['sunny', 17, 8, 5], ['partlycloudy', 15, 10, null], ['cloudy', 14, 9, 20], ['rainy', 12, 6, 60]]
+    .map(([condition, temperature, templow, p], i) => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + i); return { datetime: d.toISOString(), condition, temperature, templow, precipitation_probability: p }; });
+  return { entity_id: profile.weather, source: 'Met Office Weoley Castle (sample)', fetched_at: Date.now() / 1000 - 840, condition: 'partlycloudy', temperature: 14, temperature_unit: '°C', hourly, daily };
+}
+const ts = () => Date.now() / 1000;
+function initialResult() {
+  if (VIEW === 'music' || VIEW === 'home') return null;
+  if (VIEW === 'guide') return { view: 'guide', timestamp: ts(), payload: q.get('guide') === 'answer' ? {
+    appliance_id: 'microwave', question: 'Sample question: how do I use defrost?',
+    guide: { answer: 'Sample answer text for layout checking only. This fixture does not contain real appliance guidance.', results: [
+      { document: 'Sample manual', page: 12, text: 'Sample excerpt text for layout checking.' },
+      { document: 'Sample manual', page: 18, text: 'A second sample excerpt <b>with markup that must stay escaped</b>.' }] } } : {} };
+  if (VIEW === 'answer') return { view: 'answer', timestamp: ts(), payload: ANSWERS[pick(q.get('answer'), Object.keys(ANSWERS), 'conversion')] };
+  if (VIEW === 'weather') return { view: 'weather', timestamp: ts(), payload: { period: 'today' } };
+  return { view: VIEW, timestamp: ts(), payload: {} };
+}
+// Same shape as core.convert() output and the voice answer payload ({question, speech}). Sample text only.
+const conv = (value, from_unit, to_unit, result) => ({ value, from_unit, to_unit, result, equation: `${value} ${from_unit} = ${result} ${to_unit}` });
+const ANSWERS = {
+  conversion: conv(250, 'g', 'oz', 8.8185),
+  zero: conv(0, 'g', 'oz', 0),
+  negative: conv(-40, '°C', '°F', -40),
+  large: conv(1000000000000000, 'mm', 'km', 1000000000000),
+  'long-unit': conv(250, 'mL', 'us fl oz', 8.4535),
+  short: { question: 'Sample question: what time is sunset?', speech: 'Sample short answer: 6:41 pm.' },
+  long: { question: 'Sample question with a longer wording, used to check how the muted question line wraps above the answer?',
+    speech: 'Sample long answer for layout checking only. It is deliberately long so that it needs to scroll inside its own region.\n\nA second paragraph keeps its line break. Markup such as <b>this</b> must stay escaped as text.\n\n' + Array.from({ length: 8 }, (_, i) => `Sample line ${i + 1}: filler text that wraps across the reading width to fill the answer area.`).join('\n') },
+  'long-question': { question: 'Sample question: could you explain the difference between these options and tell me which one would work best for my kitchen? '.repeat(7).trim(),
+    speech: 'Sample answer under a very long question. The question scrolls in its own capped area so this answer keeps room.' },
+  empty: {},
+};
+const T = (id, name, secs, active = true) => ({ id: 'sample-' + id, name: name + ' (sample)', is_active: active, seconds_left: secs, total_seconds: secs, sampled_at: ts() });
+const TIMERS = {
+  empty: [], single: [T('pasta', 'Pasta', 540)], paused: [T('eggs', 'Eggs', 125, false)],
+  multi: [T('pasta', 'Pasta', 540), T('eggs', 'Eggs', 125, false), T('rice', 'Rice', 1085)],
+  many: [T('pasta', 'Pasta', 540), T('eggs', 'Eggs', 125, false), T('rice', 'Rice', 1085), T('bread', 'Bread', 3725), T('tea', 'Tea', 180), T('oven', 'An oven timer with a long sample name', 2400, false)],
+  hours: [T('slow', 'Slow cook', 86400)],
+  ringing: [], 'ringing-multi': [T('pasta', 'Pasta', 540), T('eggs', 'Eggs', 125, false)],
+  1: [T('pasta', 'Pasta', 540), T('eggs', 'Eggs', 125, false)],
+};
+const TIMER_SET = pick(q.get('timers'), Object.keys(TIMERS), 'empty');
+const timers = TIMERS[TIMER_SET];
+// Finished alarms as the server records them; this page never hosts Voice Satellite, so nothing is dismissed or reported.
+const ringing = TIMER_SET.startsWith('ringing') ? [{ id: 'sample-roast', name: 'Roast (sample)', total_seconds: 3600, finished_at: ts() - 20 }] : [];
+if (q.get('links') === '1') {
+  const box = document.getElementById('fixture-links'); box.hidden = false;
+  const add = (label, qs) => { const a = document.createElement('a'); a.href = '?' + qs; a.textContent = label; box.append(a); };
+  const cmp = document.createElement('a'); cmp.href = 'home-compare.html'; cmp.textContent = 'Home: installed 0.8.0 vs proposed 0.8.1'; cmp.style.fontWeight = '600'; box.append(cmp);
+  for (const k of Object.keys(ANSWERS)) add('answer: ' + k, 'view=answer&answer=' + k + '&links=1');
+  for (const k of Object.keys(TIMERS)) add('timers: ' + k, 'view=timers&timers=' + k + '&links=1');
+  add('home + timer strip', 'view=home&timers=multi&links=1');
+}
+
+/* ---------- Mock hass: records calls, mutates only these local sample states ---------- */
+const calls = [];
+let card;
+function publish() { card.hass = { ...hass, states: { ...states } }; }
+function setState(id, patch) { states[id] = { ...states[id], ...patch, attributes: { ...states[id]?.attributes, ...(patch.attributes || {}) } }; publish(); }
+const hass = {
+  states,
+  connection: { subscribeMessage: async () => () => {} },
+  async callWS(msg) {
+    calls.push(['ws', msg]);
+    if (msg.type === 'echo_experience/state') {
+      const snap = { profile, timers, ringing, music_player: PLAYER, result: initialResult() };
+      if (msg.forecast) snap.forecast = forecast();
+      return snap;
+    }
+    if (msg.type === 'echo_experience/action' && msg.action === 'music') {
+      const a = msg.args || {}, s = states[PLAYER];
+      if (a.action === 'pause' || a.action === 'stop') setState(PLAYER, { state: a.action === 'stop' ? 'idle' : 'paused' });
+      if (a.action === 'resume') setState(PLAYER, { state: 'playing', attributes: { media_position_updated_at: nowIso() } });
+      if (a.action === 'shuffle') setState(PLAYER, { attributes: { shuffle: !!a.shuffle } });
+      if (a.action === 'volume') setState(PLAYER, { attributes: { volume_level: a.volume / 100 } });
+      if ((a.action === 'next' || a.action === 'previous') && s.attributes.media_duration) setState(PLAYER, { attributes: { media_position: 0, media_position_updated_at: nowIso() } });
+      return { status: 'request_accepted', player: PLAYER, state: states[PLAYER].state };
+    }
+    if (msg.type === 'echo_experience/action' && msg.action === 'timer') {
+      // Local sample timers only: mirrors the payloads the card sends, never a real timer.
+      const a = msg.args || {}, i = timers.findIndex(t => t.id === a.timer_id), t = timers[i], now = ts();
+      if (t) t.seconds_left = card.remaining(t), t.sampled_at = now;
+      if (a.operation === 'pause' && t) t.is_active = false;
+      if (a.operation === 'resume' && t) t.is_active = true;
+      if (a.operation === 'add' && t) t.seconds_left += 60;
+      if (a.operation === 'cancel' && t) timers.splice(i, 1);
+      if (a.operation === 'start') timers.push({ id: 'sample-' + now, name: a.name, is_active: true, seconds_left: a.seconds, total_seconds: a.seconds, sampled_at: now });
+      return { status: 'request_accepted', timers: [...timers] };
+    }
+    return { status: 'request_accepted' };
+  },
+  async callService(domain, service, data) {
+    calls.push(['service', domain, service, data]);
+    const id = data?.entity_id;
+    if (domain === 'light') setState(id, { state: service === 'turn_on' ? 'on' : 'off' });
+    if (domain === 'climate' && service === 'set_temperature') setState(id, { attributes: { temperature: data.temperature } });
+    if (domain === 'switch') setState(id, { state: service === 'turn_on' ? 'on' : 'off' });
+  },
+};
+
+/* ---------- Mount the real production card ---------- */
+const script = document.createElement('script');
+script.src = CARD_SRC;
+script.onload = () => {
+  card = document.createElement('echo-experience-card');
+  card.setConfig({ type: 'custom:echo-experience-card', device: 'echo_show_8', ambient: AMBIENT });
+  card.hass = hass;
+  document.body.append(card);
+  window.addEventListener('hass-more-info', e => calls.push(['more-info', e.detail]));
+  window.echoFixture = {
+    card, calls, states, setState,
+    setSample(name, playing = true) { states[PLAYER] = { ...playerState(name, playing), entity_id: PLAYER }; publish(); },
+    setStyle(style) { profile.music_style = style; if (card.data) card.data.profile.music_style = style; card.render(); },
+    go(view) { card.go(view); },
+  };
+};
+script.onerror = () => { document.body.append('Could not load the production card. Serve the repository root, not mockups/.'); };
+document.head.append(script);
+</script>
+</body>
+</html>
