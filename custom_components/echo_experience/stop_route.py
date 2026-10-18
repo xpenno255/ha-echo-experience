@@ -11,6 +11,7 @@ import logging
 import re
 from homeassistant.core import callback
 from homeassistant.helpers import issue_registry as ir, entity_registry as er, device_registry as dr
+from .core import device_ids
 
 DOMAIN='echo_experience'
 LEGACY_AUTOMATION_ID='1757961047860'
@@ -44,7 +45,7 @@ class StopRoute:
         """Device id -> profile id for every Echo and companion. A device claimed twice is a configuration error."""
         owners={}
         for p in self.runtime.profiles:
-            ids=[p['device_id']]+[d for d in (self.runtime.device_of(s) for s in p.get('ducking',{}).get('additional_satellites',[])) if d]
+            ids=device_ids(p)+[d for d in (self.runtime.device_of(s) for s in p.get('ducking',{}).get('additional_satellites',[])) if d]
             for device in ids:
                 if owners.setdefault(device,p['id'])!=p['id']:
                     raise ValueError(f"voice device {device} belongs to both {owners[device]} and {p['id']}")

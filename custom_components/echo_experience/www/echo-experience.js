@@ -1,4 +1,4 @@
-/* Echo Experience 0.8.3 — redesigned views (dedicated answer, conversion and timer layouts in 0.8.1) with labelled navigation, three music backgrounds (artwork wash, colour atmosphere, full-bleed) over one fixed music layout, direct light and heating controls, device-scoped playback and voice dismissal of ringing timers. */
+/* Echo Experience 0.9.0 — redesigned views (dedicated answer, conversion and timer layouts in 0.8.1) with labelled navigation, three music backgrounds (artwork wash, colour atmosphere, full-bleed) over one fixed music layout, direct light and heating controls, device-scoped playback and voice dismissal of ringing timers, on the Voice Satellite browser runtime or Kiosk Satellite's native one. */
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const icon = name => `<ha-icon icon="mdi:${name}"></ha-icon>`;
 const clock = date => date.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
@@ -78,7 +78,7 @@ class EchoExperienceCard extends HTMLElement {
   getCardSize(){return 8;}
   set hass(hass){const before=this._hass;this._hass=hass;
     if(this.isConnected && this.config && (!this.connection || this.connection!==hass.connection))this.connect();
-    if(this.data){const p=this.data.profile;this.syncPlayback();const watched=[p.satellite,p.weather,p.kiosk_hold,this.player,this.activePlayer,...(p.native_players||[]),...(p.controls||[])];if(watched.some(e=>before?.states[e]!==hass.states[e]))this.render();}
+    if(this.data){const p=this.data.profile;this.syncPlayback();const watched=[p.satellite,p.native?.satellite,p.weather,p.kiosk_hold,this.player,this.activePlayer,...(p.native_players||[]),...(p.controls||[])];if(watched.some(e=>before?.states[e]!==hass.states[e]))this.render();}
   }
   syncPlayback(){
     if(this.config?.ambient||!this.data)return;

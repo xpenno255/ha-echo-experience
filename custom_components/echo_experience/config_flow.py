@@ -3,7 +3,7 @@ from homeassistant.config_entries import ConfigFlow, OptionsFlow
 from homeassistant.core import callback
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig, SelectSelectorMode
 import voluptuous as vol
-from .core import validate_profiles, MUSIC_STYLES, MUSIC_STYLES_OPTION, music_style, stored_music_styles
+from .core import validate_profiles, MUSIC_STYLES, MUSIC_STYLES_OPTION, RUNTIMES, music_style, stored_music_styles
 import json
 
 def read_profiles(hass):
@@ -37,7 +37,7 @@ class EchoExperienceOptions(OptionsFlow):
     async def _load_profiles(self):
         if self._profiles is None:
             try:self._profiles=await self.hass.async_add_executor_job(read_profiles,self.hass)
-            except (OSError, ValueError, KeyError, TypeError):self._profiles=[]
+            except (OSError, ValueError, KeyError, TypeError, AttributeError):self._profiles=[]
         return self._profiles
 
     def _save(self, **changes):
@@ -50,20 +50,27 @@ class EchoExperienceOptions(OptionsFlow):
             manage=bool(user_input.get('manage_dashboard',True))
             device=user_input.get('device')
             # Without readable profiles there is no Echo to style; still let dashboard management change.
-            if not profiles:return self._save(manage_dashboard=manage)
+            pins={k:v for k,v in user_input.items() if k.startswith('runtime_') and v in RUNTIMES}
+            if not profiles:return self._save(manage_dashboard=manage,**pins)
             if device not in ids:
-                return self.async_show_form(step_id='init',data_schema=self._init_schema(profiles,manage,ids[0]),errors={'device':'unknown_device'})
-            self._pending={'manage_dashboard':manage,'device':device}
+                return self.async_show_form(step_id='init',data_schema=self._init_schema(profiles,manage,ids[0],pins),errors={'device':'unknown_device'})
+            self._pending={'manage_dashboard':manage,'device':device,'pins':pins}
             return await self.async_step_music_style()
         current=self.config_entry.options.get('manage_dashboard',True)
         errors=None if profiles else {'base':'invalid_profiles'}
         return self.async_show_form(step_id='init',data_schema=self._init_schema(profiles,current,ids[0] if ids else None),errors=errors)
 
-    def _init_schema(self, profiles, manage, device):
+    def _init_schema(self, profiles, manage, device, pins=None):
         fields={vol.Required('manage_dashboard',default=manage):bool}
         if profiles:
             fields[vol.Required('device',default=device)]=SelectSelector(SelectSelectorConfig(
                 options=[{'value':p['id'],'label':p.get('name',p['id'])} for p in profiles],mode=SelectSelectorMode.DROPDOWN))
+        # One runtime pin per loaded profile: auto follows the Kiosk, dashboard/native force that voice identity.
+        options={**self.config_entry.options,**(pins or {})}
+        runtime=getattr(self.hass,'data',{}).get('echo_experience')
+        for p in getattr(runtime,'profiles',None) or []:
+            key='runtime_'+p['id']
+            fields[vol.Required(key,default=options.get(key) if options.get(key) in RUNTIMES else 'auto')]=vol.In(list(RUNTIMES))
         return vol.Schema(fields)
 
     async def async_step_music_style(self, user_input=None):
@@ -75,7 +82,7 @@ class EchoExperienceOptions(OptionsFlow):
             style=user_input.get('music_style')
             if style in MUSIC_STYLES:
                 styles[device]=style
-                return self._save(manage_dashboard=self._pending['manage_dashboard'],**{MUSIC_STYLES_OPTION:styles})
+                return self._save(manage_dashboard=self._pending['manage_dashboard'],**self._pending.get('pins',{}),**{MUSIC_STYLES_OPTION:styles})
             errors={'music_style':'invalid_style'}
         name=next((p.get('name',p['id']) for p in self._profiles or [] if p['id']==device),device)
         schema=vol.Schema({vol.Required('music_style',default=music_style(styles.get(device))):SelectSelector(SelectSelectorConfig(

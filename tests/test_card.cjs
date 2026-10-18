@@ -129,6 +129,9 @@ const keep=view(null,{timers:[pasta]});delete keep.render;keep.view='timers';kee
 const sized=view(null);sized._hass=undefined;const props={};sized.style={setProperty:(k,v)=>props[k]=v};sized.getBoundingClientRect=()=>({top:40});sandbox.window.innerHeight=640;let rerender=0;sized.render=()=>rerender++;
 const listeners={};sandbox.window.addEventListener=(t,f)=>listeners[t]=f;sandbox.window.removeEventListener=t=>delete listeners[t];sized.connectedCallback();sandbox.window.innerHeight=600;listeners.resize();
 eq(props['--echo-height'],'560px','resize recomputes the available height');eq(rerender,0,'resize does not re-render');sized.disconnectedCallback();ok(!listeners.resize,'resize listener removed on disconnect');
+// The native Kiosk satellite is watched like the browser one, so a native turn re-renders the card.
+const watch=new sandbox.Card();watch.config={device:'kitchen'};let renders=0;watch.render=()=>{renders++;};watch.data={profile:{satellite:'assist_satellite.kitchen',native:{satellite:'assist_satellite.ks_kitchen'},music_player:'media_player.kitchen'},timers:[]};
+const before={states:{'assist_satellite.ks_kitchen':{state:'idle'}}};watch._hass=before;watch.hass={states:{'assist_satellite.ks_kitchen':{state:'listening'}}};assert.equal(renders,1,'native satellite change re-renders');
 let ambient=new sandbox.Card();ambient.config={device:'kitchen',ambient:true};ambient.data=playback.data;ambient._hass=playback._hass;ambient.render=()=>{};ambient.syncPlayback();ambient.receive({device:'kitchen',result:{view:'music'}});assert.equal(ambient.view,'home','Screensaver stays on the clock');
 // Ringing timer dismissal: the card replays Voice Satellite's own dismissal gestures in the Echo's browser and
 // reports honestly. A fake document stands in for the page that hosts the native .vs-timer-alert element inside
@@ -197,5 +200,5 @@ let ambient=new sandbox.Card();ambient.config={device:'kitchen',ambient:true};am
   boot.error='That action could not be completed';await boot.refresh();eq(boot.error,'That action could not be completed','action errors are not wiped by a refresh');
   boot.error='';listeners.ready();await new Promise(r=>setTimeout(r,0));eq(subs,3,'a reconnect subscribes afresh');eq(unsubs,1,'the old subscription is dropped');
   boot.disconnectedCallback();ok(!listeners.ready,'the reconnect listener is removed');}
- console.log(`${55+added} frontend behaviour assertions passed`);
+ console.log(`${56+added} frontend behaviour assertions passed`);
 })().catch(err=>{console.error(err);process.exit(1);});

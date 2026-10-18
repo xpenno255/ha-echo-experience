@@ -18,7 +18,7 @@
     "step": {
       "init": {
         "title": "Echo Experience options",
-        "description": "Choose whether the integration manages the dashboard, then pick an Echo to set its music background.",
+        "description": "Choose whether the integration manages the dashboard, then pick an Echo to set its music background. Each runtime_<profile> field pins where that Echo's voice satellite runs: auto follows Kiosk Satellite (native when its ESPHome satellite is connected, otherwise the Voice Satellite browser runtime); dashboard or native forces that identity for new timers. Saving reloads Echo Experience, which forgets ringing alarms; change it only while no timer runs.",
         "data": {
           "manage_dashboard": "Manage the Echo Home dashboard",
           "device": "Echo"

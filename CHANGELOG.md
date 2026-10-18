@@ -1,17 +1,21 @@
 # Changes
 
-## 0.8.3 - keep timers on screen
+## 0.9.0 - redesigned card, restart recovery, timers stay on screen
+
+Merges the redesign line (built in parallel with 0.8.0 and never released) with the 0.8.0 native runtime. Everything in 0.8.0 still applies. Where they overlapped: the options flow offers dashboard management, the per-Echo music background and the per-Echo runtime pin together; Echo tools return `llm.ToolResult` and keep `echo_convert`'s `amount` alias; the timer screen hold follows both browser and native timer events. Reload the Kiosk browser after updating so it loads the new card. Tests: 195 Python tests and 149 frontend assertions.
+
+### Timers stay on screen
 
 - While an Echo has a running timer or a ringing alarm, the integration turns on its Kiosk Hold mode (`kiosk_hold`), so the timers view stays at full brightness instead of dimming to the screensaver. The hold is released once no timer runs and no alarm rings; paused timers do not hold the screen. A hold someone else set (a pinned guide) is left alone, and taken back if released while a timer still runs. Ownership is stored in `.storage/echo_experience.screen_hold` so a hold left on across a restart is released. A failure to set this up raises a repair issue and does not affect anything else.
 - Tests: 151 Python tests (hold on start, release on cancel and dismissal, ringing alarms, paused and other-room timers, someone else's hold, restart clean-up, unavailable switch, failed switch call).
 
-## 0.8.2 - recover after restarts, Home Assistant 2026.10 tools
+### Recover after restarts, Home Assistant 2026.10 tool results
 
 - Fix the "Unknown command" error that stayed on the Echo after Home Assistant restarted until a button was pressed. While Home Assistant starts, the Kiosk browser reconnects before Echo Experience has registered its commands. The card now retries with backoff (1 s, doubling, up to 30 s), subscribes again after every reconnect, so live updates come back, and clears the connection error once data arrives. Errors from actions are left alone.
 - The Echo tools (`echo_timer`, `echo_weather`, `echo_convert`, `echo_music`, `echo_show`, `echo_guide`) now name their integration and return `llm.ToolResult` (with `error` set on failures) on Home Assistant 2026.10+, which removes the deprecation warnings that would become failures in 2027.10/2027.11. Older cores still get the plain result. HomeGuide answers are passed through either way.
 - Tests run against Home Assistant 2026.10.1 (hassil 3.12.1, intents 2026.10.6): 143 Python tests and 148 frontend assertions, including restart recovery and tool tagging.
 
-## 0.8.1 - answer, conversion and timer layouts
+### Answer, conversion and timer layouts
 
 - Answers: the question sits muted above a large, left-aligned answer. Short answers get open space; long ones scroll inside a bounded panel above the navigation. A very long question is capped and scrolls on its own, so the answer always keeps room. Plain text only, line breaks kept, everything escaped; the empty state is unchanged.
 - Conversions: the original amount and unit are secondary, the converted value and unit primary. Long values or unit names step the type down and wrap instead of overflowing. Same payload and en-GB number formatting.
@@ -23,13 +27,23 @@
 - Local Home comparison: `mockups/redesign/home-compare.html` flicks between the installed 0.8.0 card (`mockups/redesign/baseline/echo-experience-0.8.0.js`, a byte-for-byte copy of the file on Home Assistant) and the proposed 0.8.1 card, plain or with timers, at the same size and frozen time. Each runs in its own iframe. Preview only; nothing in it is deployed.
 - Tests: frontend assertions for answer escaping and layouts, conversion zero/negative/large values, empty/single/multiple/paused/finished timers, unchanged action payloads, form preservation, ambient no-change, resize handling, and larger Home-only timer chips that still open Timers.
 
-## 0.8.0 - redesigned card and per-Echo music backgrounds
+### Redesigned card and per-Echo music backgrounds
 
 - Integration options (Configure) now pick an Echo and its music background: **Artwork wash** (default), **Colour atmosphere** or **Full-bleed**. Choices are stored in the entry options under `music_styles`, keyed by profile id, so `echo_experience.json` needs no edits. Saving keeps *Manage the Echo Home dashboard*, other Echoes' choices and any other stored options, then reloads through the existing options-update path. Missing or invalid stored values, and Echoes removed from the profiles, fall back to Artwork wash.
 - Each runtime profile carries `music_style`, sent to the card in the existing state snapshot (`profile.music_style`); no new websocket command.
 - Every style keeps the same foreground: cover left, details and controls right. Only the background changes. Colour atmosphere falls back to the theme palette when the artwork cannot be sampled.
 - Radio shows the station artwork the player supplies in `entity_picture` (Sonos provides a branded Absolute Radio picture). There is no separate logo lookup; players without artwork show the usual fallback.
 - Card redesign: Home, Music, Weather, HomeGuide and Controls follow the approved mockups with live data. Reload the Kiosk browser after updating so it loads the new versioned card.
+## 0.8.0 - Kiosk Satellite native runtime
+
+- Echo Experience now works when the Echo runs Kiosk Satellite's native Voice Satellite (an ESPHome Assist satellite) as well as the Voice Satellite browser integration, from the same build. Each profile gains a second voice identity, derived from the ESPHome device that owns its `kiosk_*` entities (or set explicitly as `native`), and Echo tools, the stop route, ducking, timer ownership and dashboard access accept either identity. This fixes "function echo_weather does not exist" in native mode.
+- Runtime selection: profile `runtime` `auto` (default), `dashboard` or `native`, plus a per-profile pin in the integration options (`runtime_<profile>`, stored in `.storage`) that overrides the file and auto-detection. `auto` uses native while its satellite is connected and holds the timer handler; voice-started timers stay on the satellite that heard them. `echo_experience/state` reports the mode, the active identity and both identities; timer entries carry their `runtime`.
+- Native timers start through Home Assistant's timer manager on the Kiosk device, follow `esphome.kiosk_satellite_timer` (including `dismissed`) and are silenced through `vs_list_timers` + `vs_cancel` with confirmation from the Kiosk. The Kiosk silences every ringing timer at once; replies name the others (`also_silenced`). `vs_cancel` is never sent when nothing rings.
+- Native answers come from the conversation chat log, tied to the asking Echo when its tools are built, and use the same answer/tool-view logic as `voice_satellite_chat`. Browser-origin and foreign conversations are ignored.
+- `echo_convert` accepts `amount` as an alias of `value` (same float coercion; `value` wins if both are sent) and its description names its arguments. Models copying `basic_utilities.unit_convert` sent `amount` in about 1 run in 5, the call failed validation and the reply was empty.
+- Echo tools now name their integration (`integration = echo_experience`), which Home Assistant 2026.10 reports as missing (enforced from 2027.10). No behaviour change.
+- Every native path fails soft (logged once) and the browser path is unchanged; the 0.7.0 test suite passes unmodified. Switch with the Kiosk's own `vsMigrate` (`groups: []`) and back with `vsRollback`; see the README section and `scripts/live_native_check.py` (phases A/B, `--runbook`).
+- Tests: 177 Python (43 new: the `echo_convert` alias, identities and derivation, dual-identity gating, timer start/list/cancel/dismiss in both runtimes, Kiosk timer events, chat-log correlation with foreign and concurrent conversations, override precedence, auto-detection with the native satellite unavailable, fail-soft setup) and 56 frontend assertions.
 
 ## 0.7.0 - music from other apps, artist phrases and shuffle
 
