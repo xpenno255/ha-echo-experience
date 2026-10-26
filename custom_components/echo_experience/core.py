@@ -64,7 +64,20 @@ def validate_profiles(config):
             for key,default,low,high in [('volume_factor',0.1,0.01,1),('restore_delay',1,0,10),('max_duration',120,10,600)]:
                 value=cfg.setdefault(key,default)
                 if isinstance(value,bool) or not isinstance(value,(float,int)) or not math.isfinite(value) or not low<=value<=high:raise ValueError('Invalid ducking '+key)
+        # Satellites that only hear (wake word + speech-to-text); their turns are relayed to this Echo.
+        inputs=p.setdefault('input_satellites',[])
+        if not isinstance(inputs,list) or not all(isinstance(e,str) and re.fullmatch(r'assist_satellite\.[a-z0-9_]+',e) for e in inputs):raise ValueError('Invalid input satellite')
+        relay=p.setdefault('relay',{})
+        if not isinstance(relay,dict):raise ValueError('Invalid relay configuration')
+        for key,default in [('pipeline',1),('duration',15)]:
+            value=relay.setdefault(key,default)
+            if isinstance(value,bool) or not isinstance(value,int) or not 0<=value<=600:raise ValueError('Invalid relay '+key)
+        if not isinstance(relay.setdefault('wake_cue',True),bool):raise ValueError('Invalid relay wake_cue')
+        agent=relay.setdefault('fallback_agent','conversation.home_assistant')
+        if not isinstance(agent,str) or not agent.startswith('conversation.'):raise ValueError('Invalid relay fallback_agent')
     check_identities(profiles)
+    owned=[s for p in profiles for s in [*[i['satellite'] for i in identities(p)],*p['input_satellites']]]
+    if len(set(owned))!=len(owned):raise ValueError('Duplicate input satellite')
     return config
 
 def identities(p):
@@ -80,6 +93,9 @@ def identity(p, runtime):
 
 def satellites(p):
     return [i['satellite'] for i in identities(p)]
+
+def input_satellites(p):
+    return list(p.get('input_satellites') or [])
 
 def device_ids(p):
     return [i['device_id'] for i in identities(p)]

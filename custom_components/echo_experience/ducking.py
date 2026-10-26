@@ -10,7 +10,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval
 from homeassistant.helpers.storage import Store
 
-from .core import satellites
+from .core import satellites, input_satellites
 
 _LOGGER = logging.getLogger(__name__)
 ACTIVE_STATES = {'listening', 'processing', 'responding', 'thinking', 'speaking'}
@@ -32,8 +32,8 @@ class DuckingManager:
             cfg = p.get('ducking', {})
             if not cfg.get('enabled', False):
                 continue
-            # Both voice identities of the Echo (browser and native Kiosk) plus its companions.
-            for satellite in [*satellites(p), *cfg.get('additional_satellites', [])]:
+            # Both voice identities of the Echo (browser and native Kiosk) plus its input satellites and companions (deduplicated).
+            for satellite in dict.fromkeys([*satellites(p), *input_satellites(p), *cfg.get('additional_satellites', [])]):
                 self.sources.setdefault(satellite, []).append(cfg)
         self.players = {e for configs in self.sources.values() for c in configs for e in c['players']}
         self.leases = {}

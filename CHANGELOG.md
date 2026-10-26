@@ -1,5 +1,14 @@
 # Changes
 
+## 0.10.0 - Echo Relay: use a Voice PE for listening, the Echo for everything else
+
+- New conversation agent "Echo Relay". Pipeline for a listen-only satellite (for example a Home Assistant Voice PE) with the usual STT and this agent: the turn is sent to the Echo through the Kiosk's `vs_show` service (`speak: true`, pipeline slot 1), so the Echo runs it as itself (tools, timers, answer display, speech, ducking). The relay answers with empty speech, so the Voice PE says nothing and does not re-listen.
+- New profile field `input_satellites` (assist_satellite entity ids, unique across profiles) and optional `relay` settings: `pipeline` (Kiosk Assistant slot, default 1), `duration` (default 15), `wake_cue` (default true), `fallback_agent` (default `conversation.home_assistant`). Input satellites also duck music and take part in the stop route; no migration needed.
+- Stop phrases said to an input satellite are answered by the stop route directly (sentence triggers only run for the default agent), so ringing Echo timers and music still stop.
+- If the Echo's native satellite is unavailable, the turn goes to `fallback_agent` and the input satellite answers itself (logged once).
+- Wake cue: when an input satellite starts listening, the Echo plays a chime and shows a short "Listening" toast.
+- Known limit: an Echo answer ending in a question can still start follow-up listening on the Echo (Home Assistant decides this from the answer text).
+
 ## 0.9.0 - redesigned card, restart recovery, timers stay on screen
 
 Merges the redesign line (built in parallel with 0.8.0 and never released) with the 0.8.0 native runtime. Everything in 0.8.0 still applies. Where they overlapped: the options flow offers dashboard management, the per-Echo music background and the per-Echo runtime pin together; Echo tools return `llm.ToolResult` and keep `echo_convert`'s `amount` alias; the timer screen hold follows both browser and native timer events. Reload the Kiosk browser after updating so it loads the new card. Tests: 195 Python tests and 149 frontend assertions.

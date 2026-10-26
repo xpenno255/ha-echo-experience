@@ -356,7 +356,7 @@ class SetupTest(unittest.IsolatedAsyncioTestCase):
   self.services={}
   self.hass=NS(data={},config=NS(path=lambda name:str(Path(__file__).resolve().parents[1]/'profiles.json'),config_dir='/tmp'),async_add_executor_job=AsyncMock(side_effect=lambda f,*a:f(*a)),
    bus=NS(async_listen=Mock(return_value=lambda:None),async_fire=Mock()),services=NS(async_register=lambda d,n,h,**k:self.services.__setitem__(n,h),async_remove=lambda d,n:self.services.pop(n,None)),
-   config_entries=NS(async_reload=AsyncMock()),states=NS(is_state=Mock(return_value=False),get=Mock()))
+   config_entries=NS(async_reload=AsyncMock(),async_forward_entry_setups=AsyncMock(),async_unload_platforms=AsyncMock(return_value=True)),states=NS(is_state=Mock(return_value=False),get=Mock()))
   self.unloads=[]
   self.entry=NS(options={'manage_dashboard':False},async_on_unload=self.unloads.append,add_update_listener=lambda f:(lambda:None),entry_id='e1')
  async def test_setup_wires_card_dashboard_route_and_reload_service(self):

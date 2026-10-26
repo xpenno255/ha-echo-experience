@@ -100,6 +100,17 @@ Kiosk Satellite can run Voice Satellite natively, as a plain ESPHome Assist sate
 
 **Switch back.** `POST http://<kiosk>:2324/api/commands/vsRollback` with `{}`, set any options pin back to `auto`, then `scripts/live_native_check.py --phase A`. To remove 0.8.0 entirely, run the switch back first, then reinstall `v0.7.0` through HACS and restart Core; 0.7.0 ignores the new options.
 
+## Echo Relay (listen on a Voice PE, answer on the Echo)
+
+For an Echo with poor microphones. A Voice PE does wake word and speech-to-text only; the Echo runs the turn, speaks and shows the answer.
+
+1. Profile: add `"input_satellites": ["assist_satellite.<voice_pe>"]` to the Echo's profile (optional `relay`: `pipeline` Kiosk Assistant slot, default 1; `duration`, default 15; `wake_cue`, default true; `fallback_agent`, default `conversation.home_assistant`). Reload Echo Experience.
+2. Create an Assist pipeline "Echo Relay": same speech-to-text as the Echo's own pipeline, conversation agent "Echo Relay" (`conversation.echo_relay`), no TTS needed.
+3. Select that pipeline on the Voice PE and turn off its wake sound (the Echo gives the cue). Set the Echo's wake word to `no_wake_word`.
+4. Say stop to the Voice PE: the stop route answers it directly and stops Echo timers or music.
+
+If the Echo's Kiosk satellite is unavailable the relay hands the turn to `fallback_agent` and the Voice PE answers itself. Empty relay speech makes Home Assistant skip text-to-speech, so the Voice PE stays silent and goes idle. Answers ending in a question may still make the Echo listen for a follow-up.
+
 ## Add another Echo
 
 1. Set up Kiosk Satellite and create a **distinct** Voice Satellite entry for the new physical device. Never assign two Echos to the same satellite or clone the existing Kiosk device identity.

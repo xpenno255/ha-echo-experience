@@ -41,6 +41,9 @@
         "restore_delay": 1,
         "max_duration": 120
       },
+      "input_satellites": [
+        "assist_satellite.home_assistant_voice_kitchen_assist_satellite"
+      ],
       "music_resolver_agent": "conversation.echo_music_resolver"
     }
   ]

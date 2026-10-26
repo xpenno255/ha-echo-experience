@@ -19,10 +19,11 @@ from .music import resolve_music
 from .music_fallback import resolve_with_fallback
 from .music_backend import MusicBackend
 from .ducking import DuckingManager
-from .core import validate_profiles, route_profile, convert, VIEWS, normalize_timer_name, apply_profile_options, identity, identities, match_identity, satellites, device_ids, runtime_overrides
+from .core import validate_profiles, route_profile, convert, VIEWS, normalize_timer_name, apply_profile_options, identity, identities, match_identity, satellites, device_ids, runtime_overrides, input_satellites
 from . import frontend, dashboard, native
 from .stop_route import StopRoute
 from .screen_hold import ScreenHold
+from .relay import WakeCue
 
 DOMAIN='echo_experience'
 EVENT='echo_experience_update'
@@ -82,6 +83,10 @@ async def async_setup_entry(hass, entry):
         return await dismiss_timer_service(hass,runtime,call)
     hass.services.async_register(DOMAIN,'dismiss_timer',dismiss_timer,schema=vol.Schema({vol.Required('device_id'):str,vol.Optional('name'):str}),supports_response=SupportsResponse.OPTIONAL)
     entry.async_on_unload(lambda:hass.services.async_remove(DOMAIN,'dismiss_timer'))
+    runtime.wake_cue=WakeCue(hass,runtime)
+    runtime.wake_cue.start()
+    entry.async_on_unload(runtime.wake_cue.stop)
+    await hass.config_entries.async_forward_entry_setups(entry,['conversation'])
     runtime.ducking=DuckingManager(hass,runtime.profiles)
     await runtime.ducking.async_start()
     return True
@@ -101,6 +106,7 @@ async def async_options_updated(hass, entry):
     await hass.config_entries.async_reload(entry.entry_id)
 
 async def async_unload_entry(hass, entry):
+    await hass.config_entries.async_unload_platforms(entry,['conversation'])
     runtime=hass.data.pop(DOMAIN,None)
     if runtime and getattr(runtime,'ducking',None):await runtime.ducking.async_close()
     return True
@@ -118,6 +124,7 @@ class Experience:
         self.dismissals={}
         self.dismiss_timeout=4
         self.screen_hold=None
+        self.stop_route=None
         self.overrides={}
         self.turns=None
         self.native_waiters=[]
@@ -134,7 +141,13 @@ class Experience:
         """The Echo profile that owns a voice device: its own satellite or one of its ducking companions. No fallback."""
         p=route_profile(self.profiles,device_id=device_id)
         if p or not device_id:return p
-        matches=[p for p in self.profiles if any(self.device_of(s)==device_id for s in p.get('ducking',{}).get('additional_satellites',[]))]
+        matches=[p for p in self.profiles if any(self.device_of(s)==device_id for s in [*p.get('ducking',{}).get('additional_satellites',[]),*input_satellites(p)])]
+        return matches[0] if len(matches)==1 else None
+
+    def profile_for_input(self,device_id,satellite_id=None):
+        """The Echo a relay input satellite feeds, by its explicit input_satellites entry only (not the ducking list)."""
+        if not device_id and not satellite_id:return None
+        matches=[p for p in self.profiles if any(s==satellite_id or (device_id and self.device_of(s)==device_id) for s in input_satellites(p))]
         return matches[0] if len(matches)==1 else None
 
     def forget(self,p,timer_ids):
