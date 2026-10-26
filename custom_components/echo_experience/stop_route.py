@@ -11,7 +11,8 @@ import logging
 import re
 from homeassistant.core import callback
 from homeassistant.helpers import issue_registry as ir, entity_registry as er, device_registry as dr
-from .core import device_ids, input_satellites
+from .core import device_ids, identity, input_satellites
+from . import native
 
 DOMAIN='echo_experience'
 LEGACY_AUTOMATION_ID='1757961047860'
@@ -102,6 +103,17 @@ class StopRoute:
         return sorted(players)
 
     async def handle(self,user_input,result):
+        return await self.voice_on_echo(user_input,await self.answer(user_input))
+
+    async def voice_on_echo(self,user_input,speech):
+        """A relay input satellite stays silent: the Echo it feeds says the outcome while that Echo is up."""
+        p=self.runtime.profile_for_input(self.origin_device(user_input),getattr(user_input,'satellite_id',None)) if speech else None
+        ident=identity(p,'native') if p else None
+        if not native.satellite_up(self.hass,ident):return speech
+        await self.hass.services.async_call('assist_satellite','announce',{'entity_id':ident['satellite'],'message':speech,'preannounce':False},blocking=False,context=user_input.context)
+        return ''
+
+    async def answer(self,user_input):
         if self.legacy_enabled():
             # Switched back on without a reload: let the automation answer and do nothing here.
             _LOGGER.warning('Legacy stop automation is enabled again; reload Echo Experience to withdraw its route')

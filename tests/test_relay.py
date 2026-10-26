@@ -54,14 +54,9 @@ class RelayTest(unittest.IsolatedAsyncioTestCase):
         cfg=config();cfg['devices'][0]['input_satellites']=[]
         self.runtime=Experience(self.hass,validate_profiles(cfg));self.runtime.device_of=lambda e:{PE:'dev-pe'}.get(e)
         self.assertIsNone(self.runtime.profile_for_input('dev-pe'))
-    async def test_stop_phrase_is_answered_by_the_stop_route_and_spoken_on_the_echo(self):
+    async def test_stop_phrase_is_answered_by_the_stop_route_not_forwarded(self):
         result=await Relay.process(self.relay,self.turn('Stop.'))
         self.runtime.stop_route.handle.assert_awaited_once()
-        self.hass.services.async_call.assert_awaited_once_with('assist_satellite','announce',{'entity_id':'assist_satellite.ks','message':'Stopped.','preannounce':False},blocking=False,context=unittest.mock.ANY)
-        self.assertEqual(result.response.speech['plain']['speech'],'')
-    async def test_stop_outcome_is_spoken_on_the_input_satellite_when_the_echo_is_down(self):
-        self.states['assist_satellite.ks']=NS(state='unavailable')
-        result=await Relay.process(self.relay,self.turn('stop'))
         self.hass.services.async_call.assert_not_awaited()
         self.assertEqual(result.response.speech['plain']['speech'],'Stopped.')
     async def test_stop_route_declining_forwards_the_phrase(self):

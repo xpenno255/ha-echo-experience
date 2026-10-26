@@ -1,5 +1,9 @@
 # Changes
 
+## 0.10.2 - Stop outcome on the Echo, for real
+
+- The stop phrases are answered by Home Assistant's sentence trigger before any agent runs, so 0.10.1's relay-side change never applied. The stop route now gives the outcome to the Echo (`assist_satellite.announce`) and answers the input satellite with explicit empty speech; the input satellite still speaks it when the Echo is unavailable.
+
 ## 0.10.1 - Echo speaks the stop outcome
 
 - A stop said to an input satellite (Voice PE) is now answered on the Echo ("Timer stopped.", "Stopped.") through `assist_satellite.announce`; the input satellite stays silent. If the Echo is unavailable, the input satellite still says it.

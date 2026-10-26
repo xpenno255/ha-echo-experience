@@ -151,6 +151,31 @@ class RouteTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(sorted(map(tuple,started)),[('media_player.bedroom',),('media_player.kitchen',)])
         gate.set();self.assertEqual(await asyncio.gather(*tasks),[REPLY_STOPPED,REPLY_STOPPED])
 
+class RelayVoiceTest(unittest.IsolatedAsyncioTestCase):
+    """A stop said to a relay input satellite is spoken by the Echo it feeds; the input satellite stays silent."""
+    async def asyncSetUp(self):
+        self.up=True
+        self.hass=NS(data={},states=NS(get=lambda e:NS(state='idle' if self.up else 'unavailable')),services=NS(async_call=AsyncMock()))
+        cfg={'devices':[{'id':'kitchen','name':'Kitchen','satellite':'assist_satellite.kitchen','device_id':'dev-kitchen','music_player':'media_player.kitchen','weather':'weather.home','dashboard':'echo-home/kitchen',
+             'native':{'satellite':'assist_satellite.ks','device_id':'dev-ks'},'input_satellites':['assist_satellite.pe']}]}
+        self.runtime=Experience(self.hass,validate_profiles(cfg))
+        self.runtime.device_of=lambda e:{'assist_satellite.pe':'dev-pe'}.get(e)
+        self.route=StopRoute(self.hass,self.runtime)
+        self.route.answer=AsyncMock(return_value=REPLY_TIMER)
+        self.route.origin_device=lambda user_input:user_input.device_id
+    def request(self,device_id):
+        return NS(text='stop',device_id=device_id,satellite_id=None,context=NS(user_id=None))
+    async def test_input_satellite_outcome_is_announced_on_the_echo(self):
+        self.assertEqual(await self.route.handle(self.request('dev-pe'),None),'')
+        self.hass.services.async_call.assert_awaited_once_with('assist_satellite','announce',{'entity_id':'assist_satellite.ks','message':REPLY_TIMER,'preannounce':False},blocking=False,context=unittest.mock.ANY)
+    async def test_input_satellite_speaks_itself_when_the_echo_is_down(self):
+        self.up=False
+        self.assertEqual(await self.route.handle(self.request('dev-pe'),None),REPLY_TIMER)
+        self.hass.services.async_call.assert_not_awaited()
+    async def test_the_echo_itself_answers_normally(self):
+        self.assertEqual(await self.route.handle(self.request('dev-ks'),None),REPLY_TIMER)
+        self.hass.services.async_call.assert_not_awaited()
+
 class MatcherTest(unittest.TestCase):
     """Drive HA's real trigger sentence matcher so the phrase list is proven against hassil, not assumed.
 
