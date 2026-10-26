@@ -1,5 +1,9 @@
 # Changes
 
+## 0.10.1 - Echo speaks the stop outcome
+
+- A stop said to an input satellite (Voice PE) is now answered on the Echo ("Timer stopped.", "Stopped.") through `assist_satellite.announce`; the input satellite stays silent. If the Echo is unavailable, the input satellite still says it.
+
 ## 0.10.0 - Echo Relay: use a Voice PE for listening, the Echo for everything else
 
 - New conversation agent "Echo Relay". Pipeline for a listen-only satellite (for example a Home Assistant Voice PE) with the usual STT and this agent: the turn is sent to the Echo through the Kiosk's `vs_show` service (`speak: true`, pipeline slot 1), so the Echo runs it as itself (tools, timers, answer display, speech, ducking). The relay answers with empty speech, so the Voice PE says nothing and does not re-listen.

@@ -56,6 +56,11 @@ class Relay:
         if normalise(user_input.text) in STOP_PHRASES and self.runtime.stop_route:
             speech = await self.runtime.stop_route.handle(user_input, None)
             if speech is not None:
+                # The Echo says the outcome when it is up; the input satellite stays silent.
+                ident = identity(p, 'native')
+                if speech and native.satellite_up(self.hass, ident):
+                    await self.hass.services.async_call('assist_satellite', 'announce', {'entity_id': ident['satellite'], 'message': speech, 'preannounce': False}, blocking=False, context=user_input.context)
+                    return self.reply(user_input)
                 return self.reply(user_input, speech)
         relay = p['relay']
         service = vs_service(self.hass, p, 'vs_show')
