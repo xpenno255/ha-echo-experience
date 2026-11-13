@@ -31,12 +31,20 @@ def normalise(text):
     return ' '.join(re.sub(r'[^\w\s]', ' ', (text or '').casefold()).split())
 
 
+def sounds_like_timer(word):
+    """Speech-to-text spells "timer" as toma, tomer, tima, time...: a t-m consonant start is the stable part."""
+    return re.sub(r'[aeiouy]', '', word).startswith('tm')
+
+
 def sounds_like_timer_stop(text):
     """A short "stop ..." phrase close to "stop (the) timer". Music phrases and bare/known stop phrases never match."""
     phrase = normalise(text)
     words = phrase.split()
     if len(words) < 2 or len(words) > 4 or words[0] != 'stop' or phrase in STOP_PHRASES or MUSIC_WORDS.search(phrase):
         return False
+    rest = words[2:] if words[1] == 'the' else words[1:]
+    if rest and sounds_like_timer(rest[0]):
+        return True
     return max(difflib.SequenceMatcher(None, phrase, form).ratio() for form in TIMER_STOP_FORMS) >= TIMER_STOP_SIMILARITY
 
 

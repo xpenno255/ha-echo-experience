@@ -592,7 +592,11 @@ class ActionTool(llm.Tool):
     async def async_call(self,hass,tool_input,llm_context):
         return tool_result(*await self.run(tool_input,llm_context))
     async def run(self,tool_input,llm_context):
-        try:args=self.parameters(self.unalias(tool_input.tool_args))
+        args=self.unalias(tool_input.tool_args)
+        # Models send null for an optional argument they mean to leave out (the agent's schema marks optional
+        # fields nullable). voluptuous rejects None for str/int/bool, so drop it as if omitted.
+        if isinstance(args,dict):args={k:v for k,v in args.items() if v is not None}
+        try:args=self.parameters(args)
         except vol.Invalid as err:return {'error':'Invalid arguments: '+str(err),'retryable':False},True
         try:return await self.runtime.execute(self.profile,self.name.removeprefix('echo_'),args,llm_context.context,origin=getattr(llm_context,'device_id',None)),False
         except (ValueError,KeyError) as err:return {'error':str(err),'retryable':False},True

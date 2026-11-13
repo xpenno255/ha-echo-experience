@@ -200,6 +200,16 @@ class RuntimeTest(unittest.IsolatedAsyncioTestCase):
   result=await tool.async_call(self.hass,NS(tool_name='echo_timer',tool_args={'operation':'start','seconds':'soon'}),NS(context=None))
   self.assertIn('Invalid arguments',result.data['error']);self.hass.services.async_call.assert_not_called()
   self.assertEqual([t['id'] for t in self.runtime.ringing_timers(self.profiles[0])],['t1'])
+ async def test_null_optional_arguments_count_as_omitted(self):
+  running=NS(id='r1',name='Timer',device_id='device-kitchen',seconds_left=100,created_seconds=120,is_active=True)
+  self.hass.data[TIMER_DATA]=NS(timers={'r1':running},cancel_timer=Mock())
+  tool=next(t for t in await self.tools() if t.name=='echo_timer')
+  result=await tool.async_call(self.hass,NS(tool_name='echo_timer',tool_args={'operation':'cancel','name':None,'seconds':None}),NS(context=None,device_id=None))
+  self.assertFalse(result.error,result.data)
+  self.assertEqual(result.data['status'],'completed')
+  self.hass.data[TIMER_DATA].cancel_timer.assert_called_once_with('r1')
+  result=await tool.async_call(self.hass,NS(tool_name='echo_timer',tool_args={'operation':None}),NS(context=None,device_id=None))
+  self.assertIn('Invalid arguments',result.data['error'],'a required argument sent as null is still missing')
  async def test_tools_name_their_integration(self):
   self.assertEqual({t.integration for t in await self.tools()},{'echo_experience'})
  async def test_guide_tool_wraps_a_plain_dict_answer(self):

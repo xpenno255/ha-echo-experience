@@ -1,5 +1,11 @@
 # Changes
 
+## 0.10.4 - "Stop the timer" works again
+
+- Echo tools treat an argument sent as `null` as omitted. The agent marks optional tool arguments nullable, and the model had started sending `echo_timer` `name: null`; voluptuous rejected it, so "Stop the timer." never cancelled or silenced anything.
+- Echo Relay: "stop" followed by a word that sounds like "timer" (a t-m consonant start: Toma, Tomer, tima, time) also counts as a misheard "stop timer" while the Echo has a timer.
+- No migration. Restart Core after updating.
+
 ## 0.10.3 - Misheard "stop timer" and clearer timer errors
 
 - Echo Relay: while the Echo has a running or ringing timer, a short "stop ..." phrase that sounds like "stop timer" ("Stop time, Matt.", "Stop Tomer.") is sent to the Echo as "Stop the timer." instead of the misheard words. Music phrases and other stop phrases are never rewritten, and without a timer the words go on unchanged.
