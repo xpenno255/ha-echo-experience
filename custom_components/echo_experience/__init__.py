@@ -534,9 +534,10 @@ class Experience:
                     raise ValueError(('No timer alarm is sounding on this Echo' if not others else f'No ringing timer matches; ringing: {others}')+(f'; {running} timer(s) are still running' if running else ''))
                 timer=manager.timers.get(requested)
                 if timer is None and not requested:
-                    matches=[t for t in manager.timers.values() if t.device_id in device_ids(p) and (not wanted or normalize_timer_name(t.name)==wanted)]
-                    if not matches:raise ValueError('No timer is running or ringing on this Echo'+(f' named {wanted}' if wanted else ''))
-                    if len(matches)>1:raise ValueError('Name the timer to change; there is no unique matching timer on this Echo')
+                    own=[t for t in manager.timers.values() if t.device_id in device_ids(p)]
+                    matches=[t for t in own if not wanted or normalize_timer_name(t.name)==wanted]
+                    if not matches:raise ValueError(timer_mismatch(wanted,own))
+                    if len(matches)>1:raise ValueError('Several timers match: '+describe_timers(matches)+'. Ask the user which one they mean, then call echo_timer again with its name.')
                     timer=matches[0]
                 if timer is None or timer.device_id not in device_ids(p):raise ValueError('This timer does not belong to this Echo')
                 if op=='cancel':manager.cancel_timer(timer.id)
@@ -547,6 +548,26 @@ class Experience:
             await self.publish(p,'timers')
             return {'timers':self.timers(p),'ringing':self.ringing_timers(p),'status':'completed'}
         raise ValueError('Unsupported action')
+
+def describe_timers(timers):
+    """Speakable list for the model: name and time left, e.g. "'Pasta' (4 min 10 s left), an unnamed timer (55 s left)"."""
+    def left(seconds):
+        minutes,secs=divmod(max(0,int(seconds or 0)),60)
+        return f'{minutes} min {secs} s' if minutes else f'{secs} s'
+    def one(t):
+        name=(t.name or '').strip()
+        label=f"'{name}'" if name and normalize_timer_name(name)!=normalize_timer_name('timer') else 'an unnamed timer'
+        return f'{label} ({left(t.seconds_left)} left'+(', paused)' if not t.is_active else ')')
+    return ', '.join(one(t) for t in timers)
+
+def timer_mismatch(wanted,own):
+    """Tool error for a timer request that matched nothing. It names what does exist and the next step,
+    so the model can act on the request (often a misheard name) or ask, without having to puzzle it out."""
+    if not own:return 'No timer is running or ringing on this Echo'+(f' named {wanted}' if wanted else '')+'. Tell the user there is no timer.'
+    if len(own)==1:
+        return (f'No timer named {wanted}. The only timer on this Echo is {describe_timers(own)}. The name was probably misheard: '
+                'if the request fits this timer, call echo_timer again with the same operation and no name; otherwise ask the user which timer they mean.')
+    return f'No timer named {wanted}. Timers on this Echo: {describe_timers(own)}. Ask the user which one they mean.'
 
 def tool_result(data,error=False):
     """Home Assistant 2026.10+ expects an llm.ToolResult; older cores take the plain dict."""

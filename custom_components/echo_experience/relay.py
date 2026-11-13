@@ -5,6 +5,7 @@ belong to the Echo. The relay agent answers the input satellite with empty speec
 satellite returns to idle without speaking or re-listening. When the Echo is down the turn is delegated to a
 configured agent and answered on the input satellite instead.
 """
+import difflib
 import logging
 import re
 
@@ -19,10 +20,24 @@ _LOGGER = logging.getLogger(__name__)
 STOP_PHRASES = {c.casefold() for c in COMMANDS}
 CUE_TITLE = 'Listening'
 CUE_DURATION = 4
+# Misheard "stop timer" ("Stop time, Matt.", "Stop Tomer.") is sent on as this phrase while the Echo has a timer.
+TIMER_STOP = 'Stop the timer.'
+TIMER_STOP_FORMS = ('stop timer', 'stop the timer')
+TIMER_STOP_SIMILARITY = 0.75
+MUSIC_WORDS = re.compile(r'\b(music|sonos|song|radio|playing)\b')
 
 
 def normalise(text):
     return ' '.join(re.sub(r'[^\w\s]', ' ', (text or '').casefold()).split())
+
+
+def sounds_like_timer_stop(text):
+    """A short "stop ..." phrase close to "stop (the) timer". Music phrases and bare/known stop phrases never match."""
+    phrase = normalise(text)
+    words = phrase.split()
+    if len(words) < 2 or len(words) > 4 or words[0] != 'stop' or phrase in STOP_PHRASES or MUSIC_WORDS.search(phrase):
+        return False
+    return max(difflib.SequenceMatcher(None, phrase, form).ratio() for form in TIMER_STOP_FORMS) >= TIMER_STOP_SIMILARITY
 
 
 def vs_service(hass, p, suffix):
@@ -58,15 +73,21 @@ class Relay:
             if speech is not None:
                 # The stop route has already given the outcome to the Echo when it is up (speech is then empty).
                 return self.reply(user_input, speech)
+        text = user_input.text
+        if sounds_like_timer_stop(text) and (self.runtime.timers(p) or self.runtime.ringing_timers(p)):
+            # Speech-to-text mangles "stop timer" into names and words the model then chases. With a timer on
+            # this Echo the intent is clear enough to say it plainly; without one the words go on unchanged.
+            _LOGGER.info('Echo Experience relay: %r taken as %r for %s', text, TIMER_STOP, p['id'])
+            text = TIMER_STOP
         relay = p['relay']
         service = vs_service(self.hass, p, 'vs_show')
         if service:
-            await self.hass.services.async_call('esphome', service, {'prompt': user_input.text, 'speak': True, 'pipeline': relay['pipeline'], 'duration': relay['duration']}, blocking=False, context=user_input.context)
+            await self.hass.services.async_call('esphome', service, {'prompt': text, 'speak': True, 'pipeline': relay['pipeline'], 'duration': relay['duration']}, blocking=False, context=user_input.context)
             return self.reply(user_input)
         native.warn_once('relay_fallback_' + p['id'], 'Echo Experience relay: %s is unavailable; answering on the input satellite with %s', p['id'], relay['fallback_agent'])
         from homeassistant.components import conversation
         return await conversation.async_converse(
-            self.hass, user_input.text, user_input.conversation_id, user_input.context, language=user_input.language,
+            self.hass, text, user_input.conversation_id, user_input.context, language=user_input.language,
             agent_id=relay['fallback_agent'], device_id=user_input.device_id, satellite_id=getattr(user_input, 'satellite_id', None),
             extra_system_prompt=getattr(user_input, 'extra_system_prompt', None))
 
