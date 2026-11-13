@@ -34,17 +34,22 @@
           "media_player.dining_room_sonos",
           "media_player.move_sonos"
         ],
-        "additional_satellites": [
-          "assist_satellite.home_assistant_voice_kitchen_assist_satellite"
-        ],
+        "additional_satellites": [],
         "volume_factor": 0.1,
         "restore_delay": 1,
         "max_duration": 120
       },
       "input_satellites": [
-        "assist_satellite.home_assistant_voice_kitchen_assist_satellite"
+        "assist_satellite.echo_dot_2_12b84c_assist_satellite",
+        "assist_satellite.respeaker_xvf3800_d75264_assist_satellite"
       ],
-      "music_resolver_agent": "conversation.echo_music_resolver"
+      "music_resolver_agent": "conversation.echo_music_resolver",
+      "relay": {
+        "pipeline": 1,
+        "duration": 15,
+        "wake_cue": true,
+        "fallback_agent": "conversation.echo_home"
+      }
     }
   ]
 }
