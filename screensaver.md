@@ -1,6 +1,12 @@
 # Kitchen Echo screensaver
 
-## Current installed design: matching gradient home
+## Current setup (since 13 November 2026): Dim
+
+Kiosk screensaver mode **Dim**, scheduled screensavers **off** (`switch.amzn_echo_show_8_screensaver_schedule`): after the 30 second timeout Kiosk dims the live dashboard (dim level 10%) instead of opening a second Home Assistant page. The Website screensaver below loaded Home Assistant from scratch in a new web view every time it started (about 10 s of black and "Loading…"), which became visible on every voice turn once the Echo Dot relay began waking the screen. The two schedule entries (07:00, 22:00) still say Website and would override the mode, so the schedule stays off; the overnight 5% brightness is not applied. Idle views now return home by themselves (README, "Everyday use"). Kiosk's "freeze browser on screensaver" is on and does not stop the dimmed dashboard's clock.
+
+To go back to the Website screensaver: mode Website and schedule on.
+
+## Previous design (until 13 November 2026): matching gradient home
 
 The native clock configuration below has been replaced by a Website screensaver using `https://homeassistant.xpennohome.uk/echo-home/echo_show_8-screensaver`.
 

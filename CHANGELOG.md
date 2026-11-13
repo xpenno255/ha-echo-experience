@@ -1,5 +1,10 @@
 # Changes
 
+## 0.10.5 - Idle views come home
+
+- The card returns every view except home on its own once idle: answers, weather, controls, an empty music view and a timers view with nothing running or ringing after two minutes, a guide after five unless it is pinned with Keep open. It goes to music while music plays, otherwise home. Before, guides and timers stayed until someone tapped, which a dimming screensaver no longer hides.
+- Reload the Kiosk page after updating so it loads the new card. Restart Core after updating.
+
 ## 0.10.4 - "Stop the timer" works again
 
 - Echo tools treat an argument sent as `null` as omitted. The agent marks optional tool arguments nullable, and the model had started sending `echo_timer` `name: null`; voluptuous rejected it, so "Stop the timer." never cancelled or silenced anything.

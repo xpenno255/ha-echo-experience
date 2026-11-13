@@ -200,5 +200,17 @@ let ambient=new sandbox.Card();ambient.config={device:'kitchen',ambient:true};am
   boot.error='That action could not be completed';await boot.refresh();eq(boot.error,'That action could not be completed','action errors are not wiped by a refresh');
   boot.error='';listeners.ready();await new Promise(r=>setTimeout(r,0));eq(subs,3,'a reconnect subscribes afresh');eq(unsubs,1,'the old subscription is dropped');
   boot.disconnectedCallback();ok(!listeners.ready,'the reconnect listener is removed');}
+ // Idle views find their way home: the Kiosk screensaver only dims this dashboard now.
+ {const idle=(view,{hold='off',timers=[],ringing=[],playing=false,age=10*60e3}={})=>{const c=new sandbox.Card();c.config={device:'kitchen'};
+   c.data={profile:{kiosk_hold:'switch.hold',music_player:'media_player.kitchen'},timers,ringing};c._hass={states:{'switch.hold':{state:hold},'media_player.kitchen':{state:playing?'playing':'idle'}}};
+   c.view=view;c.touched=Date.now()-age;return c.idleReturn();};
+  for(const view of ['answer','weather','controls','timers','guide'])eq(idle(view),'home',view+' returns home once idle');
+  eq(idle('answer',{age:60e3}),null,'a fresh answer stays');eq(idle('guide',{age:3*60e3}),null,'a guide gets longer than an answer');
+  eq(idle('guide',{hold:'on'}),null,'a pinned guide stays until Done');
+  eq(idle('timers',{timers:[{id:'t1'}]}),null,'timers stay while one runs');eq(idle('timers',{ringing:[{id:'t1'}]}),null,'timers stay while one rings');
+  eq(idle('music'),'home','an empty music view returns home');eq(idle('music',{playing:true}),null,'playing music stays');
+  eq(idle('answer',{playing:true}),'music','with music playing an idle answer goes to the player');eq(idle('home'),null,'home stays home');
+  const fresh=new sandbox.Card();fresh.config={device:'kitchen'};fresh.data={profile:{},timers:[]};fresh._hass={states:{}};fresh.view='answer';fresh.touched=0;
+  fresh.result={timestamp:Date.now()/1000};eq(fresh.idleReturn(),null,'a just-published result counts as activity');}
  console.log(`${56+added} frontend behaviour assertions passed`);
 })().catch(err=>{console.error(err);process.exit(1);});
