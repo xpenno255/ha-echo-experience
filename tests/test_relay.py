@@ -84,7 +84,7 @@ class RelayTest(unittest.IsolatedAsyncioTestCase):
         self.runtime.ringing_timers=Mock(return_value=[{'id':'t2','name':'Pasta'}] if ringing else [])
     async def test_misheard_timer_stop_is_sent_plainly_while_a_timer_runs(self):
         self.with_timer()
-        for heard in ('Stop time, Matt.','Stop Tomer.','stop the time','stop timer'):
+        for heard in ('Stop time, Matt.','Stop Tomer.','Stop, Toma.','stop the tima','stop tim','stop the time','stop timer','stop timer now please'):
             with self.subTest(heard=heard):
                 self.hass.services.async_call.reset_mock()
                 await self.relay.process(self.turn(heard))
@@ -100,7 +100,7 @@ class RelayTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.hass.services.async_call.await_args.args[2]['prompt'],'Stop time, Matt.')
     async def test_other_stop_phrases_are_not_taken_for_the_timer(self):
         self.with_timer()
-        for heard in ('stop it','stop that','stop mama','stop the musik','stop the radio','stop the alarm','stop timer now please','stop the kitchen lights'):
+        for heard in ('stop it','stop that','stop mama','stop tuna','stop to','stop the musik','stop the radio','stop the alarm','stop the kitchen lights','next up stop'):
             with self.subTest(heard=heard):
                 self.assertFalse(relay_module.sounds_like_timer_stop(heard))
                 self.hass.services.async_call.reset_mock()
