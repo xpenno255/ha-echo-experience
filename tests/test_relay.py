@@ -78,6 +78,40 @@ class RelayTest(unittest.IsolatedAsyncioTestCase):
             await self.relay.process(self.turn('hi'))
         conv.assert_awaited_once()
 
+    # ---- misheard "stop timer"
+    def with_timer(self,running=True,ringing=False):
+        self.runtime.timers=Mock(return_value=[{'id':'t1','name':'Timer'}] if running else [])
+        self.runtime.ringing_timers=Mock(return_value=[{'id':'t2','name':'Pasta'}] if ringing else [])
+    async def test_misheard_timer_stop_is_sent_plainly_while_a_timer_runs(self):
+        self.with_timer()
+        for heard in ('Stop time, Matt.','Stop Tomer.','stop the time','stop timer'):
+            with self.subTest(heard=heard):
+                self.hass.services.async_call.reset_mock()
+                await self.relay.process(self.turn(heard))
+                self.assertEqual(self.hass.services.async_call.await_args.args[2]['prompt'],'Stop the timer.')
+        self.runtime.stop_route.handle.assert_not_awaited()
+    async def test_misheard_timer_stop_counts_a_ringing_alarm(self):
+        self.with_timer(running=False,ringing=True)
+        await self.relay.process(self.turn('Stop Tomer.'))
+        self.assertEqual(self.hass.services.async_call.await_args.args[2]['prompt'],'Stop the timer.')
+    async def test_misheard_timer_stop_is_left_alone_without_a_timer(self):
+        self.with_timer(running=False)
+        await self.relay.process(self.turn('Stop time, Matt.'))
+        self.assertEqual(self.hass.services.async_call.await_args.args[2]['prompt'],'Stop time, Matt.')
+    async def test_other_stop_phrases_are_not_taken_for_the_timer(self):
+        self.with_timer()
+        for heard in ('stop it','stop that','stop mama','stop the musik','stop the radio','stop the alarm','stop timer now please','stop the kitchen lights'):
+            with self.subTest(heard=heard):
+                self.assertFalse(relay_module.sounds_like_timer_stop(heard))
+                self.hass.services.async_call.reset_mock()
+                await self.relay.process(self.turn(heard))
+                self.assertEqual(self.hass.services.async_call.await_args.args[2]['prompt'],heard)
+    async def test_fallback_agent_gets_the_plain_timer_stop(self):
+        self.with_timer();self.states['assist_satellite.ks']=NS(state='unavailable')
+        with patch('homeassistant.components.conversation.async_converse',AsyncMock(return_value='x')) as conv:
+            await self.relay.process(self.turn('Stop Tomer.'))
+        self.assertEqual(conv.await_args.args[1],'Stop the timer.')
+
     # ---- wake cue
     def changed(self,cue,old,new,entity=PE):
         cue.changed(NS(data={'entity_id':entity,'old_state':NS(state=old),'new_state':NS(state=new)}))

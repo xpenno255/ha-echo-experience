@@ -1,5 +1,11 @@
 # Changes
 
+## 0.10.3 - Misheard "stop timer" and clearer timer errors
+
+- Echo Relay: while the Echo has a running or ringing timer, a short "stop ..." phrase that sounds like "stop timer" ("Stop time, Matt.", "Stop Tomer.") is sent to the Echo as "Stop the timer." instead of the misheard words. Music phrases and other stop phrases are never rewritten, and without a timer the words go on unchanged.
+- `echo_timer`: a timer name that matches nothing now says which timers this Echo has (name, time left, paused) and what to do next. With exactly one timer the model is told the name was probably misheard and to retry without a name or ask; with several, to ask which one. Before, it only said "No timer is running or ringing on this Echo named matt", and the local model once spent 16 seconds working out what to do.
+- No migration. Restart Core after updating.
+
 ## 0.10.2 - Stop outcome on the Echo, for real
 
 - The stop phrases are answered by Home Assistant's sentence trigger before any agent runs, so 0.10.1's relay-side change never applied. The stop route now gives the outcome to the Echo (`assist_satellite.announce`) and answers the input satellite with explicit empty speech; the input satellite still speaks it when the Echo is unavailable.

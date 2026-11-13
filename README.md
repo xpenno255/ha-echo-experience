@@ -109,6 +109,8 @@ For an Echo with poor microphones. A Voice PE does wake word and speech-to-text 
 3. Select that pipeline on the Voice PE and turn off its wake sound (the Echo gives the cue). Set the Echo's wake word to `no_wake_word`.
 4. Say stop to the Voice PE: the stop route answers it directly and stops Echo timers or music.
 
+While the Echo has a running or ringing timer, a misheard "stop timer" (a short "stop ..." phrase close to it, such as "Stop time, Matt.") is sent on as "Stop the timer."; music phrases are never rewritten.
+
 If the Echo's Kiosk satellite is unavailable the relay hands the turn to `fallback_agent` and the Voice PE answers itself. Empty relay speech makes Home Assistant skip text-to-speech, so the Voice PE stays silent and goes idle. Answers ending in a question may still make the Echo listen for a follow-up.
 
 ## Add another Echo

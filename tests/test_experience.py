@@ -242,6 +242,23 @@ class RuntimeTest(unittest.IsolatedAsyncioTestCase):
   self.hass.data[TIMER_DATA].cancel_timer.assert_called_once_with('r1');self.assertEqual(result['ringing'][0]['name'],'Pasta')
   with self.assertRaisesRegex(ValueError,'alarm is sounding'):await self.runtime.execute(self.profiles[0],'timer',{'operation':'pause','name':'pasta'})
   with self.assertRaisesRegex(ValueError,'No ringing timer matches'):await self.runtime.execute(self.profiles[0],'timer',{'operation':'dismiss','name':'roast'})
+ async def test_unmatched_timer_name_says_what_is_running_and_what_to_do(self):
+  manager=NS(timers={},cancel_timer=Mock());self.hass.data[TIMER_DATA]=manager
+  with self.assertRaisesRegex(ValueError,'No timer is running or ringing on this Echo named matt. Tell the user there is no timer'):
+   await self.runtime.execute(self.profiles[0],'timer',{'operation':'cancel','name':'Matt'})
+  manager.timers['r1']=NS(id='r1',name='Timer',device_id='device-kitchen',seconds_left=88,created_seconds=120,is_active=True)
+  manager.timers['b1']=NS(id='b1',name='Tea',device_id='device-bedroom',seconds_left=30,created_seconds=60,is_active=True)
+  with self.assertRaises(ValueError) as caught:await self.runtime.execute(self.profiles[0],'timer',{'operation':'cancel','name':'Matt'})
+  message=str(caught.exception)
+  self.assertIn('The only timer on this Echo is an unnamed timer (1 min 28 s left)',message)
+  self.assertIn('call echo_timer again with the same operation and no name',message)
+  self.assertNotIn('Tea',message,'another Echo\'s timers are never listed')
+  manager.timers['r2']=NS(id='r2',name='Pasta',device_id='device-kitchen',seconds_left=5,created_seconds=600,is_active=False)
+  with self.assertRaisesRegex(ValueError,r"Timers on this Echo: an unnamed timer \(1 min 28 s left\), 'Pasta' \(5 s left, paused\)\. Ask the user"):
+   await self.runtime.execute(self.profiles[0],'timer',{'operation':'cancel','name':'Matt'})
+  with self.assertRaisesRegex(ValueError,'Several timers match: .*Ask the user which one'):
+   await self.runtime.execute(self.profiles[0],'timer',{'operation':'cancel'})
+  manager.cancel_timer.assert_not_called()
  async def test_dismiss_service_scopes_to_origin_device_and_never_cancels_running(self):
   self.assertEqual(await self.runtime.dismiss_for_device('unknown'),{'status':'unknown_device'})
   self.assertEqual(await self.runtime.dismiss_for_device('device-kitchen'),{'status':'not_ringing'})
