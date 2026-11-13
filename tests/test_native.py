@@ -396,8 +396,9 @@ class SetupWiringTest(unittest.IsolatedAsyncioTestCase):
         self.entry.options = {'manage_dashboard': False, 'runtime_echo_show_8': 'native'}
         self.assertTrue(await module.async_setup_entry(self.hass, self.entry))
         listened = [c.args[0] for c in self.hass.bus.async_listen.call_args_list]
-        # state_changed: the wake cue watches the profile's input satellite.
-        self.assertEqual(listened, ['voice_satellite_chat', 'voice_satellite_timer', native.TIMER_EVENT, 'state_changed'])
+        # state_changed only while a relay wake cue watches an input satellite (profiles.json turns the cue off).
+        cue = any(p['relay']['wake_cue'] and p['input_satellites'] for p in self.hass.data[module.DOMAIN].profiles)
+        self.assertEqual(listened, ['voice_satellite_chat', 'voice_satellite_timer', native.TIMER_EVENT] + (['state_changed'] if cue else []))
         runtime = self.hass.data[module.DOMAIN]
         self.assertEqual(runtime.overrides, {'echo_show_8': 'native'})
         self.assertIsInstance(runtime.turns, native.TurnWatcher)
