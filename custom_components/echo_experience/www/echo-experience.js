@@ -72,6 +72,8 @@ const shortName = (name,prefix) => {const rest=prefix&&name.startsWith(prefix+' 
 // The leading word shared by every light name ("Kitchen"), used as the group heading instead of repeating it.
 const commonPrefix = names => {if(names.length<2)return '';const first=names[0].split(' ')[0];return names.every(n=>n.split(' ')[0]===first&&n.split(' ').length>1)?first:'';};
 
+const IDLE_RETURN_MS=120000,GUIDE_RETURN_MS=300000;
+
 class EchoExperienceCard extends HTMLElement {
   constructor(){super();this.attachShadow({mode:'open'});this.view='home';this.data=null;this.error='';this.busy=false;this.touched=0;this._generation=0;this.palettes=new Map();this.failedArt=new Set();}
   setConfig(config){if(!config.device)throw new Error('Echo Experience needs a device profile');this.config=config;this.render();}
@@ -177,8 +179,23 @@ class EchoExperienceCard extends HTMLElement {
     // Song position advances from HA's own timestamps; nothing is re-rendered or re-sampled here.
     this.shadowRoot.querySelectorAll('[data-progress]').forEach(el=>{const pos=this.position(el.dataset);const bar=el.querySelector('i'),label=el.parentElement?.querySelector('[data-elapsed]');if(bar)bar.style.width=`${pos/Number(el.dataset.dur)*100}%`;if(label)label.textContent=duration(pos);el.setAttribute('aria-valuenow',String(Math.round(pos)));});
     this.checkRinging();
-    // Guide stays on screen until Done. Transient answers return to music/home.
-    if(['answer','weather','controls'].includes(this.view)&&!this.shadowRoot.activeElement&&Date.now()-Math.max(this.touched,(this.result?.timestamp||0)*1000)>120000){this.view=this._hass?.states[this.activePlayer]?.state==='playing'?'music':'home';this.render();}
+    const back=this.idleReturn();if(back){this.view=back;this.render();}
+  }
+  // Since the Kiosk screensaver only dims this dashboard (no separate ambient page covers it), every view but
+  // home finds its own way back once idle. A pinned guide (Kiosk hold on) stays until Done; timers stay while a
+  // timer runs or rings; music stays while it plays. Returns the view to show, or null to stay.
+  idleReturn(now=Date.now()){
+    if(this.view==='home'||this.config?.ambient||this.shadowRoot.activeElement)return null;
+    const playing=this._hass?.states[this.activePlayer]?.state==='playing';
+    const idle=now-Math.max(this.touched,(this.result?.timestamp||0)*1000);
+    const pinned=this.data?.profile?.kiosk_hold&&this._hass?.states[this.data.profile.kiosk_hold]?.state==='on';
+    const timersLive=(this.data?.timers||[]).length||(this.data?.ringing||[]).length;
+    const wait={answer:IDLE_RETURN_MS,weather:IDLE_RETURN_MS,controls:IDLE_RETURN_MS,timers:IDLE_RETURN_MS,music:IDLE_RETURN_MS,guide:GUIDE_RETURN_MS}[this.view];
+    if(wait===undefined||idle<=wait)return null;
+    if(this.view==='guide'&&pinned)return null;
+    if(this.view==='timers'&&timersLive)return null;
+    if(this.view==='music')return playing?null:'home';
+    return playing?'music':'home';
   }
   async action(action,args={}){
     if(this.config.ambient||this.busy)return;this.busy=true;this.error='';this.touched=Date.now();this.render();
