@@ -47,7 +47,7 @@
       "relay": {
         "pipeline": 1,
         "duration": 15,
-        "wake_cue": true,
+        "wake_cue": false,
         "fallback_agent": "conversation.echo_home"
       }
     }
