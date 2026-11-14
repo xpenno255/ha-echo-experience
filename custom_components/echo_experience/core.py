@@ -38,6 +38,7 @@ def validate_profiles(config):
         if native is not None:
             if not isinstance(native,dict) or not isinstance(native.get('satellite'),str) or not native['satellite'].startswith('assist_satellite.') or not isinstance(native.get('device_id'),str) or not native['device_id']:raise ValueError('Invalid native identity')
             if native.get('node') is not None and not (isinstance(native['node'],str) and re.fullmatch(r'[a-z0-9_]+',native['node'])):raise ValueError('Invalid native node')
+        if not isinstance(p.setdefault('hold_while_music',True),bool):raise ValueError('Invalid hold_while_music')
         p.setdefault('runtime','auto')
         if p['runtime'] not in RUNTIMES:raise ValueError('Invalid runtime')
         for k,domain in [('satellite','assist_satellite.'),('music_player','media_player.'),('weather','weather.')]:
