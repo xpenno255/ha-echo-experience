@@ -1,5 +1,10 @@
 # Changes
 
+## 0.10.7 - Screen hold release runs in the event loop
+
+- 0.10.6 scheduled the release of the music screen hold with a plain function, which Home Assistant runs in a worker thread. It then failed ("calls hass.async_create_task from a thread other than the event loop") and the hold was only released by the one-minute recheck. It is now a callback job.
+- Restart Core after updating.
+
 ## 0.10.6 - The screen stays bright while music plays
 
 - While music plays on an Echo's speaker, the integration turns on Kiosk Hold mode (`kiosk_hold`), as it already does for a running timer, so the screensaver does not dim the music view. It covers the selected speaker and music started from another app on its native speakers. The hold is released 20 seconds after the music stops or is paused; a track change does not flicker it. A hold someone else set is still left alone.
