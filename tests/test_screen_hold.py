@@ -104,6 +104,8 @@ class ScreenHoldTest(unittest.IsolatedAsyncioTestCase):
             self.music('paused');await self.settle()
             self.assertEqual(self.switch['state'],'on','a pause waits for the grace period')
             self.assertEqual(later.call_args.args[1],screen_hold.MUSIC_RELEASE)
+            from homeassistant.core import HassJobType, get_hassjob_callable_job_type
+            self.assertEqual(get_hassjob_callable_job_type(later.call_args.args[2]),HassJobType.Callback,'the release must run in the event loop, not an executor thread')
             fired[-1](None);await self.settle()
         self.assertEqual(self.calls[-1],('switch','turn_off',HOLD));self.assertEqual(self.store.data,{'owned':[]})
 

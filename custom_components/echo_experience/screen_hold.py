@@ -10,6 +10,7 @@ survive one) is released at the next start.
 import asyncio
 import logging
 from datetime import timedelta
+from functools import partial
 from homeassistant.core import callback
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event, async_track_time_interval
 from homeassistant.helpers.storage import Store
@@ -81,10 +82,12 @@ class ScreenHold:
             cancel=self.pending.pop(p['id'],None)
             if cancel:cancel()
             if self.music_playing(p):self.schedule(p)
-            else:self.pending[p['id']]=async_call_later(self.hass,MUSIC_RELEASE,lambda _now,p=p:self.released(p))
+            # A partial of a callback method stays a callback job. A lambda would be run in an executor thread,
+            # from where scheduling the sync is not allowed.
+            else:self.pending[p['id']]=async_call_later(self.hass,MUSIC_RELEASE,partial(self.released,p))
 
     @callback
-    def released(self,p):
+    def released(self,p,_now=None):
         self.pending.pop(p['id'],None)
         self.schedule(p)
 
