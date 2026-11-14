@@ -37,7 +37,8 @@ class ScreenHoldTest(unittest.IsolatedAsyncioTestCase):
             self.switch['state']='on' if service=='turn_on' else 'off'
         self.calls=[]
         self.timers={}
-        self.hass=NS(data={TIMER_DATA:NS(timers=self.timers)},states=NS(get=lambda e:NS(state=self.switch['state']) if e==HOLD else None),
+        self.players={}
+        self.hass=NS(data={TIMER_DATA:NS(timers=self.timers)},states=NS(get=lambda e:NS(state=self.switch['state']) if e==HOLD else (NS(state=self.players[e],attributes={}) if e in self.players else None)),
                      services=NS(async_call=AsyncMock(side_effect=call)),bus=NS(async_fire=Mock()),async_create_task=asyncio.ensure_future)
         self.runtime=Experience(self.hass,{'devices':profiles()})
         self.kitchen=self.runtime.profiles[0]
@@ -85,9 +86,54 @@ class ScreenHoldTest(unittest.IsolatedAsyncioTestCase):
         unsubscribe=Mock()
         with patch.object(screen_hold,'async_track_state_change_event',return_value=unsubscribe) as track,patch.object(screen_hold,'async_track_time_interval',return_value=unsubscribe):
             await self.hold.async_start()
-        self.assertEqual(track.call_args.args[1],[HOLD],'only Echoes with a hold switch are watched')
+        self.assertEqual(track.call_args_list[0].args[1],[HOLD],'only Echoes with a hold switch are watched')
+        self.assertEqual(track.call_args_list[1].args[1],['media_player.kitchen'],'and only their speakers')
         self.assertEqual(self.calls,[('switch','turn_off',HOLD)]);self.assertEqual(self.store.data,{'owned':[]})
-        self.hold.stop();self.assertEqual(unsubscribe.call_count,2)
+        self.hold.stop();self.assertEqual(unsubscribe.call_count,3)
+
+    # ---- music
+    def music(self,state,entity='media_player.kitchen'):
+        self.players[entity]=state
+        self.hold.music_changed(NS(data={'entity_id':entity}))
+
+    async def test_playing_music_holds_and_stopping_releases_after_the_grace(self):
+        fired=[]
+        with patch.object(screen_hold,'async_call_later',side_effect=lambda hass,delay,action:(fired.append(action),Mock())[1]) as later:
+            self.music('playing');await self.settle()
+            self.assertEqual(self.calls,[('switch','turn_on',HOLD)]);later.assert_not_called()
+            self.music('paused');await self.settle()
+            self.assertEqual(self.switch['state'],'on','a pause waits for the grace period')
+            self.assertEqual(later.call_args.args[1],screen_hold.MUSIC_RELEASE)
+            fired[-1](None);await self.settle()
+        self.assertEqual(self.calls[-1],('switch','turn_off',HOLD));self.assertEqual(self.store.data,{'owned':[]})
+
+    async def test_track_change_within_the_grace_keeps_the_hold(self):
+        cancels=[]
+        def later(hass,delay,action):
+            cancels.append(Mock());return cancels[-1]
+        with patch.object(screen_hold,'async_call_later',side_effect=later):
+            self.music('playing');await self.settle()
+            self.music('idle');self.music('playing');await self.settle()
+        cancels[0].assert_called_once_with()
+        self.assertEqual(self.calls,[('switch','turn_on',HOLD)],'no off and on between tracks')
+
+    async def test_music_started_from_another_app_on_a_native_speaker_holds(self):
+        self.kitchen['native_players']=['media_player.kitchen_sonos']
+        self.players.update({'media_player.kitchen':'idle','media_player.kitchen_sonos':'playing'})
+        self.hold.music_changed(NS(data={'entity_id':'media_player.kitchen_sonos'}));await self.settle()
+        self.assertEqual(self.calls,[('switch','turn_on',HOLD)])
+
+    async def test_other_rooms_music_and_the_option_off_do_not_hold(self):
+        self.players['media_player.bedroom']='playing'
+        self.hold.music_changed(NS(data={'entity_id':'media_player.bedroom'}));await self.settle()
+        self.kitchen['hold_while_music']=False;self.players['media_player.kitchen']='playing'
+        self.hold.music_changed(NS(data={'entity_id':'media_player.kitchen'}));await self.hold.sync(self.kitchen)
+        self.assertEqual(self.calls,[])
+
+    async def test_a_guide_pin_survives_the_music_ending(self):
+        self.switch['state']='on';self.players['media_player.kitchen']='playing';await self.hold.sync(self.kitchen)
+        self.players['media_player.kitchen']='idle';await self.hold.sync(self.kitchen)
+        self.assertEqual(self.calls,[],'the integration never owned this hold')
 
     async def test_unavailable_switch_keeps_ownership_for_a_retry(self):
         self.switch['state']='on';self.timer();self.hold.owned={'kitchen'};del self.timers['t1']

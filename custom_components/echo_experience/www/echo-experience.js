@@ -188,8 +188,11 @@ class EchoExperienceCard extends HTMLElement {
     if(this.view==='home'||this.config?.ambient||this.shadowRoot.activeElement)return null;
     const playing=this._hass?.states[this.activePlayer]?.state==='playing';
     const idle=now-Math.max(this.touched,(this.result?.timestamp||0)*1000);
-    const pinned=this.data?.profile?.kiosk_hold&&this._hass?.states[this.data.profile.kiosk_hold]?.state==='on';
     const timersLive=(this.data?.timers||[]).length||(this.data?.ringing||[]).length;
+    // Hold mode is also on while music plays (the integration keeps the screen bright); that is not a pinned guide.
+    const held=this.data?.profile?.kiosk_hold&&this._hass?.states[this.data.profile.kiosk_hold]?.state==='on';
+    const musicHold=playing&&this.data?.profile?.hold_while_music!==false;
+    const pinned=held&&(this.ownsHold||timersLive||!musicHold);
     const wait={answer:IDLE_RETURN_MS,weather:IDLE_RETURN_MS,controls:IDLE_RETURN_MS,timers:IDLE_RETURN_MS,music:IDLE_RETURN_MS,guide:GUIDE_RETURN_MS}[this.view];
     if(wait===undefined||idle<=wait)return null;
     if(this.view==='guide'&&pinned)return null;

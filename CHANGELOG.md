@@ -1,5 +1,12 @@
 # Changes
 
+## 0.10.6 - The screen stays bright while music plays
+
+- While music plays on an Echo's speaker, the integration turns on Kiosk Hold mode (`kiosk_hold`), as it already does for a running timer, so the screensaver does not dim the music view. It covers the selected speaker and music started from another app on its native speakers. The hold is released 20 seconds after the music stops or is paused; a track change does not flicker it. A hold someone else set is still left alone.
+- New profile setting `hold_while_music` (default true). Set it to false to let the screen dim during music as before.
+- The card no longer treats that hold as a pinned guide: with music playing, an idle guide still returns to the music view after five minutes unless it was pinned with Keep open or a timer is running.
+- Reload the Kiosk page after updating so it loads the new card. Restart Core after updating.
+
 ## 0.10.5 - Idle views come home
 
 - The card returns every view except home on its own once idle: answers, weather, controls, an empty music view and a timers view with nothing running or ringing after two minutes, a guide after five unless it is pinned with Keep open. It goes to music while music plays, otherwise home. Before, guides and timers stayed until someone tapped, which a dimming screensaver no longer hides.
