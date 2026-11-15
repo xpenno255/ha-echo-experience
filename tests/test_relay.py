@@ -84,7 +84,8 @@ class RelayTest(unittest.IsolatedAsyncioTestCase):
         self.runtime.ringing_timers=Mock(return_value=[{'id':'t2','name':'Pasta'}] if ringing else [])
     async def test_misheard_timer_stop_is_sent_plainly_while_a_timer_runs(self):
         self.with_timer()
-        for heard in ('Stop time, Matt.','Stop Tomer.','Stop, Toma.','stop the tima','stop tim','stop the time','stop timer','stop timer now please'):
+        for heard in ('Stop time, Matt.','Stop Tomer.','Stop, Toma.','stop the tima','stop tim','stop the time','stop timer','stop timer now please',
+                      'Stop Tone Up.','Stop, tie them up.','Stop, Time Out.','stop tuna','Stop drying up.','So, stop Tomer.','Kalexa, stop Toma.'):
             with self.subTest(heard=heard):
                 self.hass.services.async_call.reset_mock()
                 await self.relay.process(self.turn(heard))
@@ -118,7 +119,7 @@ class RelayTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.hass.services.async_call.await_args.args[2]['prompt'],'Stop time, Matt.')
     async def test_other_stop_phrases_are_not_taken_for_the_timer(self):
         self.with_timer()
-        for heard in ('stop mama','stop tuna','stop to','stop the musik','stop the alarm','stop the kitchen lights','next up stop'):
+        for heard in ('stop mama','stop to','stop the musik','stop the alarm','stop the kitchen lights','next up stop','stop the downstairs lights','stop the tumble dryer','stop the dining room lamp','stop thinking','stop the dishwasher'):
             with self.subTest(heard=heard):
                 self.assertFalse(relay_module.sounds_like_timer_stop(heard))
                 self.hass.services.async_call.reset_mock()
@@ -133,13 +134,13 @@ class RelayTest(unittest.IsolatedAsyncioTestCase):
     # ---- the wake word sent with the request
     async def test_wake_word_in_front_is_taken_off_before_the_echo_gets_the_request(self):
         for heard,sent in (('Alexa, set a 2 minute timer.','Set a 2 minute timer.'),(' Alexa set a 2 minute timer','Set a 2 minute timer'),('ALEXA! What is the weather?','What is the weather?'),
-                           ('Alexa. Alexa, play the radio','Play the radio'),('Alexa, Alexa. Alexa set a timer','Set a timer'),('Is Alexa listening?','Is Alexa listening?'),('Alexander the Great','Alexander the Great'),("Let's set a timer","Let's set a timer")):
+                           ('Alexa. Alexa, play the radio','Play the radio'),('Alexa, Alexa. Alexa set a timer','Set a timer'),('Is Alexa listening?','Is Alexa listening?'),('Kalexa, what is the weather?','What is the weather?'),('Alexia. Lights on','Lights on'),('Kalexa, Alexa, lights on','Lights on'),('Alex is here','Alex is here'),('Flexible working','Flexible working'),('Alexander the Great','Alexander the Great'),("Let's set a timer","Let's set a timer")):
             with self.subTest(heard=heard):
                 self.hass.services.async_call.reset_mock()
                 await self.relay.process(self.turn(heard))
                 self.assertEqual(self.hass.services.async_call.await_args.args[2]['prompt'],sent)
     async def test_wake_word_then_stop_is_a_stop(self):
-        for heard in ('Alexa, stop.','Alexa stop the music','Alexa. Stop, stop!'):
+        for heard in ('Alexa, stop.','Alexa stop the music','Alexa. Stop, stop!','Kalexa, stop.'):
             with self.subTest(heard=heard):
                 self.runtime.stop_route.handle.reset_mock()
                 await self.relay.process(self.turn(heard))

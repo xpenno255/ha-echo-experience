@@ -111,7 +111,7 @@ For an Echo with poor microphones. A Voice PE does wake word and speech-to-text 
 
 A wake word at the front of the transcript (`relay.wake_words`) is taken off first, so an echo-dot-assist input can run with **Wake word in the request** on (its settings page, Voice). Speech-to-text then hears "Alexa, set a timer" whole; without it the Dot has to guess where "Alexa" ends and the first word of a request said in one breath often comes out wrong ("Let's set a timer").
 
-While the Echo has a running or ringing timer, a misheard "stop timer" (a short "stop ..." phrase close to it, such as "Stop time, Matt.") is sent on as "Stop the timer."; music phrases are never rewritten.
+While the Echo has a running or ringing timer, a misheard "stop timer" (a short "stop ..." phrase close to it, such as "Stop time, Matt.", "Stop Tone Up." or "Stop, tie them up.") is sent on as "Stop the timer."; phrases that name the music or a household device are never rewritten.
 
 If the Echo's Kiosk satellite is unavailable the relay hands the turn to `fallback_agent` and the Voice PE answers itself. If the satellite looks available but does not acknowledge the request within four seconds (a Wi-Fi drop), the Voice PE says "Sorry, I couldn't reach the <Echo name>. Please try again."; this needs a text-to-speech engine on the relay pipeline. A request made while the Echo is still speaking interrupts that answer. Empty relay speech makes Home Assistant skip text-to-speech, so the Voice PE stays silent and goes idle. Answers ending in a question may still make the Echo listen for a follow-up.
 
