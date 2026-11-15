@@ -1,5 +1,11 @@
 # Changes
 
+## 0.11.4 - More misheard "stop timer" caught
+
+- Echo Relay: while the Echo has a running or ringing timer, more of the ways speech-to-text spells "stop timer" are sent on as "Stop the timer.". Heard in use: "Stop Tone Up.", "Stop, tie them up.", "Stop, Time Out.", besides the "Stop Tomer." and "Stop, Toma." already caught. The test is now a t or d followed closely by an m or n in the words after "stop". A phrase that names a household device ("stop the downstairs lights", "stop the tumble dryer") or the music is never rewritten, and without a timer nothing is.
+- Echo Relay: a first word that is all but the wake word ("Kalexa, stop.", "Alexia, lights on") is taken off like the wake word itself.
+- No migration. Restart Core after updating.
+
 ## 0.11.3 - Music stays down while the Echo answers a relayed request
 
 - Ducking now also follows the Kiosk's own turn state. With Echo Relay the input satellite goes idle as soon as it has heard the request, and Home Assistant's satellite entity for the Echo stays idle through a relayed turn, so the music came back to full volume about a second and a half after the request, while the Echo was still working out and speaking the answer. It now stays ducked until the answer has ended (plus `restore_delay`).

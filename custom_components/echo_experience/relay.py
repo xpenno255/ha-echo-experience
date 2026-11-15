@@ -17,7 +17,7 @@ from homeassistant.helpers.event import async_track_state_change_event
 
 from . import native
 from .core import identity, input_satellites
-from .stop_route import COMMANDS, normalise, stop_kind
+from .stop_route import COMMANDS, STOP_LEAD, normalise, stop_kind
 
 _LOGGER = logging.getLogger(__name__)
 STOP_PHRASES = {c.casefold() for c in COMMANDS}
@@ -28,6 +28,10 @@ TIMER_STOP = 'Stop the timer.'
 TIMER_STOP_FORMS = ('stop timer', 'stop the timer')
 TIMER_STOP_SIMILARITY = 0.75
 MUSIC_WORDS = re.compile(r'\b(music|sonos|song|radio|playing)\b')
+# "Stop the downstairs lights" starts like a misheard timer too; a phrase naming one of these is left to the model.
+DEVICE_WORDS = re.compile(r'\b(lights?|lamps?|heating|fan|tv|telly|television|dryer|washer|dishwasher|machine|doors?|blinds?|radiators?|oven|hob|kettle|plug|switch|alarm)\b')
+# A first word this close to a one-word wake word is the wake word misheard (Kalexa, Alexia), not part of the request.
+WAKE_WORD_SIMILARITY = 0.9
 # The Echo acknowledges vs_show in milliseconds; no answer in this time means the turn did not reach it.
 HANDOFF_TIMEOUT = 4
 # After interrupting the turn on the Echo's screen it needs a moment before it takes another.
@@ -47,24 +51,46 @@ def strip_wake_word(text, words):
     text = text or ''
     if not words:
         return text
-    # Said twice because the first went unheard over the Echo's voice ("Alexa, Alexa."): every leading one goes.
-    rest = re.sub(r'^\W*(?:(?:' + '|'.join(re.escape(w.strip()) for w in words) + r')\b\W*)+', '', text, count=1, flags=re.I)
+    exact = re.compile(r'^\W*(?:(?:' + '|'.join(re.escape(w.strip()) for w in words) + r')\b\W*)+', re.I)
+    single = [w.strip().casefold() for w in words if len(w.split()) == 1]
+    rest = text
+    while True:
+        # Said twice because the first went unheard over the Echo's voice ("Alexa, Alexa."): every leading one goes.
+        shorter = exact.sub('', rest, count=1)
+        if shorter == rest:
+            # The word itself misheard ("Kalexa, stop."): a first word that is all but the wake word goes too.
+            first = re.match(r'^\W*(\w+)\W*', rest)
+            if first and any(difflib.SequenceMatcher(None, first.group(1).casefold(), w).ratio() >= WAKE_WORD_SIMILARITY for w in single):
+                shorter = rest[first.end():]
+        if shorter == rest:
+            break
+        rest = shorter
     return text if rest == text else rest[:1].upper() + rest[1:]
 
 
-def sounds_like_timer(word):
-    """Speech-to-text spells "timer" as toma, tomer, tima, time...: a t-m consonant start is the stable part."""
-    return re.sub(r'[aeiouy]', '', word).startswith('tm')
+def sounds_like_timer(words):
+    """The words after "stop (the)" as speech-to-text spells a misheard "timer".
+
+    Heard so far: Toma, Tomer, tima, time (Matt), Time Out, Tone Up, tie them up, drying up. What they share is a
+    t or d, a vowel, then an m or n: the first of the first four consonants is t or d and one of the next three is
+    a nasal. "the", "that", "this" and the like (th-) are not it.
+    """
+    start = ''.join(words[:2])
+    consonants = re.sub(r'[aeiouy]', '', start)
+    return bool(consonants) and consonants[0] in 'td' and not start.startswith('th') and bool(re.search(r'[mn]', consonants[1:4]))
 
 
 def sounds_like_timer_stop(text):
-    """A short "stop ..." phrase close to "stop (the) timer". Music phrases and bare/known stop phrases never match."""
-    phrase = normalise(text)
-    words = phrase.split()
-    if len(words) < 2 or len(words) > 4 or words[0] != 'stop' or phrase in STOP_PHRASES or MUSIC_WORDS.search(phrase):
+    """A short "stop ..." phrase close to "stop (the) timer". Music phrases, bare/known stop phrases and phrases
+    that name a household device never match."""
+    words = normalise(text).split()
+    while len(words) > 1 and words[0] in STOP_LEAD:
+        words = words[1:]
+    phrase = ' '.join(words)
+    if len(words) < 2 or len(words) > 4 or words[0] != 'stop' or phrase in STOP_PHRASES or MUSIC_WORDS.search(phrase) or DEVICE_WORDS.search(phrase):
         return False
     rest = words[2:] if words[1] == 'the' else words[1:]
-    if rest and sounds_like_timer(rest[0]):
+    if rest and sounds_like_timer(rest):
         return True
     return max(difflib.SequenceMatcher(None, phrase, form).ratio() for form in TIMER_STOP_FORMS) >= TIMER_STOP_SIMILARITY
 
