@@ -23,6 +23,7 @@ from .core import validate_profiles, route_profile, convert, VIEWS, normalize_ti
 from . import frontend, dashboard, native
 from .stop_route import StopRoute
 from .screen_hold import ScreenHold
+from .timer_journal import TimerJournal
 from .relay import WakeCue
 
 DOMAIN='echo_experience'
@@ -69,6 +70,9 @@ async def async_setup_entry(hass, entry):
     runtime.screen_hold=ScreenHold(hass,runtime)
     await feature('screen_hold',runtime.screen_hold.async_start())
     entry.async_on_unload(runtime.screen_hold.stop)
+    runtime.timer_journal=TimerJournal(hass,runtime)
+    await feature('timer_journal',runtime.timer_journal.async_start())
+    entry.async_on_unload(runtime.timer_journal.stop)
     entry.async_on_unload(entry.add_update_listener(async_options_updated))
     async def reload(call):await hass.config_entries.async_reload(entry.entry_id)
     async_register_admin_service(hass,DOMAIN,'reload',reload)
@@ -124,6 +128,7 @@ class Experience:
         self.dismissals={}
         self.dismiss_timeout=4
         self.screen_hold=None
+        self.timer_journal=None
         self.stop_route=None
         # Profile id -> when a wake word on an input satellite ended the answer this Echo was speaking.
         self.hushed={}
@@ -159,6 +164,10 @@ class Experience:
         if not entries:self.ringing.pop(p['id'],None)
         if self.screen_hold:self.screen_hold.schedule(p)
         return any(t is not None for t in popped)
+
+    def timer_manager(self):
+        """Home Assistant's own timer manager (intent component), or None before it has loaded."""
+        return self.hass.data.get(TIMER_DATA)
 
     def timers(self,p):
         manager=self.hass.data.get(TIMER_DATA)
@@ -221,6 +230,7 @@ class Experience:
             # Native Voice Satellite owns audio and completion/dismissal; no duplicate alarm.
             self.hass.bus.async_fire(EVENT,{'device':p['id'],'timers':self.timers(p),'ringing':self.ringing_timers(p),'timer_event':dict(data)})
             if self.screen_hold:self.screen_hold.schedule(p)
+            if self.timer_journal:self.timer_journal.schedule()
 
     @callback
     def native_timer_event(self,event):
@@ -241,6 +251,7 @@ class Experience:
                     if not waiter['ids'] and not waiter['future'].done():waiter['future'].set_result(True)
         self.hass.bus.async_fire(EVENT,{'device':p['id'],'timers':self.timers(p),'ringing':self.ringing_timers(p),'timer_event':dict(data)})
         if self.screen_hold:self.screen_hold.schedule(p)
+        if self.timer_journal:self.timer_journal.schedule()
 
     async def dismiss(self,p,ringing):
         """Silence ringing alarms where they ring: the browser runtime through the Echo's dashboard, the native one

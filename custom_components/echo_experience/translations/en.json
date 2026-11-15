@@ -102,6 +102,10 @@
     "setup_failed_screen_hold": {
       "title": "Timer screen hold unavailable",
       "description": "Setting up the timer screen hold failed: {error}. The Echo may dim to its screensaver while a timer runs. See the log, then reload Echo Experience."
+    },
+    "setup_failed_timer_journal": {
+      "title": "Timers will not survive a restart",
+      "description": "Setting up the timer journal failed: {error}. Running timers will be lost if Home Assistant restarts. See the log, then reload Echo Experience."
     }
   }
 }

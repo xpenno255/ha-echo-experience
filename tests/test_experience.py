@@ -372,6 +372,7 @@ class SetupTest(unittest.IsolatedAsyncioTestCase):
    patch.object(module.dashboard,'async_manage',AsyncMock(side_effect=lambda hass,profiles,v,enabled=True:self.calls.setdefault('dashboard',(v,enabled)))),
    patch.object(module.StopRoute,'async_start',AsyncMock(side_effect=lambda:self.calls.setdefault('route',True))),
    patch.object(module.ScreenHold,'async_start',AsyncMock(side_effect=lambda:self.calls.setdefault('hold',True))),
+   patch.object(module.TimerJournal,'async_start',AsyncMock(side_effect=lambda:self.calls.setdefault('journal',True))),
    patch.object(module.DuckingManager,'async_start',AsyncMock()),
    patch.object(module.llm,'async_register_api',lambda hass,api:(lambda:None)),
    patch.object(module,'async_register_admin_service',lambda hass,d,n,h,**k:self.admin.__setitem__(n,h)),
@@ -389,7 +390,7 @@ class SetupTest(unittest.IsolatedAsyncioTestCase):
  async def test_setup_wires_card_dashboard_route_and_reload_service(self):
   self.assertTrue(await module.async_setup_entry(self.hass,self.entry))
   version=json.loads((Path(__file__).resolve().parents[1]/'custom_components/echo_experience/manifest.json').read_text())['version']
-  self.assertEqual(self.calls,{'static':True,'resource':version,'dashboard':(version,False),'route':True,'hold':True})
+  self.assertEqual(self.calls,{'static':True,'resource':version,'dashboard':(version,False),'route':True,'hold':True,'journal':True})
   self.assertIn('reload',self.admin,'reload is registered through the admin-only helper');self.assertNotIn('reload',self.services)
   self.assertIn('dismiss_timer',self.services)
   await self.admin['reload'](NS(data={}))
