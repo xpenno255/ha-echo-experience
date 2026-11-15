@@ -38,7 +38,7 @@ class RelayTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_forwards_to_vs_show_with_empty_speech_and_no_follow_up(self):
         result=await self.relay.process(self.turn('what is the weather'))
-        self.hass.services.async_call.assert_awaited_once_with('esphome','ks_echo_vs_show',{'prompt':'what is the weather','speak':True,'pipeline':1,'duration':15},blocking=False,context=unittest.mock.ANY)
+        self.hass.services.async_call.assert_awaited_once_with('esphome','ks_echo_vs_show',{'prompt':'what is the weather','speak':True,'pipeline':1,'duration':15},blocking=True,context=unittest.mock.ANY)
         self.assertEqual(result.response.speech['plain']['speech'],'')
         self.assertFalse(result.continue_conversation)
     async def test_relay_settings_are_used(self):
@@ -90,17 +90,35 @@ class RelayTest(unittest.IsolatedAsyncioTestCase):
                 await self.relay.process(self.turn(heard))
                 self.assertEqual(self.hass.services.async_call.await_args.args[2]['prompt'],'Stop the timer.')
         self.runtime.stop_route.handle.assert_not_awaited()
-    async def test_misheard_timer_stop_counts_a_ringing_alarm(self):
+    async def test_any_stop_goes_to_the_stop_route_while_an_alarm_sounds(self):
+        self.with_timer(running=True,ringing=True)
+        for heard in ('Stop Tomer.','stop the timer','stop the pasta timer','stop the alarm','Stop, Matt.'):
+            with self.subTest(heard=heard):
+                self.runtime.stop_route.handle.reset_mock()
+                result=await self.relay.process(self.turn(heard))
+                self.runtime.stop_route.handle.assert_awaited_once()
+                self.assertEqual(result.response.speech['plain']['speech'],'Stopped.')
+        self.hass.services.async_call.assert_not_awaited()
+    async def test_misheard_timer_stop_is_sent_plainly_when_the_route_finds_nothing_sounding(self):
         self.with_timer(running=False,ringing=True)
+        self.runtime.stop_route.handle=AsyncMock(return_value=None)
         await self.relay.process(self.turn('Stop Tomer.'))
         self.assertEqual(self.hass.services.async_call.await_args.args[2]['prompt'],'Stop the timer.')
+    async def test_plain_and_music_stops_never_reach_the_model(self):
+        self.with_timer()
+        for heard in ('Stop, Stop!','So, stop.','stop it','stop that','Stop it please.','Alexa, stop','No, stop!','stop talking','stop the radio','stop playing','Stop the song.'):
+            with self.subTest(heard=heard):
+                self.runtime.stop_route.handle.reset_mock()
+                await self.relay.process(self.turn(heard))
+                self.runtime.stop_route.handle.assert_awaited_once()
+        self.hass.services.async_call.assert_not_awaited()
     async def test_misheard_timer_stop_is_left_alone_without_a_timer(self):
         self.with_timer(running=False)
         await self.relay.process(self.turn('Stop time, Matt.'))
         self.assertEqual(self.hass.services.async_call.await_args.args[2]['prompt'],'Stop time, Matt.')
     async def test_other_stop_phrases_are_not_taken_for_the_timer(self):
         self.with_timer()
-        for heard in ('stop it','stop that','stop mama','stop tuna','stop to','stop the musik','stop the radio','stop the alarm','stop the kitchen lights','next up stop'):
+        for heard in ('stop mama','stop tuna','stop to','stop the musik','stop the alarm','stop the kitchen lights','next up stop'):
             with self.subTest(heard=heard):
                 self.assertFalse(relay_module.sounds_like_timer_stop(heard))
                 self.hass.services.async_call.reset_mock()
@@ -111,6 +129,70 @@ class RelayTest(unittest.IsolatedAsyncioTestCase):
         with patch('homeassistant.components.conversation.async_converse',AsyncMock(return_value='x')) as conv:
             await self.relay.process(self.turn('Stop Tomer.'))
         self.assertEqual(conv.await_args.args[1],'Stop the timer.')
+
+    # ---- the wake word sent with the request
+    async def test_wake_word_in_front_is_taken_off_before_the_echo_gets_the_request(self):
+        for heard,sent in (('Alexa, set a 2 minute timer.','Set a 2 minute timer.'),(' Alexa set a 2 minute timer','Set a 2 minute timer'),('ALEXA! What is the weather?','What is the weather?'),
+                           ('Alexa. Alexa, play the radio','Alexa, play the radio'),('Is Alexa listening?','Is Alexa listening?'),('Alexander the Great','Alexander the Great'),("Let's set a timer","Let's set a timer")):
+            with self.subTest(heard=heard):
+                self.hass.services.async_call.reset_mock()
+                await self.relay.process(self.turn(heard))
+                self.assertEqual(self.hass.services.async_call.await_args.args[2]['prompt'],sent)
+    async def test_wake_word_then_stop_is_a_stop(self):
+        for heard in ('Alexa, stop.','Alexa stop the music','Alexa. Stop, stop!'):
+            with self.subTest(heard=heard):
+                self.runtime.stop_route.handle.reset_mock()
+                await self.relay.process(self.turn(heard))
+                self.assertEqual(self.runtime.stop_route.handle.await_args.kwargs['text'].casefold()[:4],'stop')
+        self.hass.services.async_call.assert_not_awaited()
+    async def test_wake_word_then_misheard_timer_stop_is_sent_plainly(self):
+        self.with_timer()
+        await self.relay.process(self.turn('Alexa, stop Tomer.'))
+        self.assertEqual(self.hass.services.async_call.await_args.args[2]['prompt'],'Stop the timer.')
+    async def test_the_wake_word_alone_ends_quietly(self):
+        for heard in ('Alexa.','Alexa?',' alexa '):
+            with self.subTest(heard=heard):
+                result=await self.relay.process(self.turn(heard))
+                self.assertEqual(result.response.speech['plain']['speech'],'')
+        self.hass.services.async_call.assert_not_awaited();self.runtime.stop_route.handle.assert_not_awaited()
+    async def test_wake_words_come_from_the_profile(self):
+        self.runtime=Experience(self.hass,validate_profiles(config(relay={'wake_words':['computer','hey jarvis']})));self.runtime.device_of=lambda e:{PE:'dev-pe'}.get(e)
+        relay=Relay(self.hass,self.runtime)
+        for heard,sent in (('Computer, lights on','Lights on'),('Hey Jarvis, lights on','Lights on'),('Alexa, lights on','Alexa, lights on')):
+            with self.subTest(heard=heard):
+                await relay.process(self.turn(heard))
+                self.assertEqual(self.hass.services.async_call.await_args.args[2]['prompt'],sent)
+
+    # ---- hand-off
+    def services(self,show):
+        """vs_show answers from the given list in turn (an exception is raised); every other service succeeds."""
+        calls=[]
+        async def call(domain,service,data,**kw):
+            calls.append(service)
+            if service.endswith('vs_show'):
+                outcome=show.pop(0)
+                if isinstance(outcome,Exception):raise outcome
+                if outcome=='hang':await asyncio.sleep(60)
+        self.hass.services.async_call=AsyncMock(side_effect=call)
+        return calls
+    async def test_no_answer_from_the_echo_is_said_on_the_input_satellite(self):
+        calls=self.services(['hang'])
+        with patch.object(relay_module,'HANDOFF_TIMEOUT',0.01),self.assertLogs(relay_module._LOGGER,'WARNING'):
+            result=await self.relay.process(self.turn('set a timer for five minutes'))
+        self.assertEqual(result.response.speech['plain']['speech'],"Sorry, I couldn't reach the Kitchen. Please try again.")
+        self.assertEqual(calls,['ks_echo_vs_show'],'a request that may have arrived is not offered twice')
+    async def test_a_turn_on_screen_is_interrupted_for_the_new_request(self):
+        calls=self.services([RuntimeError('a turn is on screen'),RuntimeError('a turn is on screen'),None])
+        with patch.object(relay_module,'INTERRUPT_PAUSE',0):
+            result=await self.relay.process(self.turn('what is the weather'))
+        self.assertEqual(calls,['ks_echo_vs_show','ks_echo_vs_cancel','ks_echo_vs_show','ks_echo_vs_show'])
+        self.assertEqual(result.response.speech['plain']['speech'],'')
+    async def test_an_echo_that_keeps_refusing_is_said_on_the_input_satellite(self):
+        calls=self.services([RuntimeError('Voice Satellite is off')]*4)
+        with patch.object(relay_module,'INTERRUPT_PAUSE',0),self.assertLogs(relay_module._LOGGER,'WARNING'):
+            result=await self.relay.process(self.turn('what is the weather'))
+        self.assertEqual(calls.count('ks_echo_vs_show'),4);self.assertEqual(calls.count('ks_echo_vs_cancel'),1)
+        self.assertIn("couldn't reach the Kitchen",result.response.speech['plain']['speech'])
 
     # ---- wake cue
     def changed(self,cue,old,new,entity=PE):
@@ -138,9 +220,9 @@ class RelayTest(unittest.IsolatedAsyncioTestCase):
     # ---- validation and ducking
     def test_defaults_and_validation(self):
         p=validate_profiles({'devices':[{k:v for k,v in config()['devices'][0].items() if k!='input_satellites'}]})['devices'][0]
-        self.assertEqual((p['input_satellites'],p['relay']),([],{'pipeline':1,'duration':15,'wake_cue':True,'fallback_agent':'conversation.home_assistant'}))
+        self.assertEqual((p['input_satellites'],p['relay']),([],{'pipeline':1,'duration':15,'wake_cue':True,'wake_words':['alexa'],'fallback_agent':'conversation.home_assistant'}))
         for bad in ({'input_satellites':['light.x']},{'input_satellites':'x'},{'input_satellites':['assist_satellite.kitchen']},{'input_satellites':[PE,PE]},
-                    {'relay':{'pipeline':True}},{'relay':{'duration':-1}},{'relay':{'wake_cue':'yes'}},{'relay':{'fallback_agent':'x'}},{'relay':[]}):
+                    {'relay':{'pipeline':True}},{'relay':{'duration':-1}},{'relay':{'wake_cue':'yes'}},{'relay':{'fallback_agent':'x'}},{'relay':[]},{'relay':{'wake_words':'alexa'}},{'relay':{'wake_words':['']}}):
             with self.assertRaises(ValueError,msg=bad):validate_profiles(config(**bad))
     def test_input_satellite_cannot_belong_to_two_profiles(self):
         cfg=config();other=copy.deepcopy(cfg['devices'][0]);other.update(id='bed',satellite='assist_satellite.bed',device_id='dev-bed');other.pop('native');other.pop('ducking');cfg['devices'].append(other)

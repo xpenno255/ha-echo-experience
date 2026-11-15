@@ -14,7 +14,8 @@ if 'custom_components.echo_experience' not in sys.modules:
 from custom_components.echo_experience import Experience
 from custom_components.echo_experience.core import validate_profiles
 from custom_components.echo_experience import stop_route
-from custom_components.echo_experience.stop_route import StopRoute, COMMANDS, REPLY_TIMER, REPLY_UNCONFIRMED, REPLY_STOPPED, REPLY_NO_TARGET
+from custom_components.echo_experience.stop_route import StopRoute, COMMANDS, REPLY_TIMER, REPLY_UNCONFIRMED, REPLY_STOPPED, REPLY_NO_TARGET, stop_kind
+from datetime import timedelta
 
 def profiles():
     return validate_profiles({'devices':[
@@ -175,6 +176,80 @@ class RelayVoiceTest(unittest.IsolatedAsyncioTestCase):
     async def test_the_echo_itself_answers_normally(self):
         self.assertEqual(await self.route.handle(self.request('dev-ks'),None),REPLY_TIMER)
         self.hass.services.async_call.assert_not_awaited()
+
+class StopOrderTest(unittest.IsolatedAsyncioTestCase):
+    """Stop from a relay input: a sounding alarm first, then the answer the Echo is speaking, then the music."""
+    async def asyncSetUp(self):
+        self.voice=None
+        self.hass=NS(data={},states=NS(get=lambda e:NS(state='playing' if e=='media_player.kitchen' else 'idle',attributes={})),services=NS(async_call=AsyncMock(),has_service=Mock(return_value=True)))
+        cfg={'devices':[{'id':'kitchen','name':'Kitchen','satellite':'assist_satellite.kitchen','device_id':'dev-kitchen','music_player':'media_player.kitchen','weather':'weather.home','dashboard':'echo-home/kitchen',
+             'native':{'satellite':'assist_satellite.ks','device_id':'dev-ks','node':'ks_echo'},'input_satellites':['assist_satellite.pe']}]}
+        self.runtime=Experience(self.hass,validate_profiles(cfg))
+        self.runtime.device_of=lambda e:{'assist_satellite.pe':'dev-pe'}.get(e)
+        self.runtime.dismiss_for_device=AsyncMock(return_value={'status':'not_ringing'})
+        self.route=StopRoute(self.hass,self.runtime)
+        self.route.owners=self.route.build_owners()
+        self.route.origin_device=lambda user_input:user_input.device_id
+        patch.object(stop_route.native,'voice_state',lambda hass,ident:self.voice).start();self.addCleanup(patch.stopall)
+    def speaking(self,state='responding',ago=5):
+        self.voice=NS(state=state,last_changed=stop_route.dt_util.utcnow()-timedelta(seconds=ago))
+    async def stop(self,text='stop',device_id='dev-pe'):
+        return await self.route.answer(NS(text=text,device_id=device_id,satellite_id=None,context=NS(user_id=None)))
+    def called(self):
+        return [c.args[1] for c in self.hass.services.async_call.await_args_list]
+
+    async def test_a_sounding_alarm_wins_over_speech_and_music(self):
+        self.speaking();self.runtime.dismiss_for_device.return_value={'status':'dismissed','timers':['Pasta']}
+        for text in ('stop','Stop, stop!','stop the timer','stop the pasta timer','stop the alarm'):
+            with self.subTest(text=text):self.assertEqual(await self.stop(text),REPLY_TIMER)
+        self.assertEqual(self.called(),[])
+    async def test_stop_ends_the_answer_being_spoken_and_leaves_the_music(self):
+        for state in ('responding','processing'):
+            with self.subTest(state=state):
+                self.hass.services.async_call.reset_mock();self.speaking(state)
+                self.assertEqual(await self.stop('Stop, stop!'),'')
+                self.assertEqual(self.called(),['ks_echo_vs_cancel'])
+    async def test_stop_just_after_the_answer_ended_leaves_the_music(self):
+        self.speaking('idle',ago=1)
+        self.assertEqual(await self.stop(),'')
+        self.assertEqual(self.called(),[])
+    async def test_stop_with_the_echo_quiet_stops_the_music(self):
+        for voice in (None,NS(state='idle',last_changed=stop_route.dt_util.utcnow()-timedelta(seconds=30)),NS(state='unavailable',last_changed=stop_route.dt_util.utcnow())):
+            with self.subTest(voice=voice):
+                self.hass.services.async_call.reset_mock();self.voice=voice
+                self.assertEqual(await self.stop('stop it please'),REPLY_STOPPED)
+                self.assertEqual(self.called(),['media_stop'])
+    async def test_a_music_phrase_stops_the_music_even_while_the_echo_speaks(self):
+        self.speaking()
+        self.assertEqual(await self.stop('stop the radio'),REPLY_STOPPED)
+        self.assertEqual(self.called(),['media_stop']);self.runtime.dismiss_for_device.assert_not_awaited()
+    async def test_a_running_timer_is_left_to_the_conversation_agent(self):
+        self.speaking()
+        for text in ('stop the timer','stop timer','stop the pasta timer'):
+            with self.subTest(text=text):self.assertIsNone(await self.stop(text))
+        self.assertEqual(self.called(),[])
+    async def test_a_stop_the_echo_hears_itself_never_cancels_its_own_turn(self):
+        self.speaking('processing')
+        self.assertEqual(await self.stop(device_id='dev-ks'),REPLY_STOPPED)
+        self.assertEqual(self.called(),['media_stop'])
+    async def test_the_relay_cleaned_text_decides_not_the_raw_transcript(self):
+        request=NS(text='Computer, stop the timer',device_id='dev-pe',satellite_id=None,context=NS(user_id=None))
+        self.assertIsNone(await self.route.answer(request,'Stop the timer'))
+        self.assertEqual(self.called(),[])
+    async def test_an_answer_that_cannot_be_ended_still_leaves_the_music(self):
+        self.speaking();self.hass.services.async_call.side_effect=RuntimeError('gone')
+        with self.assertLogs(stop_route._LOGGER,'WARNING'):self.assertEqual(await self.stop(),'')
+        self.assertEqual(self.called(),['ks_echo_vs_cancel'])
+
+class StopKindTest(unittest.TestCase):
+    def test_phrases(self):
+        cases={'plain':('stop','Stop.','Stop, Stop!','stop it','stop that please','So, stop.','I stop','Alexa, stop now','No, stop!','stop talking','okay stop thank you'),
+               'music':('stop music','stop the radio','stop playing','Stop the song.','please stop the sonos'),
+               'named':('stop the timer','stop timer','Stop Tomer.','stop the pasta timer','stop the alarm','stop the kitchen lights','Stop time, Matt.'),
+               None:('','turn off the music','next up stop','what is a bus stop','stop the timer and then set a new one for ten minutes','pause')}
+        for kind,phrases in cases.items():
+            for text in phrases:
+                with self.subTest(text=text):self.assertEqual(stop_kind(text),kind)
 
 class MatcherTest(unittest.TestCase):
     """Drive HA's real trigger sentence matcher so the phrase list is proven against hassil, not assumed.

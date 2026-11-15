@@ -1,4 +1,6 @@
-"""Fast voice stop route: silence a ringing alarm on the speaking Echo first, otherwise stop its music.
+"""Fast voice stop route: silence a ringing alarm on the Echo first, else end the answer it is speaking, else
+stop its music. A running timer is never touched here: only "stop timer" or "stop <name> timer" cancels one, and
+those go to the conversation agent.
 
 Replaces the generated automation 1757961047860. HA runs every matched sentence trigger and speaks the first
 non-None reply, so exactly one handler may own these phrases. Handover is deliberate, not automatic: the route
@@ -10,6 +12,7 @@ the route completely; the repair issue says so.
 import logging
 import re
 from homeassistant.core import callback
+from homeassistant.util import dt as dt_util
 from homeassistant.helpers import issue_registry as ir, entity_registry as er, device_registry as dr
 from .core import device_ids, identity, input_satellites
 from . import native
@@ -19,11 +22,33 @@ LEGACY_AUTOMATION_ID='1757961047860'
 MUSIC_COMMANDS=['stop music','stop sonos','stop the music','stop the sonos','stop playing music','turn off the music','stop sonos in here']
 COMMANDS=['stop',*MUSIC_COMMANDS]
 MUSIC_WORDS=re.compile(r'\b(music|sonos)\b',re.I)
+# Spoken stop phrases as a relay input hears them. Speech-to-text often puts a stray word in front ("So, stop.").
+STOP_LEAD={'alexa','so','i','a','ok','okay','hey','please','and','oh','no','just','uh','um','er'}
+STOP_PLAIN={'stop','please','it','that','this','now','alexa','ok','okay','just','thanks','thank','you','talking','speaking','there','right','everything','all','enough','no'}
+PLAYBACK_WORDS=re.compile(r'\b(music|sonos|song|radio|playing)\b')
+MAX_STOP_WORDS=6
+# A stop that lands this soon after the Echo finished speaking was said while it spoke: it is not for the music.
+SPEECH_GRACE=2.0
 REPLY_TIMER='Timer stopped.'
 REPLY_UNCONFIRMED="I couldn't confirm the timer alarm stopped. Tap the alert or say stop again."
 REPLY_STOPPED='Stopped.'
 REPLY_NO_TARGET="I couldn't identify the music speaker for this device."
 _LOGGER=logging.getLogger(__name__)
+
+def normalise(text):
+    return ' '.join(re.sub(r'[^\w\s]',' ',(text or '').casefold()).split())
+
+def stop_kind(text):
+    """How a short phrase asks to stop, or None when it does not.
+
+    plain: nothing but stop ("Stop, stop!", "stop it please", "stop talking"). music: names the music ("stop the
+    radio"). named: stop something else ("stop the timer", "stop the pasta timer", "stop the alarm").
+    """
+    words=normalise(text).split()
+    while len(words)>1 and words[0] in STOP_LEAD:words=words[1:]
+    if not words or words[0]!='stop' or len(words)>MAX_STOP_WORDS:return None
+    if PLAYBACK_WORDS.search(' '.join(words)):return 'music'
+    return 'plain' if all(w in STOP_PLAIN for w in words[1:]) else 'named'
 
 class StopRoute:
     def __init__(self,hass,runtime):
@@ -102,8 +127,9 @@ class StopRoute:
             if entry_area==area:players.append(entry.entity_id)
         return sorted(players)
 
-    async def handle(self,user_input,result):
-        return await self.voice_on_echo(user_input,await self.answer(user_input))
+    async def handle(self,user_input,result,text=None):
+        """text: the request as the relay cleaned it (wake word taken off); the sentence trigger passes none."""
+        return await self.voice_on_echo(user_input,await self.answer(user_input,text))
 
     async def voice_on_echo(self,user_input,speech):
         """A relay input satellite stays silent: the Echo it feeds says the outcome while that Echo is up."""
@@ -113,26 +139,46 @@ class StopRoute:
         await self.hass.services.async_call('assist_satellite','announce',{'entity_id':ident['satellite'],'message':speech,'preannounce':False},blocking=False,context=user_input.context)
         return ''
 
-    async def answer(self,user_input):
+    async def answer(self,user_input,text=None):
         if self.legacy_enabled():
             # Switched back on without a reload: let the automation answer and do nothing here.
             _LOGGER.warning('Legacy stop automation is enabled again; reload Echo Experience to withdraw its route')
             return None
-        text=getattr(user_input,'text','') or ''
+        text=text or getattr(user_input,'text','') or ''
+        kind=stop_kind(text)
         device_id=self.origin_device(user_input)
         profile_id=self.owners.get(device_id) if device_id else None
         p=self.runtime.profile(profile_id) if profile_id else None
         if p is None:
+            if kind=='named':return None
             players=self.area_sonos_players(device_id)
             if not players:return REPLY_NO_TARGET
             return await self.stop_players(players,user_input.context)
-        if not MUSIC_WORDS.search(text):
+        if kind!='music' and not MUSIC_WORDS.search(text):
+            # 1. A sounding alarm: any stop silences it, whatever else the phrase names.
             outcome=await self.runtime.dismiss_for_device(device_id,profile=p)
             status=outcome.get('status')
             if status=='dismissed':return REPLY_TIMER
             if status in ('unconfirmed','failed'):return REPLY_UNCONFIRMED
-        # The selected speaker, or the native coordinator when music was started from the Sonos app.
+            # "Stop the timer" with nothing sounding is about a running timer: the conversation agent's, not ours.
+            if kind=='named':return None
+            # 2. The Echo is answering: end that, silently. Only for a relay input; a stop the Echo hears itself
+            # is its own turn on screen, and its stop word already covers its speech.
+            if device_id not in device_ids(p) and await self.stop_speech(p):return ''
+        # 3. Music: the selected speaker, or the native coordinator when it was started from the Sonos app.
         return await self.stop_players([self.runtime.playback_target(p)],user_input.context,p)
+
+    async def stop_speech(self,p):
+        """True when this stop was for the Echo's own voice: an answer being worked out or spoken is ended."""
+        ident=identity(p,'native')
+        state=native.voice_state(self.hass,ident)
+        current=getattr(state,'state',None)
+        if current in native.TURN_STATES:
+            if not await native.end_turn(self.hass,ident,self.runtime.dismiss_timeout):
+                _LOGGER.warning('Echo Experience: could not end the answer on %s',p['id'])
+            return True
+        changed=getattr(state,'last_changed',None)
+        return bool(current=='idle' and changed is not None and 0<=(dt_util.utcnow()-changed).total_seconds()<SPEECH_GRACE)
 
     async def stop_players(self,players,context,p=None):
         try:

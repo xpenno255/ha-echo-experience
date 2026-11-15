@@ -1,5 +1,16 @@
 # Changes
 
+## 0.11.0 - Stop does the obvious thing, a lost request is said out loud, and the wake word can come along
+
+- Echo Relay, stop: any short phrase that is only "stop" ("Stop, stop!", "So, stop.", "stop it please", "stop talking") is now handled directly and no longer reaches the model, which had answered "Stop, Stop!" during an alarm with "I've paused the music". The order is: a sounding alarm is silenced first; otherwise an answer the Echo is working out or speaking is ended; otherwise the music stops. A stop that lands within two seconds of the Echo finishing its answer was said while it spoke and leaves the music alone.
+- While an alarm sounds, every "stop ..." phrase silences it, including "stop the timer", "stop the pasta timer" and misheard forms. Phrases that name the music ("stop the music", "stop the radio", "stop playing") still stop the music.
+- A running timer is only cancelled by "stop timer" or "stop <name> timer", which go to the conversation agent as before. A plain stop never cancels one.
+- Echo Relay, hand-off: the relay now waits for the Echo to acknowledge the request (it does so in milliseconds). With no acknowledgement in four seconds the input satellite says "Sorry, I couldn't reach the <Echo name>. Please try again." instead of staying silent. The request is not offered twice, because it may have arrived.
+- A request made while the Echo is still speaking was dropped without a word (the Kiosk refuses a second turn). The relay now interrupts the turn on screen and offers the request again, as a new wake word would.
+- The relay pipeline needs a text-to-speech engine for the input satellite to say the message.
+- Echo Relay takes a wake word off the front of the transcript before anything else looks at it: "Alexa, set a 2 minute timer." reaches the Echo as "Set a 2 minute timer.", "Alexa, stop" is a stop, and "Alexa" alone ends quietly. This is for an echo-dot-assist input with **Wake word in the request** turned on (its settings page, Voice), which sends the audio from the wake word on instead of guessing where the word ends. That guess left the word's tail in or cut the first word: "Set a 2 minute timer" arrived as "Let's set a 2 minute timer." or "It's at a 2 minute time.". New relay setting `wake_words` (default `["alexa"]`); change it if the input satellite uses another word.
+- No migration. Restart Core after updating.
+
 ## 0.10.7 - Screen hold release runs in the event loop
 
 - 0.10.6 scheduled the release of the music screen hold with a plain function, which Home Assistant runs in a worker thread. It then failed ("calls hass.async_create_task from a thread other than the event loop") and the hold was only released by the one-minute recheck. It is now a callback job.

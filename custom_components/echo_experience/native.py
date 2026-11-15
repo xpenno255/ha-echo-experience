@@ -15,6 +15,9 @@ _LOGGER = logging.getLogger(__name__)
 TIMER_EVENT = 'esphome.kiosk_satellite_timer'
 KIOSK_KEYS = ('kiosk_navigation', 'kiosk_screensaver', 'kiosk_now_playing', 'kiosk_hold')
 UNAVAILABLE = (None, 'unavailable', 'unknown')
+# The Kiosk's "Voice Satellite" text sensor, by the tail of its ESPHome unique id, and its states during a turn.
+VOICE_STATE_SUFFIX = '/text_sensor/Voice Satellite'
+TURN_STATES = ('processing', 'responding')
 # A conversation turn is followed for at most this long; LLM turns are bounded well below it.
 TURN_DEADLINE = 120
 TURN_POLL = 0.25
@@ -199,6 +202,39 @@ async def cancel_alert(hass, ident):
         _LOGGER.warning('Echo Experience: %s failed: %s', service, err)
         return False
     return True
+
+
+# ---- the turn on the Kiosk's screen -----------------------------------------------------------
+
+def voice_state(hass, ident):
+    """State object of the Kiosk's own Voice Satellite sensor (idle, listening, processing, responding), or None.
+
+    Home Assistant's satellite entity only follows turns the Kiosk hears itself. A vs_show turn (Echo Relay) leaves
+    it idle, so the Kiosk's sensor is the one that says an answer is being worked out or spoken.
+    """
+    if not ident:
+        return None
+    try:
+        from homeassistant.helpers import entity_registry as er
+        entries = er.async_entries_for_device(er.async_get(hass), ident['device_id'])
+    except Exception as err:  # noqa: BLE001
+        warn_once('voice_state', 'Echo Experience: the Kiosk voice state cannot be read (%s)', err)
+        return None
+    for entry in entries:
+        if entry.domain == 'sensor' and entry.platform == 'esphome' and not entry.disabled_by \
+                and str(entry.unique_id).endswith(VOICE_STATE_SUFFIX):
+            return hass.states.get(entry.entity_id)
+    return None
+
+
+async def end_turn(hass, ident, timeout):
+    """With nothing ringing, vs_cancel ends the turn on the Kiosk's screen: thinking or speaking stops at once."""
+    try:
+        async with asyncio.timeout(timeout):
+            return await cancel_alert(hass, ident)
+    except TimeoutError:
+        _LOGGER.warning('Echo Experience: the Kiosk did not answer vs_cancel within %s s', timeout)
+        return False
 
 
 # ---- conversation display ---------------------------------------------------------------------
