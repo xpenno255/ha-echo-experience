@@ -17,7 +17,8 @@ def config():
 class Manager:
     """The parts of Home Assistant's timer manager the journal and native.start_timer use."""
     def __init__(self):
-        self.timers={};self.handlers={'dev-ks':object()};self.started=[];self.paused=[]
+        self.timers={};self.forgotten=[];self.started=[];self.paused=[]
+        self.handlers={'dev-ks':lambda kind,timer:self.forgotten.append((str(kind.value),timer.id,timer.name,timer.created_seconds,timer.seconds_left,timer.is_active))}
     def add(self,id,seconds,name=None,active=True,device='dev-ks'):
         self.timers[id]=NS(id=id,name=name,device_id=device,seconds_left=seconds,is_active=active,created_seconds=seconds)
     def is_timer_device(self,device_id):return device_id in self.handlers
@@ -70,6 +71,7 @@ class JournalTest(unittest.IsolatedAsyncioTestCase):
         j=self.journal();await j.async_start();await self.settle()
         self.assertEqual(self.manager.started,[('dev-ks',3625,'pasta'),('dev-ks',90,None)])
         self.assertEqual(self.manager.paused,['new2'])
+        self.assertEqual(self.manager.forgotten,[('cancelled','a','pasta',3900,0,False),('cancelled','b',None,120,0,False)],'the Echo is told the old copies are gone')
         self.assertEqual(sorted(r['id'] for r in self.stored['timers']),['new1','new2'],'the journal now holds the new timers')
         self.hass.services.async_call.assert_not_awaited()
 
@@ -78,7 +80,7 @@ class JournalTest(unittest.IsolatedAsyncioTestCase):
         self.manager.handlers.clear()
         async def nap(seconds):
             self.sleeps+=1;self.now+=seconds
-            if self.sleeps==3:self.manager.handlers['dev-ks']=object()
+            if self.sleeps==3:self.manager.handlers['dev-ks']=lambda kind,timer:None
             await asyncio.sleep(0)
         j=TimerJournal(self.hass,self.runtime,store=self.store,clock=lambda:self.now,sleep=nap)
         await j.async_start();await asyncio.sleep(0)
@@ -103,6 +105,7 @@ class JournalTest(unittest.IsolatedAsyncioTestCase):
         with self.assertLogs(timer_journal._LOGGER,'WARNING'):
             await j.async_start();await self.settle()
         self.assertEqual(self.manager.started,[])
+        self.assertEqual([f[1] for f in self.manager.forgotten],['a','old'],'a timer that ran out is cleared from the screen too')
         self.hass.services.async_call.assert_awaited_once_with('assist_satellite','announce',{'entity_id':'assist_satellite.ks','message':'Your pasta timer finished 3 minutes ago, while Home Assistant was restarting.'},blocking=False)
 
     async def test_a_reload_restores_nothing(self):

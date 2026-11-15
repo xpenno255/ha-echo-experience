@@ -171,6 +171,29 @@ def start_timer(hass, manager, device_id, hours, minutes, seconds, name):
         raise ValueError(f'Home Assistant could not start the timer: {err}') from err
 
 
+def forget_timer(manager, device_id, timer_id, name=None, total_seconds=0):
+    """Tell a voice device that a timer Home Assistant no longer has is gone.
+
+    A Kiosk keeps its own copy of each timer and only drops it on Home Assistant's cancelled or finished event. A
+    timer lost in a Home Assistant restart therefore stays on its screen, counting down to an alarm that never
+    comes. The device's registered timer handler is given a cancelled event for that id, as Home Assistant would
+    have sent. Returns whether a handler took it.
+    """
+    handler = (getattr(manager, 'handlers', None) or {}).get(device_id)
+    if handler is None or not timer_id:
+        return False
+    try:
+        from types import SimpleNamespace
+        from homeassistant.components.intent import TimerEventType
+        handler(TimerEventType.CANCELLED, SimpleNamespace(
+            id=timer_id, name=name, device_id=device_id, created_seconds=int(total_seconds or 0), seconds=0,
+            seconds_left=0, is_active=False, start_hours=None, start_minutes=None, start_seconds=None))
+    except Exception as err:  # noqa: BLE001
+        _LOGGER.warning('Echo Experience: could not clear a stale timer on the Echo: %s', err)
+        return False
+    return True
+
+
 async def list_ringing(hass, ident, timeout):
     """Timer ids the Kiosk says are ringing, or None when that cannot be known."""
     node = node_name(hass, ident)

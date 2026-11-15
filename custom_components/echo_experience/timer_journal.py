@@ -4,7 +4,8 @@ Home Assistant holds voice timers in memory only, and a Kiosk rings when Home As
 so a Core restart used to lose every running timer without a word. The journal writes each profile's timers (name,
 end time, paused or not) to storage whenever they change. At the next start the timers Home Assistant no longer
 has are started again with the time they have left, once the Echo's voice device is back. One that ran out while
-Home Assistant was down is announced on the Echo instead of being dropped.
+Home Assistant was down is announced on the Echo instead of being dropped. Either way the Echo is first told the
+old timer is gone, because a Kiosk keeps its own copy until Home Assistant says so.
 
 A reload of the integration restores nothing: the timers are still in Home Assistant then.
 """
@@ -161,6 +162,8 @@ class TimerJournal:
 
     async def restore_one(self, manager, record):
         name = record.get('name')
+        # The Echo still shows its own copy of the timer Home Assistant forgot; without this there would be two.
+        native.forget_timer(manager, record['device_id'], record.get('id'), name, record.get('created_seconds'))
         try:
             if record.get('is_active'):
                 left = int(round(record['ends_at'] - self.clock()))
