@@ -133,7 +133,7 @@ class RelayTest(unittest.IsolatedAsyncioTestCase):
     # ---- the wake word sent with the request
     async def test_wake_word_in_front_is_taken_off_before_the_echo_gets_the_request(self):
         for heard,sent in (('Alexa, set a 2 minute timer.','Set a 2 minute timer.'),(' Alexa set a 2 minute timer','Set a 2 minute timer'),('ALEXA! What is the weather?','What is the weather?'),
-                           ('Alexa. Alexa, play the radio','Alexa, play the radio'),('Is Alexa listening?','Is Alexa listening?'),('Alexander the Great','Alexander the Great'),("Let's set a timer","Let's set a timer")):
+                           ('Alexa. Alexa, play the radio','Play the radio'),('Alexa, Alexa. Alexa set a timer','Set a timer'),('Is Alexa listening?','Is Alexa listening?'),('Alexander the Great','Alexander the Great'),("Let's set a timer","Let's set a timer")):
             with self.subTest(heard=heard):
                 self.hass.services.async_call.reset_mock()
                 await self.relay.process(self.turn(heard))
@@ -150,7 +150,7 @@ class RelayTest(unittest.IsolatedAsyncioTestCase):
         await self.relay.process(self.turn('Alexa, stop Tomer.'))
         self.assertEqual(self.hass.services.async_call.await_args.args[2]['prompt'],'Stop the timer.')
     async def test_the_wake_word_alone_ends_quietly(self):
-        for heard in ('Alexa.','Alexa?',' alexa '):
+        for heard in ('Alexa.','Alexa?',' alexa ',' Alexa, Alexa.'):
             with self.subTest(heard=heard):
                 result=await self.relay.process(self.turn(heard))
                 self.assertEqual(result.response.speech['plain']['speech'],'')

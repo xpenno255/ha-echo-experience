@@ -47,7 +47,8 @@ def strip_wake_word(text, words):
     text = text or ''
     if not words:
         return text
-    rest = re.sub(r'^\W*(?:' + '|'.join(re.escape(w.strip()) for w in words) + r')\b\W*', '', text, count=1, flags=re.I)
+    # Said twice because the first went unheard over the Echo's voice ("Alexa, Alexa."): every leading one goes.
+    rest = re.sub(r'^\W*(?:(?:' + '|'.join(re.escape(w.strip()) for w in words) + r')\b\W*)+', '', text, count=1, flags=re.I)
     return text if rest == text else rest[:1].upper() + rest[1:]
 
 

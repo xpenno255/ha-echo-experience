@@ -1,5 +1,11 @@
 # Changes
 
+## 0.11.2 - No reply to nothing
+
+- A plain stop with nothing sounding, nothing being spoken and nothing playing now does and says nothing. Before, it sent a stop to the idle speaker and the Echo said "Stopped.", which after a stop that arrived just too late for the Echo's answer sounded like a reply to nothing. A phrase that names the music ("stop the music") is still carried out and confirmed.
+- Echo Relay takes every leading wake word off the transcript, not only the first. "Alexa, Alexa." (said twice because the first went unheard over the Echo's voice) reached the model as "Alexa." and got an answer; it now ends quietly, and "Alexa, Alexa, stop" is a stop.
+- No migration. Restart Core after updating.
+
 ## 0.11.1 - The wake word quietens the Echo
 
 - When an input satellite hears its wake word while the Echo is working out or speaking an answer, the answer is ended at once, as on an Echo itself. Before, the Echo talked on, the input satellite heard it along with the request and kept listening until it finished: "Alexa, stop" over a forecast arrived as "Alexa, stop. Expect rain to continue throughout the afternoon and evening." and the model read the weather again.
