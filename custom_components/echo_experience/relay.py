@@ -3,8 +3,10 @@
 The Echo runs the turn natively through the Kiosk's vs_show service, so tools, timers, display and speech all
 belong to the Echo. The relay agent answers the input satellite with empty speech: the pipeline skips TTS and the
 satellite returns to idle without speaking or re-listening. When the Echo is down the turn is delegated to a
-configured agent and answered on the input satellite instead.
+configured agent and answered on the input satellite instead. A turn the Echo does not take (no answer in time, or
+still refused after the turn on its screen was interrupted) is said so on the input satellite.
 """
+import asyncio
 import difflib
 import logging
 import re
@@ -14,7 +16,7 @@ from homeassistant.helpers.event import async_track_state_change_event
 
 from . import native
 from .core import identity, input_satellites
-from .stop_route import COMMANDS
+from .stop_route import COMMANDS, normalise, stop_kind
 
 _LOGGER = logging.getLogger(__name__)
 STOP_PHRASES = {c.casefold() for c in COMMANDS}
@@ -25,10 +27,25 @@ TIMER_STOP = 'Stop the timer.'
 TIMER_STOP_FORMS = ('stop timer', 'stop the timer')
 TIMER_STOP_SIMILARITY = 0.75
 MUSIC_WORDS = re.compile(r'\b(music|sonos|song|radio|playing)\b')
+# The Echo acknowledges vs_show in milliseconds; no answer in this time means the turn did not reach it.
+HANDOFF_TIMEOUT = 4
+# After interrupting the turn on the Echo's screen it needs a moment before it takes another.
+INTERRUPT_RETRIES = 3
+INTERRUPT_PAUSE = 0.4
+REPLY_UNREACHABLE = "Sorry, I couldn't reach the {name}. Please try again."
 
 
-def normalise(text):
-    return ' '.join(re.sub(r'[^\w\s]', ' ', (text or '').casefold()).split())
+def strip_wake_word(text, words):
+    """The request without the wake word an input satellite sent with it: "Alexa, set a timer." -> "Set a timer."
+
+    An Echo Dot can start its audio at the wake word instead of guessing where the word ends, which otherwise
+    leaves the word's tail in ("Let's set a timer") or cuts the first word of the request.
+    """
+    text = text or ''
+    if not words:
+        return text
+    rest = re.sub(r'^\W*(?:' + '|'.join(re.escape(w.strip()) for w in words) + r')\b\W*', '', text, count=1, flags=re.I)
+    return text if rest == text else rest[:1].upper() + rest[1:]
 
 
 def sounds_like_timer(word):
@@ -75,29 +92,72 @@ class Relay:
         if p is None:
             native.warn_once('relay_unknown', 'Echo Experience relay: device %s is not in any profile input_satellites', user_input.device_id)
             return self.reply(user_input, "This device isn't set up to relay to an Echo.")
-        # Sentence triggers only run for the default agent, so the stop phrases are answered here directly.
-        if normalise(user_input.text) in STOP_PHRASES and self.runtime.stop_route:
-            speech = await self.runtime.stop_route.handle(user_input, None)
+        relay = p['relay']
+        text = strip_wake_word(user_input.text, relay['wake_words'])
+        if not normalise(text):
+            return self.reply(user_input)  # the wake word and nothing after it
+        # Sentence triggers only run for the default agent, so stop is answered here directly: every plain or
+        # music stop, and any other "stop ..." while an alarm is sounding (it silences the alarm).
+        kind = stop_kind(text)
+        is_stop = kind in ('plain', 'music') or normalise(text) in STOP_PHRASES \
+            or (kind == 'named' and bool(self.runtime.ringing_timers(p)))
+        if is_stop and self.runtime.stop_route:
+            speech = await self.runtime.stop_route.handle(user_input, None, text=text)
             if speech is not None:
                 # The stop route has already given the outcome to the Echo when it is up (speech is then empty).
                 return self.reply(user_input, speech)
-        text = user_input.text
         if sounds_like_timer_stop(text) and (self.runtime.timers(p) or self.runtime.ringing_timers(p)):
             # Speech-to-text mangles "stop timer" into names and words the model then chases. With a timer on
             # this Echo the intent is clear enough to say it plainly; without one the words go on unchanged.
             _LOGGER.info('Echo Experience relay: %r taken as %r for %s', text, TIMER_STOP, p['id'])
             text = TIMER_STOP
-        relay = p['relay']
         service = vs_service(self.hass, p, 'vs_show')
         if service:
-            await self.hass.services.async_call('esphome', service, {'prompt': text, 'speak': True, 'pipeline': relay['pipeline'], 'duration': relay['duration']}, blocking=False, context=user_input.context)
-            return self.reply(user_input)
+            data = {'prompt': text, 'speak': True, 'pipeline': relay['pipeline'], 'duration': relay['duration']}
+            if await self.hand_off(p, service, data, user_input.context):
+                return self.reply(user_input)
+            return self.reply(user_input, REPLY_UNREACHABLE.format(name=p['name']))
         native.warn_once('relay_fallback_' + p['id'], 'Echo Experience relay: %s is unavailable; answering on the input satellite with %s', p['id'], relay['fallback_agent'])
         from homeassistant.components import conversation
         return await conversation.async_converse(
             self.hass, text, user_input.conversation_id, user_input.context, language=user_input.language,
             agent_id=relay['fallback_agent'], device_id=user_input.device_id, satellite_id=getattr(user_input, 'satellite_id', None),
             extra_system_prompt=getattr(user_input, 'extra_system_prompt', None))
+
+    async def hand_off(self, p, service, data, context):
+        """True once the Echo has taken the turn.
+
+        The Kiosk answers vs_show as soon as the turn is on its screen, so a wait is cheap and tells a lost request
+        from a delivered one. It refuses while another turn is on screen: that turn is interrupted (as a new wake
+        word would) and the request is offered again.
+        """
+        async def offer():
+            async with asyncio.timeout(HANDOFF_TIMEOUT):
+                await self.hass.services.async_call('esphome', service, data, blocking=True, context=context)
+
+        try:
+            await offer()
+            return True
+        except TimeoutError:
+            _LOGGER.warning('Echo Experience relay: %s did not answer within %s s; the request was not delivered', p['id'], HANDOFF_TIMEOUT)
+            return False
+        except Exception as err:  # noqa: BLE001 - refused (a turn is on screen) or the connection failed
+            refusal = err
+        if not await native.end_turn(self.hass, identity(p, 'native'), HANDOFF_TIMEOUT):
+            _LOGGER.warning('Echo Experience relay: %s did not take the request (%s)', p['id'], refusal)
+            return False
+        for _ in range(INTERRUPT_RETRIES):
+            await asyncio.sleep(INTERRUPT_PAUSE)
+            try:
+                await offer()
+                _LOGGER.info('Echo Experience relay: interrupted the turn on %s for a new request', p['id'])
+                return True
+            except TimeoutError:
+                break
+            except Exception as err:  # noqa: BLE001
+                refusal = err
+        _LOGGER.warning('Echo Experience relay: %s did not take the request (%s)', p['id'], refusal)
+        return False
 
 
 class WakeCue:

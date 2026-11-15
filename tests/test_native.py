@@ -177,6 +177,32 @@ class DeriveTest(unittest.TestCase):
             self.assertEqual(set(native.derive_identities(NS(), profiles)), {'kitchen', 'bedroom'})
 
 
+class VoiceStateTest(unittest.TestCase):
+    """The Kiosk's own Voice Satellite sensor is found on the native device by its ESPHome unique id."""
+    def find(self, entries, ident={'satellite': 'assist_satellite.ks', 'device_id': 'esp-kitchen'}):
+        hass = NS(states=NS(get=lambda e: NS(state='responding', entity_id=e)))
+        with patch('homeassistant.helpers.entity_registry.async_get', lambda hass: None), \
+                patch('homeassistant.helpers.entity_registry.async_entries_for_device', lambda registry, device_id: entries if device_id == 'esp-kitchen' else []):
+            return native.voice_state(hass, ident)
+
+    def entry(self, entity_id, unique_id, platform='esphome', disabled_by=None):
+        return NS(entity_id=entity_id, domain=entity_id.split('.')[0], platform=platform, unique_id=unique_id, disabled_by=disabled_by)
+
+    def test_finds_the_text_sensor_among_the_device_entities(self):
+        entries = [self.entry('sensor.ks_app_version', 'AA:BB/0/text_sensor/App version'),
+                   self.entry('assist_satellite.ks', 'AA:BB-assist_satellite'),
+                   self.entry('sensor.ks_voice_satellite', 'AA:BB/0/text_sensor/Voice Satellite')]
+        self.assertEqual(self.find(entries).entity_id, 'sensor.ks_voice_satellite')
+
+    def test_none_without_identity_sensor_or_registry(self):
+        self.assertIsNone(self.find([], ident=None))
+        self.assertIsNone(self.find([self.entry('sensor.ks_voice_satellite', 'AA:BB/0/text_sensor/Voice Satellite', disabled_by='user'),
+                                     self.entry('sensor.other', 'x/text_sensor/Voice Satellite', platform='template')]))
+        native._warned.discard('voice_state')
+        with patch('homeassistant.helpers.entity_registry.async_get', side_effect=KeyError('entity_registry')), self.assertLogs(native._LOGGER, 'WARNING'):
+            self.assertIsNone(native.voice_state(NS(), {'satellite': 'assist_satellite.ks', 'device_id': 'esp-kitchen'}))
+
+
 class GatingTest(Base):
     async def instance(self, device_id):
         self.hass.config_entries = NS(async_entries=Mock(return_value=[]))

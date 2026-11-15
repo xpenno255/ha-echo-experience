@@ -74,6 +74,9 @@ def validate_profiles(config):
             value=relay.setdefault(key,default)
             if isinstance(value,bool) or not isinstance(value,int) or not 0<=value<=600:raise ValueError('Invalid relay '+key)
         if not isinstance(relay.setdefault('wake_cue',True),bool):raise ValueError('Invalid relay wake_cue')
+        # Wake words an input satellite may send along with the request; taken off the front of the transcript.
+        words=relay.setdefault('wake_words',['alexa'])
+        if not isinstance(words,list) or not all(isinstance(w,str) and w.strip() for w in words):raise ValueError('Invalid relay wake_words')
         agent=relay.setdefault('fallback_agent','conversation.home_assistant')
         if not isinstance(agent,str) or not agent.startswith('conversation.'):raise ValueError('Invalid relay fallback_agent')
     check_identities(profiles)

@@ -6,6 +6,22 @@ Home Assistant sentence triggers run before the conversation agent, even when th
 
 `stop`, `stop music`, `stop sonos`, `stop the music`, `stop the sonos`, `stop playing music`, `turn off the music`, `stop sonos in here`. Nothing else: “stop the timer”, “stop the pasta timer” and the like go to the conversation agent, whose `echo_timer` tool dismisses ringing alarms and cancels running timers with the Echo's context. A sentence route cannot tell those two apart, so it does not try.
 
+## Stop from a relay input (0.11.0)
+
+The sentence route above only runs for the default conversation agent, so Echo Relay answers stop itself through the same `StopRoute`. It takes more than the fixed phrase list, because speech-to-text rarely returns a bare "stop". `stop_kind` sorts a phrase of at most six words that starts with "stop" (one or two stray leading words such as "so", "alexa" or "no" are dropped):
+
+- **plain**: nothing but stop and filler ("Stop, stop!", "stop it please", "stop talking").
+- **music**: names the music (music, sonos, song, radio, playing).
+- **named**: stops something else ("stop the timer", "stop the pasta timer", "stop the alarm").
+
+Order, for the Echo the input satellite feeds:
+
+1. **A sounding alarm.** Plain and named phrases silence it ("Timer stopped."). A music phrase goes straight to step 3.
+2. **The Echo's own voice.** A plain stop while the Kiosk's Voice Satellite sensor reads `processing` or `responding` calls `vs_cancel`, which ends the turn on screen, and replies with nothing. If the sensor went idle less than two seconds ago the stop was said during the answer: nothing happens and the music keeps playing. Home Assistant's `assist_satellite` entity is no use here; it stays idle through a `vs_show` turn.
+3. **Music.** `media_player.media_stop` on the selected speaker, "Stopped."
+
+A named phrase with nothing sounding is declined (`None`) and goes on to the conversation agent, so only "stop timer" or "stop <name> timer" can cancel a running timer. A stop the Echo hears itself never takes step 2: that turn is the one on its own screen.
+
 ## Routing
 
 1. **Origin.** The satellite entity's device, else the request's device id (the precedence the automation trigger platform uses).
