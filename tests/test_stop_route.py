@@ -232,6 +232,12 @@ class StopOrderTest(unittest.IsolatedAsyncioTestCase):
         self.speaking('processing')
         self.assertEqual(await self.stop(device_id='dev-ks'),REPLY_STOPPED)
         self.assertEqual(self.called(),['media_stop'])
+    async def test_stop_whose_wake_word_already_ended_the_answer_leaves_the_music(self):
+        self.voice=NS(state='idle',last_changed=stop_route.dt_util.utcnow()-timedelta(seconds=6))
+        request=NS(text='Alexa, stop.',device_id='dev-pe',satellite_id=None,context=NS(user_id=None))
+        self.assertEqual(await self.route.answer(request,'Stop.',True),'')
+        self.assertEqual(self.called(),[])
+        self.assertEqual(await self.route.answer(request,'Stop the music.',True),REPLY_STOPPED,'a music phrase still stops the music')
     async def test_the_relay_cleaned_text_decides_not_the_raw_transcript(self):
         request=NS(text='Computer, stop the timer',device_id='dev-pe',satellite_id=None,context=NS(user_id=None))
         self.assertIsNone(await self.route.answer(request,'Stop the timer'))
