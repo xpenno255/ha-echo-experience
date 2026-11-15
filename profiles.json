@@ -32,13 +32,19 @@
         "players": [
           "media_player.kitchen_sonos",
           "media_player.dining_room_sonos",
-          "media_player.move_sonos"
+          "media_player.move_sonos",
+          "media_player.amzn_echo_show_8"
         ],
         "additional_satellites": [],
         "volume_factor": 0.1,
         "restore_delay": 1,
         "max_duration": 120
       },
+      "native_players": [
+        "media_player.kitchen_sonos",
+        "media_player.dining_room_sonos",
+        "media_player.move_sonos"
+      ],
       "input_satellites": [
         "assist_satellite.echo_dot_2_12b84c_assist_satellite",
         "assist_satellite.respeaker_xvf3800_d75264_assist_satellite"

@@ -23,7 +23,10 @@ class DuckingManager:
     speaker still at our ducked level, preserving intentional volume adjustments.
     """
 
-    def __init__(self, hass, profiles, *, store=None, clock=time.monotonic):
+    def __init__(self, hass, profiles, *, store=None, clock=time.monotonic, voice_sensor=None):
+        """voice_sensor(profile) -> entity id of the Kiosk's own turn state, or None. A relayed turn runs on the
+        Echo after its input satellite has gone idle and leaves Home Assistant's satellite entity idle throughout,
+        so only that sensor says the Echo is still working out or speaking the answer."""
         self.hass = hass
         self.clock = clock
         self.store = store if store is not None else Store(hass, 1, 'echo_experience.ducking')
@@ -33,7 +36,8 @@ class DuckingManager:
             if not cfg.get('enabled', False):
                 continue
             # Both voice identities of the Echo (browser and native Kiosk) plus its input satellites and companions (deduplicated).
-            for satellite in dict.fromkeys([*satellites(p), *input_satellites(p), *cfg.get('additional_satellites', [])]):
+            sensor = voice_sensor(p) if voice_sensor else None
+            for satellite in dict.fromkeys([*satellites(p), *input_satellites(p), *cfg.get('additional_satellites', []), *([sensor] if sensor else [])]):
                 self.sources.setdefault(satellite, []).append(cfg)
         self.players = {e for configs in self.sources.values() for c in configs for e in c['players']}
         self.leases = {}

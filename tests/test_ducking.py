@@ -29,6 +29,27 @@ class DuckingTest(unittest.IsolatedAsyncioTestCase):
                     'restore_delay': 1, 'max_duration': 120}
         self.manager = DuckingManager(self.hass, [{'satellite': 'assist_satellite.kitchen', 'ducking': self.cfg}], store=self.store, clock=lambda: self.now)
 
+    async def test_music_stays_down_while_the_echo_answers_a_relayed_request(self):
+        """The input satellite goes idle as soon as it has heard the request; the Echo's own turn state carries on."""
+        self.set('assist_satellite.dot', 'idle');self.set('sensor.ks_voice_satellite', 'idle')
+        profile = {'satellite': 'assist_satellite.kitchen', 'input_satellites': ['assist_satellite.dot'], 'ducking': self.cfg}
+        manager = DuckingManager(self.hass, [profile], store=self.store, clock=lambda: self.now, voice_sensor=lambda p: 'sensor.ks_voice_satellite')
+        self.set('assist_satellite.dot', 'listening');await manager.async_reconcile()
+        self.assertEqual(self.calls, [('media_player.left', .07), ('media_player.right', .01)])
+        self.set('media_player.left', 'playing', .07);self.set('media_player.right', 'playing', .01)
+        # Heard: the input satellite is done, the Echo starts working out the answer and then speaks it.
+        self.set('assist_satellite.dot', 'idle');self.set('sensor.ks_voice_satellite', 'processing');self.now = 0.1;await manager.async_reconcile()
+        self.set('sensor.ks_voice_satellite', 'responding');self.now = 6;await manager.async_reconcile()
+        self.assertEqual(len(self.calls), 2, 'still ducked five seconds after the input satellite went idle')
+        self.set('sensor.ks_voice_satellite', 'idle');self.now = 6.5;await manager.async_reconcile()
+        self.assertEqual(len(self.calls), 2, 'the restore delay applies after the answer too')
+        self.now = 7.6;await manager.async_reconcile()
+        self.assertEqual(self.calls[2:], [('media_player.left', .74), ('media_player.right', .09)])
+
+    async def test_without_a_voice_sensor_nothing_changes(self):
+        manager = DuckingManager(self.hass, [{'satellite': 'assist_satellite.kitchen', 'ducking': self.cfg}], store=self.store, voice_sensor=lambda p: None)
+        self.assertEqual(set(manager.sources), {'assist_satellite.kitchen', 'assist_satellite.second'})
+
     def set(self, entity, state, volume=None):
         self.states[entity] = NS(state=state, attributes={} if volume is None else {'volume_level': volume})
 
