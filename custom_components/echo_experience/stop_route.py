@@ -29,6 +29,7 @@ PLAYBACK_WORDS=re.compile(r'\b(music|sonos|song|radio|playing)\b')
 MAX_STOP_WORDS=6
 # A stop that lands this soon after the Echo finished speaking was said while it spoke: it is not for the music.
 SPEECH_GRACE=2.0
+PLAYING=('playing','buffering')
 REPLY_TIMER='Timer stopped.'
 REPLY_UNCONFIRMED="I couldn't confirm the timer alarm stopped. Tap the alert or say stop again."
 REPLY_STOPPED='Stopped.'
@@ -155,7 +156,8 @@ class StopRoute:
             players=self.area_sonos_players(device_id)
             if not players:return REPLY_NO_TARGET
             return await self.stop_players(players,user_input.context)
-        if kind!='music' and not MUSIC_WORDS.search(text):
+        music=kind=='music' or bool(MUSIC_WORDS.search(text))
+        if not music:
             # 1. A sounding alarm: any stop silences it, whatever else the phrase names.
             outcome=await self.runtime.dismiss_for_device(device_id,profile=p)
             status=outcome.get('status')
@@ -168,7 +170,11 @@ class StopRoute:
             # The wake word may already have ended it (hushed): the stop was still for the voice, not the music.
             if device_id not in device_ids(p) and (hushed or await self.stop_speech(p)):return ''
         # 3. Music: the selected speaker, or the native coordinator when it was started from the Sonos app.
-        return await self.stop_players([self.runtime.playback_target(p)],user_input.context,p)
+        target=self.runtime.playback_target(p)
+        # A plain stop with nothing playing has nothing to do, so nothing is said either ("Stopped." after a stop
+        # that arrived just too late for the Echo's answer sounded like a reply to nothing).
+        if not music and getattr(self.hass.states.get(target),'state',None) not in PLAYING:return ''
+        return await self.stop_players([target],user_input.context,p)
 
     async def stop_speech(self,p):
         """True when this stop was for the Echo's own voice: an answer being worked out or spoken is ended."""

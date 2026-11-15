@@ -101,6 +101,7 @@ class RouteTest(unittest.IsolatedAsyncioTestCase):
         self.hass.services.async_call.assert_not_called()
     async def test_nothing_ringing_stops_selected_speaker_not_the_default(self):
         self.runtime.dismiss_for_device=AsyncMock(return_value={'status':'not_ringing'})
+        self.hass.states.get=Mock(return_value=NS(state='playing',attributes={}))
         self.runtime.music_players['kitchen']='media_player.kitchen_move'
         self.assertEqual(await self.handle('stop',device_id='dev-kitchen'),REPLY_STOPPED)
         call=self.hass.services.async_call.call_args
@@ -112,12 +113,21 @@ class RouteTest(unittest.IsolatedAsyncioTestCase):
         self.hass.states.get=lambda e:{'media_player.kitchen_a':NS(state='playing',attributes={'group_members':['media_player.kitchen_a']})}.get(e,NS(state='idle',attributes={}))
         self.assertEqual(await self.handle('stop music',device_id='dev-kitchen'),REPLY_STOPPED)
         self.assertEqual(self.hass.services.async_call.call_args.args[2]['entity_id'],['media_player.kitchen_a'])
+    async def test_plain_stop_with_nothing_playing_does_and_says_nothing(self):
+        self.runtime.dismiss_for_device=AsyncMock(return_value={'status':'not_ringing'})
+        for state in ('idle','paused','off','unavailable'):
+            with self.subTest(state=state):
+                self.hass.states.get=Mock(return_value=NS(state=state,attributes={}))
+                self.assertEqual(await self.handle('stop',device_id='dev-kitchen'),'')
+        self.hass.services.async_call.assert_not_called()
+        self.assertEqual(await self.registered[0][1](self.request('stop music',device_id='dev-kitchen'),None),REPLY_STOPPED,'a music phrase is still carried out and confirmed')
     async def test_explicit_music_phrase_skips_timer_service(self):
         self.runtime.dismiss_for_device=AsyncMock(side_effect=AssertionError('must not be called'))
         self.assertEqual(await self.handle('stop the music',device_id='dev-kitchen'),REPLY_STOPPED)
     async def test_satellite_id_takes_precedence_and_companion_routes_to_its_echo(self):
         self.runtime.dismiss_for_device=AsyncMock(return_value={'status':'not_ringing'})
         self.registry.entities['assist_satellite.companion']=self.entity('assist_satellite.companion','esphome','dev-companion')
+        self.hass.states.get=Mock(return_value=NS(state='playing',attributes={}))
         await self.handle('stop',satellite_id='assist_satellite.companion',device_id='dev-other')
         self.assertEqual(self.hass.services.async_call.call_args.args[2]['entity_id'],['media_player.kitchen'])
     async def test_unknown_device_needs_real_area_and_native_sonos_only(self):

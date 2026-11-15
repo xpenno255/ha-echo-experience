@@ -18,7 +18,7 @@ Order, for the Echo the input satellite feeds:
 
 1. **A sounding alarm.** Plain and named phrases silence it ("Timer stopped."). A music phrase goes straight to step 3.
 2. **The Echo's own voice.** A plain stop while the Kiosk's Voice Satellite sensor reads `processing` or `responding` calls `vs_cancel`, which ends the turn on screen, and replies with nothing. If the sensor went idle less than two seconds ago the stop was said during the answer: nothing happens and the music keeps playing. Home Assistant's `assist_satellite` entity is no use here; it stays idle through a `vs_show` turn.
-3. **Music.** `media_player.media_stop` on the selected speaker, "Stopped."
+3. **Music.** `media_player.media_stop` on the selected speaker, "Stopped." Since 0.11.2 a plain stop with nothing playing there does and says nothing; a music phrase is always carried out.
 
 Since 0.11.1 the wake word itself ends the answer: when an input satellite starts listening while the sensor reads `processing` or `responding` and nothing is sounding, the relay calls `vs_cancel` straight away, so the Echo's voice is not in the request. A plain stop in that turn is then counted as step 2 and leaves the music alone.
 
