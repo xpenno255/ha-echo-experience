@@ -148,6 +148,8 @@ Example profile (replace all IDs with actual entities):
 }
 ```
 
+Ducking lowers `ducking.players` while any of the Echo's voice devices is busy: its own satellites, its `input_satellites` and `additional_satellites`, and, for a native Kiosk Echo, the Kiosk's own turn state, so music stays down while the Echo answers a request that an input satellite relayed.
+
 `native_players` (optional) lists the native speaker entities behind the Music Assistant player, e.g. the Sonos members of the group; it defaults to `ducking.players`. When the Music Assistant player is idle but one of these is playing (Sonos app, Spotify Connect, AirPlay), the music view shows it and pause/next/stop, voice stop and shuffle act on that speaker's group coordinator. Music Assistant wins when both play.
 
 `kiosk_hold` (optional) is Kiosk's Hold mode switch. Besides pinning a guide, the integration turns it on while the Echo has a running timer or a ringing alarm, or while music plays on its speaker (the selected speaker, or one of its `native_players` playing from another app), so the screen stays at full brightness instead of the screensaver, and turns it off once no timer runs, no alarm rings and the music has been stopped or paused for 20 seconds (track changes do not flicker it). Paused timers do not hold the screen. Set `"hold_while_music": false` in a profile to let the screen dim during music as before. It only releases a hold it set itself (a pinned guide keeps its own), takes the hold back if someone else releases it while a timer still runs, and records ownership in `.storage/echo_experience.screen_hold` so a hold left on across a restart is released.

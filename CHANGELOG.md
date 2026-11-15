@@ -1,5 +1,12 @@
 # Changes
 
+## 0.11.3 - Music stays down while the Echo answers a relayed request
+
+- Ducking now also follows the Kiosk's own turn state. With Echo Relay the input satellite goes idle as soon as it has heard the request, and Home Assistant's satellite entity for the Echo stays idle through a relayed turn, so the music came back to full volume about a second and a half after the request, while the Echo was still working out and speaking the answer. It now stays ducked until the answer has ended (plus `restore_delay`).
+- Nothing changes for Echos without the native Kiosk runtime.
+- To duck the Echo's own media player as well, add it to `ducking.players` and set `native_players` explicitly, since `native_players` defaults to that list.
+- No migration. Restart Core after updating.
+
 ## 0.11.2 - No reply to nothing
 
 - A plain stop with nothing sounding, nothing being spoken and nothing playing now does and says nothing. Before, it sent a stop to the idle speaker and the Echo said "Stopped.", which after a stop that arrived just too late for the Echo's answer sounded like a reply to nothing. A phrase that names the music ("stop the music") is still carried out and confirmed.

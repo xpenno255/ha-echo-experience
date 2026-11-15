@@ -212,6 +212,12 @@ def voice_state(hass, ident):
     Home Assistant's satellite entity only follows turns the Kiosk hears itself. A vs_show turn (Echo Relay) leaves
     it idle, so the Kiosk's sensor is the one that says an answer is being worked out or spoken.
     """
+    entity_id = voice_state_entity(hass, ident)
+    return hass.states.get(entity_id) if entity_id else None
+
+
+def voice_state_entity(hass, ident):
+    """Entity id of that sensor, found on the native device by its ESPHome unique id."""
     if not ident:
         return None
     try:
@@ -223,7 +229,7 @@ def voice_state(hass, ident):
     for entry in entries:
         if entry.domain == 'sensor' and entry.platform == 'esphome' and not entry.disabled_by \
                 and str(entry.unique_id).endswith(VOICE_STATE_SUFFIX):
-            return hass.states.get(entry.entity_id)
+            return entry.entity_id
     return None
 
 

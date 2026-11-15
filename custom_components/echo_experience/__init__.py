@@ -87,7 +87,7 @@ async def async_setup_entry(hass, entry):
     runtime.wake_cue.start()
     entry.async_on_unload(runtime.wake_cue.stop)
     await hass.config_entries.async_forward_entry_setups(entry,['conversation'])
-    runtime.ducking=DuckingManager(hass,runtime.profiles)
+    runtime.ducking=DuckingManager(hass,runtime.profiles,voice_sensor=lambda p:native.voice_state_entity(hass,identity(p,'native')))
     await runtime.ducking.async_start()
     return True
 
