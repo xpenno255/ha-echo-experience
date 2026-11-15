@@ -1,5 +1,10 @@
 # Changes
 
+## 0.12.1 - No second copy of a restored timer
+
+- A Kiosk keeps its own copy of every timer and only drops it when Home Assistant reports it cancelled or finished. After a restart the restored timer therefore appeared beside the old one, which counted down to an alarm that never came. Before a timer is brought back (or announced as missed) the Echo is now told the old one is gone.
+- No migration. Restart Core after updating.
+
 ## 0.12.0 - Timers survive a Home Assistant restart
 
 - Home Assistant keeps voice timers in memory only, and the Echo rings when Home Assistant tells it a timer has finished, so a Core restart lost every running timer without a word. The integration now writes each Echo's timers (name, end time, paused or not) to `.storage/echo_experience.timers` whenever they change, and once more as Home Assistant shuts down.
