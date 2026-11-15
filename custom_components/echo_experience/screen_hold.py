@@ -4,8 +4,8 @@ Kiosk's Hold mode switch (profile `kiosk_hold`) pins the dashboard and blocks th
 it on while a profile has a running timer, a ringing alarm or (unless `hold_while_music` is false) music playing on
 its speaker, and off again once none is left, but only when it turned it on itself: a hold set by someone else (a
 pinned guide) is left alone, and taken over only if that owner releases it while it is still needed. Paused timers
-and paused music do not hold the screen. Ownership is stored, so a hold left on across a restart (timers do not
-survive one) is released at the next start.
+and paused music do not hold the screen. Ownership is stored, so a hold left on across a restart is released at
+the next start unless a timer brought back by the timer journal still needs it.
 """
 import asyncio
 import logging

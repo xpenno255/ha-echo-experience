@@ -1,5 +1,14 @@
 # Changes
 
+## 0.12.0 - Timers survive a Home Assistant restart
+
+- Home Assistant keeps voice timers in memory only, and the Echo rings when Home Assistant tells it a timer has finished, so a Core restart lost every running timer without a word. The integration now writes each Echo's timers (name, end time, paused or not) to `.storage/echo_experience.timers` whenever they change, and once more as Home Assistant shuts down.
+- After a restart, once the Echo's voice device is back (it waits up to ten minutes), each timer is started again with the time it has left; a paused timer comes back paused. The Echo shows it as a timer of the remaining length.
+- A timer that ran out while Home Assistant was down is not restarted. The Echo says "Your pasta timer finished 3 minutes ago, while Home Assistant was restarting." (up to an hour late; after that it is only logged).
+- A ringing alarm is not carried over, and reloading the integration restores nothing, because the timers are still in Home Assistant then.
+- Includes 0.11.4 (more misheard "stop timer" caught, near-miss wake words).
+- No migration. Restart Core after updating.
+
 ## 0.11.4 - More misheard "stop timer" caught
 
 - Echo Relay: while the Echo has a running or ringing timer, more of the ways speech-to-text spells "stop timer" are sent on as "Stop the timer.". Heard in use: "Stop Tone Up.", "Stop, tie them up.", "Stop, Time Out.", besides the "Stop Tomer." and "Stop, Toma." already caught. The test is now a t or d followed closely by an m or n in the words after "stop". A phrase that names a household device ("stop the downstairs lights", "stop the tumble dryer") or the music is never rewritten, and without a timer nothing is.
