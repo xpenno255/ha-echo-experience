@@ -1,5 +1,13 @@
 # Changes
 
+## 0.11.1 - The wake word quietens the Echo
+
+- When an input satellite hears its wake word while the Echo is working out or speaking an answer, the answer is ended at once, as on an Echo itself. Before, the Echo talked on, the input satellite heard it along with the request and kept listening until it finished: "Alexa, stop" over a forecast arrived as "Alexa, stop. Expect rain to continue throughout the afternoon and evening." and the model read the weather again.
+- A stop that follows such a wake word was for the answer and leaves the music alone, however long speech-to-text took.
+- A sounding alarm is not silenced by the wake word alone; the request decides.
+- This runs for every input satellite, whether or not `relay.wake_cue` is on.
+- No migration. Restart Core after updating.
+
 ## 0.11.0 - Stop does the obvious thing, a lost request is said out loud, and the wake word can come along
 
 - Echo Relay, stop: any short phrase that is only "stop" ("Stop, stop!", "So, stop.", "stop it please", "stop talking") is now handled directly and no longer reaches the model, which had answered "Stop, Stop!" during an alarm with "I've paused the music". The order is: a sounding alarm is silenced first; otherwise an answer the Echo is working out or speaking is ended; otherwise the music stops. A stop that lands within two seconds of the Echo finishing its answer was said while it spoke and leaves the music alone.

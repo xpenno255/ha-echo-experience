@@ -125,6 +125,8 @@ class Experience:
         self.dismiss_timeout=4
         self.screen_hold=None
         self.stop_route=None
+        # Profile id -> when a wake word on an input satellite ended the answer this Echo was speaking.
+        self.hushed={}
         self.overrides={}
         self.turns=None
         self.native_waiters=[]

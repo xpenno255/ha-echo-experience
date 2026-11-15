@@ -10,6 +10,7 @@ import asyncio
 import difflib
 import logging
 import re
+import time
 
 from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_state_change_event
@@ -33,6 +34,8 @@ HANDOFF_TIMEOUT = 4
 INTERRUPT_RETRIES = 3
 INTERRUPT_PAUSE = 0.4
 REPLY_UNREACHABLE = "Sorry, I couldn't reach the {name}. Please try again."
+# A stop within this long of its wake word ending the Echo's answer was for that answer.
+HUSH_WINDOW = 30
 
 
 def strip_wake_word(text, words):
@@ -93,6 +96,7 @@ class Relay:
             native.warn_once('relay_unknown', 'Echo Experience relay: device %s is not in any profile input_satellites', user_input.device_id)
             return self.reply(user_input, "This device isn't set up to relay to an Echo.")
         relay = p['relay']
+        hushed = time.monotonic() - self.runtime.hushed.pop(p['id'], float('-inf')) < HUSH_WINDOW
         text = strip_wake_word(user_input.text, relay['wake_words'])
         if not normalise(text):
             return self.reply(user_input)  # the wake word and nothing after it
@@ -102,7 +106,7 @@ class Relay:
         is_stop = kind in ('plain', 'music') or normalise(text) in STOP_PHRASES \
             or (kind == 'named' and bool(self.runtime.ringing_timers(p)))
         if is_stop and self.runtime.stop_route:
-            speech = await self.runtime.stop_route.handle(user_input, None, text=text)
+            speech = await self.runtime.stop_route.handle(user_input, None, text=text, hushed=hushed)
             if speech is not None:
                 # The stop route has already given the outcome to the Echo when it is up (speech is then empty).
                 return self.reply(user_input, speech)
@@ -161,16 +165,18 @@ class Relay:
 
 
 class WakeCue:
-    """Chime and toast on the Echo when one of its input satellites starts listening. Cheap, fail-soft."""
+    """When one of an Echo's input satellites starts listening: the Echo stops talking, and (wake_cue) gives a
+    chime and toast. Cheap, fail-soft."""
 
     def __init__(self, hass, runtime):
         self.hass, self.runtime = hass, runtime
         self.unsubscribe = None
-        self.owners = {s: p for p in runtime.profiles if p['relay']['wake_cue'] for s in input_satellites(p)}
+        self.inputs = {s: p for p in runtime.profiles for s in input_satellites(p)}
+        self.owners = {s: p for s, p in self.inputs.items() if p['relay']['wake_cue']}
 
     def start(self):
-        if self.owners:
-            self.unsubscribe = async_track_state_change_event(self.hass, list(self.owners), self.changed)
+        if self.inputs:
+            self.unsubscribe = async_track_state_change_event(self.hass, list(self.inputs), self.changed)
 
     def stop(self):
         if self.unsubscribe:
@@ -182,9 +188,28 @@ class WakeCue:
         new, old = event.data.get('new_state'), event.data.get('old_state')
         if getattr(new, 'state', None) != 'listening' or getattr(old, 'state', None) == 'listening':
             return
-        p = self.owners.get(event.data.get('entity_id'))
-        if p:
-            self.hass.async_create_task(self.cue(p), 'Echo Experience wake cue')
+        entity = event.data.get('entity_id')
+        if entity in self.inputs:
+            self.hass.async_create_task(self.hush(self.inputs[entity]), 'Echo Experience wake hush')
+        if entity in self.owners:
+            self.hass.async_create_task(self.cue(self.owners[entity]), 'Echo Experience wake cue')
+
+    async def hush(self, p):
+        """The wake word ends the answer the Echo is working out or speaking, as it does on an Echo itself.
+
+        Otherwise the input satellite hears the Echo's voice along with the request ("Alexa, stop. Expect rain to
+        continue...") and keeps listening until the Echo has finished. A sounding alarm is left alone: vs_cancel
+        would silence it, and that is for the request to decide.
+        """
+        try:
+            ident = identity(p, 'native')
+            state = getattr(native.voice_state(self.hass, ident), 'state', None)
+            if state not in native.TURN_STATES or self.runtime.ringing_timers(p):
+                return
+            self.runtime.hushed[p['id']] = time.monotonic()
+            await native.end_turn(self.hass, ident, HANDOFF_TIMEOUT)
+        except Exception as err:  # noqa: BLE001
+            native.warn_once('wake_hush', 'Echo Experience: could not quieten the Echo on a wake word (%s)', err)
 
     async def cue(self, p):
         service = vs_service(self.hass, p, 'notification')

@@ -217,6 +217,45 @@ class RelayTest(unittest.IsolatedAsyncioTestCase):
         await WakeCue(self.hass,self.runtime).cue(self.runtime.profiles[0])
         self.hass.services.async_call.assert_not_awaited()
 
+    # ---- the wake word quietens the Echo
+    def voice(self,state):
+        return patch.object(relay_module.native,'voice_state',lambda hass,ident:NS(state=state) if state else None)
+    async def test_wake_word_ends_the_answer_the_echo_is_speaking(self):
+        cue=WakeCue(self.hass,Experience(self.hass,validate_profiles(config(relay={'wake_cue':False}))))
+        for state in ('responding','processing'):
+            with self.subTest(state=state),self.voice(state):
+                self.hass.services.async_call.reset_mock();cue.runtime.hushed.clear()
+                await self.changed(cue,'idle','listening');await asyncio.sleep(0)
+                self.hass.services.async_call.assert_awaited_once_with('esphome','ks_echo_vs_cancel',{},blocking=True)
+                self.assertIn('kitchen',cue.runtime.hushed)
+    async def test_wake_word_leaves_a_quiet_echo_and_a_sounding_alarm_alone(self):
+        cue=WakeCue(self.hass,Experience(self.hass,validate_profiles(config(relay={'wake_cue':False}))))
+        for state in ('idle',None,'unavailable'):
+            with self.subTest(state=state),self.voice(state):
+                await self.changed(cue,'idle','listening');await asyncio.sleep(0)
+        cue.runtime.ringing_timers=Mock(return_value=[{'id':'t','name':'Pasta'}])
+        with self.voice('responding'):
+            await self.changed(cue,'idle','listening');await asyncio.sleep(0)
+        self.hass.services.async_call.assert_not_awaited();self.assertEqual(cue.runtime.hushed,{})
+    async def test_only_input_satellites_quieten_the_echo(self):
+        cue=WakeCue(self.hass,self.runtime)
+        with self.voice('responding'):
+            await self.changed(cue,'idle','listening',entity='assist_satellite.other');await asyncio.sleep(0)
+        self.hass.services.async_call.assert_not_awaited()
+    async def test_stop_after_a_hush_is_told_to_the_stop_route_once(self):
+        self.runtime.hushed['kitchen']=relay_module.time.monotonic()
+        await self.relay.process(self.turn('Alexa, stop.'))
+        self.assertTrue(self.runtime.stop_route.handle.await_args.kwargs['hushed'])
+        await self.relay.process(self.turn('stop'))
+        self.assertFalse(self.runtime.stop_route.handle.await_args.kwargs['hushed'],'the next turn starts clean')
+    async def test_an_old_hush_or_one_used_by_another_request_does_not_count(self):
+        self.runtime.hushed['kitchen']=relay_module.time.monotonic()-relay_module.HUSH_WINDOW-1
+        await self.relay.process(self.turn('stop'))
+        self.assertFalse(self.runtime.stop_route.handle.await_args.kwargs['hushed'])
+        self.runtime.hushed['kitchen']=relay_module.time.monotonic()
+        await self.relay.process(self.turn('what is the weather'))
+        self.assertEqual(self.runtime.hushed,{})
+
     # ---- validation and ducking
     def test_defaults_and_validation(self):
         p=validate_profiles({'devices':[{k:v for k,v in config()['devices'][0].items() if k!='input_satellites'}]})['devices'][0]

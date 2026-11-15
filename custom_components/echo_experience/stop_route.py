@@ -127,9 +127,10 @@ class StopRoute:
             if entry_area==area:players.append(entry.entity_id)
         return sorted(players)
 
-    async def handle(self,user_input,result,text=None):
-        """text: the request as the relay cleaned it (wake word taken off); the sentence trigger passes none."""
-        return await self.voice_on_echo(user_input,await self.answer(user_input,text))
+    async def handle(self,user_input,result,text=None,hushed=False):
+        """text: the request as the relay cleaned it (wake word taken off). hushed: this turn's wake word already
+        ended the answer the Echo was speaking. The sentence trigger passes neither."""
+        return await self.voice_on_echo(user_input,await self.answer(user_input,text,hushed))
 
     async def voice_on_echo(self,user_input,speech):
         """A relay input satellite stays silent: the Echo it feeds says the outcome while that Echo is up."""
@@ -139,7 +140,7 @@ class StopRoute:
         await self.hass.services.async_call('assist_satellite','announce',{'entity_id':ident['satellite'],'message':speech,'preannounce':False},blocking=False,context=user_input.context)
         return ''
 
-    async def answer(self,user_input,text=None):
+    async def answer(self,user_input,text=None,hushed=False):
         if self.legacy_enabled():
             # Switched back on without a reload: let the automation answer and do nothing here.
             _LOGGER.warning('Legacy stop automation is enabled again; reload Echo Experience to withdraw its route')
@@ -164,7 +165,8 @@ class StopRoute:
             if kind=='named':return None
             # 2. The Echo is answering: end that, silently. Only for a relay input; a stop the Echo hears itself
             # is its own turn on screen, and its stop word already covers its speech.
-            if device_id not in device_ids(p) and await self.stop_speech(p):return ''
+            # The wake word may already have ended it (hushed): the stop was still for the voice, not the music.
+            if device_id not in device_ids(p) and (hushed or await self.stop_speech(p)):return ''
         # 3. Music: the selected speaker, or the native coordinator when it was started from the Sonos app.
         return await self.stop_players([self.runtime.playback_target(p)],user_input.context,p)
 
