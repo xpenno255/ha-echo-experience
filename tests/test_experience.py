@@ -55,6 +55,17 @@ class CoreTest(unittest.TestCase):
    with self.subTest(unit=a):self.assertEqual(convert(1,a,b)['result'],1)
   self.assertEqual(convert(1,' Metre ','cm')['result'],100)
   self.assertAlmostEqual(convert(1,'us_cup','ml')['result'],236.5882365)
+ def test_unstated_cup_pint_fluid_ounce_use_uk_measures_and_say_so(self):
+  for unit,wanted,standard in [('cups',500,'metric cup'),('pint',1136.5225,'uk pint'),('fluid_ounce',56.826125,'uk fl oz')]:
+   with self.subTest(unit=unit):
+    out=convert(2,unit,'ml')
+    self.assertAlmostEqual(out['result'],wanted)
+    self.assertEqual(out['from_unit'],standard)
+    self.assertIn(standard,out['note'])
+  # A stated standard needs no note; a "UK cup" is the metric cup British recipes use.
+  self.assertNotIn('note',convert(1,'us pint','ml'))
+  self.assertEqual(convert(2,'uk cup','ml')['result'],500)
+  self.assertAlmostEqual(convert(4,'us fluid ounces','ml')['result'],118.29411825)
  def test_unknown_unit_error_identifies_missing_unit(self):
   with self.assertRaisesRegex(ValueError,'Unsupported or ambiguous unit: furlong'):
    convert(1,'furlong','mile')

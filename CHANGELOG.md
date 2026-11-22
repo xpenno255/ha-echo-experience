@@ -1,5 +1,11 @@
 # Changes
 
+## 0.12.2 - Cups, pints and fluid ounces without a standard
+
+- The Echo cannot hear a reply to a question (answering means waking it again, which starts a new conversation), so it no longer asks which cup or pint was meant. A cup, pint or fluid ounce with no standard is converted as a metric cup (250 mL), UK pint or UK fluid ounce, and the result carries a note naming the measure so the answer says it. US measures are still used when asked for. Before, the converter refused a plain "cup", and the model either gave up or answered with the US figure from its own knowledge.
+- "UK cup", "UK/imperial fluid ounces" and "US fluid ounces" are understood too.
+- No migration. Restart Core after updating.
+
 ## 0.12.1 - No second copy of a restored timer
 
 - A Kiosk keeps its own copy of every timer and only drops it when Home Assistant reports it cancelled or finished. After a restart the restored timer therefore appeared beside the old one, which counted down to an alarm that never came. Before a timer is brought back (or announced as missed) the Echo is now told the old one is gone.

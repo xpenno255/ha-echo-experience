@@ -140,12 +140,19 @@ ALIASES={'grams':'g','gram':'g','kilograms':'kg','kilogram':'kg','milligrams':'m
  'millimetres':'mm','centimetres':'cm','metres':'m','meters':'m','kilometres':'km','kilometers':'km','inches':'in','inch':'in','feet':'ft','foot':'ft','yards':'yd','miles':'mi',
  'imperial pint':'uk pint','imperial pints':'uk pint','uk pints':'uk pint','us pints':'us pint','us cups':'us cup','metric cups':'metric cup',
  'millimetre':'mm','millimeter':'mm','millimeters':'mm','centimetre':'cm','centimeter':'cm','centimeters':'cm',
- 'metre':'m','meter':'m','kilometre':'km','kilometer':'km','kilometers':'km','yard':'yd','mile':'mi'}
+ 'metre':'m','meter':'m','kilometre':'km','kilometer':'km','kilometers':'km','yard':'yd','mile':'mi',
+ 'uk fluid ounce':'uk fl oz','uk fluid ounces':'uk fl oz','imperial fluid ounce':'uk fl oz','imperial fluid ounces':'uk fl oz',
+ 'us fluid ounce':'us fl oz','us fluid ounces':'us fl oz','uk cup':'metric cup','uk cups':'metric cup'}
+# A cup, pint or fluid ounce with no standard is taken as the household's (UK) one, and the result says so. The Echo
+# cannot ask which was meant: the user would have to wake it again, which starts a new conversation.
+ASSUMED={'cup':'metric cup','cups':'metric cup','pint':'uk pint','pints':'uk pint',
+ 'fl oz':'uk fl oz','fluid ounce':'uk fl oz','fluid ounces':'uk fl oz'}
 
 def convert(value, from_unit, to_unit):
     normalize=lambda unit:' '.join(unit.strip().lower().replace('_',' ').split())
-    a=ALIASES.get(normalize(from_unit),normalize(from_unit))
-    b=ALIASES.get(normalize(to_unit),normalize(to_unit))
+    assumed=[ASSUMED[normalize(u)] for u in (from_unit,to_unit) if normalize(u) in ASSUMED]
+    a=ASSUMED.get(normalize(from_unit)) or ALIASES.get(normalize(from_unit),normalize(from_unit))
+    b=ASSUMED.get(normalize(to_unit)) or ALIASES.get(normalize(to_unit),normalize(to_unit))
     if a not in UNITS or b not in UNITS:
         missing=', '.join(u for u in (from_unit,to_unit) if ALIASES.get(normalize(u),normalize(u)) not in UNITS)
         raise ValueError(f'Unsupported or ambiguous unit: {missing}. Supported categories are length/distance, mass, volume and temperature. Cups, pints and fluid ounces need a UK, US or metric standard.')
@@ -161,7 +168,9 @@ def convert(value, from_unit, to_unit):
     number=float(result)
     if not math.isfinite(number):raise ValueError('Result is out of range')
     label=lambda u: {'c':'°C','f':'°F','k':'K','l':'L','ml':'mL'}.get(u,u)
-    return {'value':float(v),'from_unit':label(a),'to_unit':label(b),'result':number,'equation':f'{float(v):g} {label(a)} = {number:,.4f}'.rstrip('0').rstrip('.')+f' {label(b)}'}
+    out={'value':float(v),'from_unit':label(a),'to_unit':label(b),'result':number,'equation':f'{float(v):g} {label(a)} = {number:,.4f}'.rstrip('0').rstrip('.')+f' {label(b)}'}
+    if assumed:out['note']='No standard was given, so this uses the '+' and '.join(dict.fromkeys(assumed))+'. Say which one in the answer.'
+    return out
 
 
 def normalize_timer_name(name):
