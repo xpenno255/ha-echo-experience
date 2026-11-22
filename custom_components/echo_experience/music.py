@@ -177,3 +177,26 @@ async def resolve_music(search, query, kind, artist='', album='', version=''):
                         'note': 'Ask one short question using these choices. Nothing has been queued.'}
     return {'status': 'not_found',
             'message': 'No confident match was found. Ask for the artist or the exact title. Nothing has been queued.'}
+
+
+STATION_WORDS = ('radio', 'station')
+
+
+async def library_station(search, query):
+    """A radio station saved in the Music Assistant library whose name is the query, or None.
+
+    "Absolute Radio", "smooth relax" and "Smooth Relax radio" all name the saved "Smooth Relax"/"Absolute Radio":
+    a spoken trailing "radio" or "station" may or may not be part of the name. Only an exact name match counts, so a
+    station is never substituted for something else. Read-only; nothing is played here.
+    """
+    names = [query.strip()]
+    parts = words(query).split()
+    if len(parts) > 1 and parts[-1] in STATION_WORDS:
+        names.append(' '.join(parts[:-1]))
+    wanted = {key(name, 'radio') for name in names}
+    for name in dict.fromkeys(names):
+        response = await search({'name': name, 'media_type': ['radio'], 'limit': 10, 'library_only': True})
+        for item in (response or {}).get('radio', []) or []:
+            if item.get('uri') and key(item.get('name', ''), 'radio') in wanted:
+                return summary(item)
+    return None

@@ -2,7 +2,7 @@
 import unittest
 from unittest.mock import AsyncMock
 import test_experience
-from custom_components.echo_experience.music import resolve_music, key
+from custom_components.echo_experience.music import resolve_music, key, library_station
 
 
 def track(uri='library://track/339', artist='Guns N’ Roses', album='Appetite for Destruction', version=''):
@@ -136,3 +136,23 @@ class PlaybackTest(unittest.IsolatedAsyncioTestCase):
         await self.runtime.music(self.profiles[0],{'action':'play','query':'BBC Radio 2','media_type':'radio'})
         call=next(c for c in self.hass.services.async_call.call_args_list if c.args[:2]==('music_assistant','play_media'))
         self.assertEqual(call.args[2]['media_id'],'BBC Radio 2')
+
+
+class StationTest(unittest.IsolatedAsyncioTestCase):
+    """A saved station is found by its exact name, with or without a spoken "radio"; nothing else ever matches."""
+    async def test_exact_name_with_or_without_spoken_radio(self):
+        smooth={'uri':'library://radio/2','name':'Smooth Relax'}
+        for query in ['Smooth Relax','smooth relax','Smooth Relax radio','smooth relax station']:
+            with self.subTest(query=query):
+                search=AsyncMock(side_effect=lambda f:{'radio':[smooth]} if f['name'].lower()=='smooth relax' else {'radio':[]})
+                self.assertEqual((await library_station(search,query))['uri'],'library://radio/2')
+                self.assertTrue(all(c.args[0]['library_only'] and c.args[0]['media_type']==['radio'] for c in search.call_args_list))
+        search=AsyncMock(return_value={'radio':[{'uri':'library://radio/1','name':'Absolute Radio'}]})
+        self.assertEqual((await library_station(search,'absolute radio'))['uri'],'library://radio/1')
+
+    async def test_near_misses_and_empty_results_are_none(self):
+        search=AsyncMock(return_value={'radio':[{'uri':'library://radio/2','name':'Smooth Relax'}]})
+        self.assertIsNone(await library_station(search,'Smooth Radio'))
+        self.assertIsNone(await library_station(search,'Relax'))
+        self.assertIsNone(await library_station(AsyncMock(return_value={}),'Smooth Relax'))
+        self.assertIsNone(await library_station(AsyncMock(return_value=None),'Smooth Relax'))

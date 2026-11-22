@@ -1,5 +1,11 @@
 # Changes
 
+## 0.12.4 - Saved radio stations play by name
+
+- "Play Smooth Relax" was sent to the music tool as a song, which found nothing and said so, although Smooth Relax is a station saved in the Music Assistant library. When a song, artist or album request finds nothing (and no artist was named), a station saved in the library under exactly that name now plays instead.
+- A radio request now plays the saved station when one has that name, with or without a spoken "radio" or "station" ("Smooth Relax radio" is the saved "Smooth Relax"). Before, Music Assistant looked the name up online, which on 2026-11-21 took long enough for the voice turn to time out with "Sorry, I got stuck on that" while the station started anyway. A station not in the library is still left to Music Assistant as before.
+- No migration. Restart Core after updating.
+
 ## 0.12.3 - "US cup" honoured even when the model drops "US"
 
 - The voice model sends "1 US cup" as a plain cup, which 0.12.2 converted as a metric cup while the answer still said "US cup". The converter now reads the user's own request from the conversation: "US" (in capitals, so the pronoun "us" does not count), "U.S.", "USA" or "American" makes a plain cup, pint or fluid ounce the US measure. The note in every such result names the measure used.

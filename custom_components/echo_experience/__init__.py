@@ -15,7 +15,7 @@ from homeassistant.helpers import llm, entity_registry as er, issue_registry as 
 from homeassistant.helpers.service import async_register_admin_service
 from homeassistant.auth.permissions.const import POLICY_READ, POLICY_CONTROL
 from homeassistant.util import dt as dt_util
-from .music import resolve_music
+from .music import resolve_music, library_station
 from .music_fallback import resolve_with_fallback
 from .music_backend import MusicBackend
 from .ducking import DuckingManager
@@ -436,12 +436,21 @@ class Experience:
             if args.get('artist'):data['artist']=args['artist']
             if args.get('album'):data['album']=args['album']
             kind=args.get('media_type')
+            entry=p.get('music_assistant_entry')
+            async def search(fields):
+                return await self.hass.services.async_call('music_assistant','search',
+                    {'config_entry_id':entry,**fields},blocking=True,return_response=True,context=context)
+            async def saved_station():
+                # A station saved in the library, by its exact name. Failing to look is never fatal: the request
+                # then goes on exactly as it would have without this.
+                if not entry:return None
+                try:
+                    async with asyncio.timeout(4):return await library_station(search,query)
+                except Exception:
+                    _LOGGER.warning('Library radio lookup failed for %r',query,exc_info=True)
+                    return None
             if kind in ('track','artist','album') or not kind:
-                entry=p.get('music_assistant_entry')
                 if not entry:raise ValueError('Music Assistant is not configured for this Echo')
-                async def search(fields):
-                    return await self.hass.services.async_call('music_assistant','search',
-                        {'config_entry_id':entry,**fields},blocking=True,return_response=True,context=context)
                 backend=MusicBackend(self.hass,entry,p.get('music_resolver_agent'),context,self.music_catalog_cache)
                 async with asyncio.timeout(25):
                     if p.get('music_resolver_agent'):
@@ -449,6 +458,11 @@ class Experience:
                     else:
                         resolution=await resolve_music(search,query,kind,args.get('artist',''),args.get('album',''),args.get('version',''))
                 if action=='search':return resolution
+                if resolution['status']=='not_found' and not args.get('artist'):
+                    # The model often calls a station a track ("play Smooth Relax"): a saved station of that
+                    # exact name is what was meant.
+                    station=await saved_station()
+                    if station:resolution={'status':'matched','match':station,'media_type':'radio'}
                 if resolution['status']!='matched':
                     await self.publish(p,'answer',{'question':query,'speech':resolution.get('question') or resolution.get('message')})
                     return resolution
@@ -456,6 +470,13 @@ class Experience:
                 kind=resolution.get('media_type',kind)
             elif action=='search':
                 raise ValueError('Search supports tracks, artists and albums')
+            elif kind=='radio':
+                # The saved station plays at once; a name Music Assistant has to look up online (TuneIn) can take
+                # long enough for the voice turn to time out while the music starts anyway.
+                station=await saved_station()
+                if station:
+                    resolution={'status':'matched','match':station,'media_type':'radio'}
+                    data={'entity_id':player,'media_id':station['uri'],'enqueue':'replace','media_type':'radio'}
             domain,service='music_assistant','play_media'
             # Every play sets the queue's shuffle explicitly so an earlier shuffle never scrambles an album:
             # artists shuffle unless told otherwise, everything else plays in order.

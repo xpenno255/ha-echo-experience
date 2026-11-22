@@ -370,6 +370,35 @@ class NativePlaybackTest(unittest.IsolatedAsyncioTestCase):
  async def test_radio_never_touches_shuffle(self):
   await self.runtime.music(self.kitchen,{'action':'play','query':'Absolute Radio','media_type':'radio'})
   self.assertEqual(self.calls('shuffle_set'),[])
+ def saved(self,stations):
+  self.kitchen['music_assistant_entry']='ma'
+  async def call(domain,service,data,**kw):
+   if service=='search':return {'radio':[s for s in stations if s['name'].lower()==data['name'].lower()]} if data.get('media_type')==['radio'] else {}
+  self.hass.services.async_call.side_effect=call
+ async def test_station_called_a_track_plays_the_saved_station(self):
+  self.saved([{'uri':'library://radio/2','name':'Smooth Relax'}])
+  async def not_found(*a):return {'status':'not_found','message':'No confident match was found.'}
+  with patch.object(module,'resolve_music',not_found):
+   result=await self.runtime.music(self.kitchen,{'action':'play','query':'Smooth Relax','media_type':'track'})
+  play=self.calls('play_media')[-1]
+  self.assertEqual((play['media_id'],play['media_type']),('library://radio/2','radio'))
+  self.assertEqual(self.calls('shuffle_set'),[],'a station never touches shuffle')
+  self.assertEqual(result['match']['uri'],'library://radio/2')
+ async def test_not_found_with_an_artist_or_no_saved_station_still_says_so(self):
+  self.saved([{'uri':'library://radio/2','name':'Smooth Relax'}])
+  async def not_found(*a):return {'status':'not_found','message':'No confident match was found.'}
+  with patch.object(module,'resolve_music',not_found):
+   for args in [{'query':'Smooth Relax','artist':'Someone'},{'query':'Some of Your Legs'}]:
+    with self.subTest(**args):
+     result=await self.runtime.music(self.kitchen,{'action':'play','media_type':'track',**args})
+     self.assertEqual(result['status'],'not_found')
+  self.assertEqual(self.calls('play_media'),[])
+ async def test_radio_prefers_the_saved_station_and_leaves_others_to_music_assistant(self):
+  self.saved([{'uri':'library://radio/2','name':'Smooth Relax'}])
+  await self.runtime.music(self.kitchen,{'action':'play','query':'smooth relax radio','media_type':'radio'})
+  self.assertEqual(self.calls('play_media')[-1]['media_id'],'library://radio/2')
+  await self.runtime.music(self.kitchen,{'action':'play','query':'Classic FM','media_type':'radio'})
+  self.assertEqual((self.calls('play_media')[-1]['media_id'],self.calls('play_media')[-1]['media_type']),('Classic FM','radio'))
  async def test_shuffle_action_targets_what_is_playing_and_reports_real_state(self):
   self.states['media_player.kitchen_sonos'].state='playing'
   result=await self.runtime.music(self.kitchen,{'action':'shuffle','shuffle':True})
