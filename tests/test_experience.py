@@ -62,6 +62,14 @@ class CoreTest(unittest.TestCase):
     self.assertAlmostEqual(out['result'],wanted)
     self.assertEqual(out['from_unit'],standard)
     self.assertIn(standard,out['note'])
+  # The model drops "US" from the unit; the user's own words still pick the US measure, and the note says so.
+  for said,unit,wanted in [('Convert 1 US cup to millilitres.','cup',236.5882365),('How many millilitres in an American pint?','pint',473.176473),('4 U.S. fluid ounces in ml','fluid ounces',118.29411825)]:
+   with self.subTest(said=said):
+    out=convert(1 if 'fluid' not in unit else 4,unit,'ml',said=said)
+    self.assertAlmostEqual(out['result'],wanted)
+    self.assertIn('us ',out['note'])
+  # Lower-case "us" is the pronoun, not the country.
+  self.assertEqual(convert(1,'cup','ml',said='Tell us how many millilitres in a cup')['result'],250)
   # A stated standard needs no note; a "UK cup" is the metric cup British recipes use.
   self.assertNotIn('note',convert(1,'us pint','ml'))
   self.assertEqual(convert(2,'uk cup','ml')['result'],500)

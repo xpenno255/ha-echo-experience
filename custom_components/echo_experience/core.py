@@ -147,12 +147,20 @@ ALIASES={'grams':'g','gram':'g','kilograms':'kg','kilogram':'kg','milligrams':'m
 # cannot ask which was meant: the user would have to wake it again, which starts a new conversation.
 ASSUMED={'cup':'metric cup','cups':'metric cup','pint':'uk pint','pints':'uk pint',
  'fl oz':'uk fl oz','fluid ounce':'uk fl oz','fluid ounces':'uk fl oz'}
+# The small model drops "US" from "1 US cup" and sends a plain cup, so the user's own words decide: "US" in capitals
+# (speech-to-text writes the pronoun "us" in lower case) or "American" picks the US measure.
+US_SAID=re.compile(r'\b(?:US|USA)\b|\bU\.S\.')
+AMERICAN=re.compile(r'\bamerican\b',re.I)
+US_MEASURE={'metric cup':'us cup','uk pint':'us pint','uk fl oz':'us fl oz'}
 
-def convert(value, from_unit, to_unit):
+def convert(value, from_unit, to_unit, said=''):
+    """said: the user's own request, when known, so "US"/"American" there applies to a plain cup, pint or fl oz."""
     normalize=lambda unit:' '.join(unit.strip().lower().replace('_',' ').split())
-    assumed=[ASSUMED[normalize(u)] for u in (from_unit,to_unit) if normalize(u) in ASSUMED]
-    a=ASSUMED.get(normalize(from_unit)) or ALIASES.get(normalize(from_unit),normalize(from_unit))
-    b=ASSUMED.get(normalize(to_unit)) or ALIASES.get(normalize(to_unit),normalize(to_unit))
+    us=bool(US_SAID.search(said or '') or AMERICAN.search(said or ''))
+    plain=lambda u:(US_MEASURE[ASSUMED[normalize(u)]] if us else ASSUMED[normalize(u)]) if normalize(u) in ASSUMED else None
+    assumed=[plain(u) for u in (from_unit,to_unit) if plain(u)]
+    a=plain(from_unit) or ALIASES.get(normalize(from_unit),normalize(from_unit))
+    b=plain(to_unit) or ALIASES.get(normalize(to_unit),normalize(to_unit))
     if a not in UNITS or b not in UNITS:
         missing=', '.join(u for u in (from_unit,to_unit) if ALIASES.get(normalize(u),normalize(u)) not in UNITS)
         raise ValueError(f'Unsupported or ambiguous unit: {missing}. Supported categories are length/distance, mass, volume and temperature. Cups, pints and fluid ounces need a UK, US or metric standard.')
@@ -169,7 +177,7 @@ def convert(value, from_unit, to_unit):
     if not math.isfinite(number):raise ValueError('Result is out of range')
     label=lambda u: {'c':'°C','f':'°F','k':'K','l':'L','ml':'mL'}.get(u,u)
     out={'value':float(v),'from_unit':label(a),'to_unit':label(b),'result':number,'equation':f'{float(v):g} {label(a)} = {number:,.4f}'.rstrip('0').rstrip('.')+f' {label(b)}'}
-    if assumed:out['note']='No standard was given, so this uses the '+' and '.join(dict.fromkeys(assumed))+'. Say which one in the answer.'
+    if assumed:out['note']='This uses the '+' and '.join(dict.fromkeys(assumed))+'. Say which one in the answer.'
     return out
 
 

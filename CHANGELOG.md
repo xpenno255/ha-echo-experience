@@ -1,5 +1,10 @@
 # Changes
 
+## 0.12.3 - "US cup" honoured even when the model drops "US"
+
+- The voice model sends "1 US cup" as a plain cup, which 0.12.2 converted as a metric cup while the answer still said "US cup". The converter now reads the user's own request from the conversation: "US" (in capitals, so the pronoun "us" does not count), "U.S.", "USA" or "American" makes a plain cup, pint or fluid ounce the US measure. The note in every such result names the measure used.
+- No migration. Restart Core after updating.
+
 ## 0.12.2 - Cups, pints and fluid ounces without a standard
 
 - The Echo cannot hear a reply to a question (answering means waking it again, which starts a new conversation), so it no longer asks which cup or pint was meant. A cup, pint or fluid ounce with no standard is converted as a metric cup (250 mL), UK pint or UK fluid ounce, and the result carries a note naming the measure so the answer says it. US measures are still used when asked for. Before, the converter refused a plain "cup", and the model either gave up or answered with the US figure from its own knowledge.

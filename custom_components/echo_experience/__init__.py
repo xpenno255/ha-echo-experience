@@ -498,7 +498,7 @@ class Experience:
         if action=='weather':return await self.weather(p,args)
         if action=='music':return await self.music(p,args,context)
         if action=='convert':
-            result=convert(args['value'],args['from_unit'],args['to_unit'])
+            result=convert(args['value'],args['from_unit'],args['to_unit'],said=user_said())
             await self.publish(p,'answer',result)
             return result
         if action=='show':
@@ -581,6 +581,22 @@ def timer_mismatch(wanted,own):
         return (f'No timer named {wanted}. The only timer on this Echo is {describe_timers(own)}. The name was probably misheard: '
                 'if the request fits this timer, call echo_timer again with the same operation and no name; otherwise ask the user which timer they mean.')
     return f'No timer named {wanted}. Timers on this Echo: {describe_timers(own)}. Ask the user which one they mean.'
+
+def user_said():
+    """The user's latest words in the conversation this tool call belongs to, or '' outside one.
+
+    The small model drops qualifiers such as "US" from tool arguments ("1 US cup" arrives as from_unit "cup"), so a tool
+    that must honour them reads the request itself. Home Assistant keeps the active chat log in a context variable.
+    """
+    try:
+        from homeassistant.components.conversation.chat_log import current_chat_log
+        log=current_chat_log.get()
+        if log is None:return ''
+        return next((c.content for c in reversed(log.content) if getattr(c,'role',None)=='user'),'') or ''
+    except Exception:
+        _LOGGER.debug('No chat log for this tool call',exc_info=True)
+        return ''
+
 
 def tool_result(data,error=False):
     """Home Assistant 2026.10+ expects an llm.ToolResult; older cores take the plain dict."""
