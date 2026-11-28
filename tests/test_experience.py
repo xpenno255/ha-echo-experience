@@ -229,6 +229,22 @@ class RuntimeTest(unittest.IsolatedAsyncioTestCase):
   self.hass.data[TIMER_DATA].cancel_timer.assert_called_once_with('r1')
   result=await tool.async_call(self.hass,NS(tool_name='echo_timer',tool_args={'operation':None}),NS(context=None,device_id=None))
   self.assertIn('Invalid arguments',result.data['error'],'a required argument sent as null is still missing')
+ async def test_stop_and_other_ending_words_cancel_a_timer(self):
+  # Gemma 4 12B sent operation "stop", which the tool rejected, then "dismiss" (alarms only), and gave up.
+  tool=next(t for t in await self.tools() if t.name=='echo_timer')
+  for word in ['stop','Stop','end','delete','remove','clear']:
+   with self.subTest(word=word):
+    running=NS(id='r1',name='Timer',device_id='device-kitchen',seconds_left=100,created_seconds=120,is_active=True)
+    self.hass.data[TIMER_DATA]=NS(timers={'r1':running},cancel_timer=Mock())
+    result=await tool.async_call(self.hass,NS(tool_name='echo_timer',tool_args={'operation':word,'name':None}),NS(context=None,device_id=None))
+    self.assertFalse(result.error,result.data)
+    self.hass.data[TIMER_DATA].cancel_timer.assert_called_once_with('r1')
+  self.assertNotIn('stop',str(tool.parameters.schema),'the alias is accepted, never advertised')
+  self.hass.data[TIMER_DATA]=NS(timers={},cancel_timer=Mock())
+  self.finish();self.report(dismissed=True)
+  result=await tool.async_call(self.hass,NS(tool_name='echo_timer',tool_args={'operation':'stop'}),NS(context=None,device_id=None))
+  self.assertFalse(result.error,result.data)
+  self.assertEqual([t['id'] for t in self.runtime.ringing_timers(self.profiles[0])],[],'stop while it rings silences the alarm')
  async def test_tools_name_their_integration(self):
   self.assertEqual({t.integration for t in await self.tools()},{'echo_experience'})
  async def test_guide_tool_wraps_a_plain_dict_answer(self):

@@ -623,21 +623,31 @@ def tool_result(data,error=False):
     """Home Assistant 2026.10+ expects an llm.ToolResult; older cores take the plain dict."""
     return llm.ToolResult(data=data,error=error) if hasattr(llm,'ToolResult') else data
 
+# Words models use for ending a timer that the timer tool does not declare. cancel silences a ringing alarm first and
+# otherwise cancels the running timer, so it is right for "stop" either way (Gemma 4 12B sent operation "stop").
+TIMER_OPERATION_ALIASES={'stop':'cancel','end':'cancel','delete':'cancel','remove':'cancel','clear':'cancel'}
+
 class ActionTool(llm.Tool):
-    def __init__(self,runtime,p,name,description,schema,aliases=None):
+    def __init__(self,runtime,p,name,description,schema,aliases=None,value_aliases=None):
         self.runtime,self.profile=runtime,p
         self.name,self.description,self.parameters=name,description,vol.Schema(schema)
         # Undeclared argument names models copy from similar tools, mapped onto the declared ones before validation.
         self.aliases=aliases or {}
+        # Undeclared values a model uses for a declared argument ({'operation': {'stop': 'cancel'}}), mapped the same
+        # way. Like the name aliases they are accepted, never advertised in the schema.
+        self.value_aliases=value_aliases or {}
         # HA 2026.10+ wants every tool to name its integration (reported, then enforced in 2027.10).
         self.integration=DOMAIN
     def unalias(self,args):
-        if not self.aliases or not isinstance(args,dict):return args
+        if not (self.aliases or self.value_aliases) or not isinstance(args,dict):return args
         args=dict(args)
         for alias,name in self.aliases.items():
             if alias in args:
                 value=args.pop(alias)
                 args.setdefault(name,value)  # the declared name wins when both are sent
+        for name,mapping in self.value_aliases.items():
+            value=args.get(name)
+            if isinstance(value,str) and (key:=' '.join(value.lower().split())) in mapping:args[name]=mapping[key]
         return args
     async def async_call(self,hass,tool_input,llm_context):
         return tool_result(*await self.run(tool_input,llm_context))
@@ -684,7 +694,7 @@ class ExperienceAPI(llm.API):
         if p:
             speakers=', '.join(x['name'] for x in p['speakers'])
             tools.extend([
-                ActionTool(self.runtime,p,'echo_timer','Manage native voice timers on THIS Echo only. Start a named timer with a duration in seconds; status lists running timers with remaining seconds plus any ringing (finished) alarms. Pause, resume, cancel or add one minute using its name (omit only if exactly one exists). A finished timer whose alarm is sounding is no longer running: "stop", "stop the timer", "dismiss" or "cancel" while it rings means dismiss. cancel silences a ringing alarm first and otherwise cancels the running timer; dismiss only silences alarms. Never create or guess timer.* entities.',{vol.Required('operation'):vol.In(['start','status','pause','resume','cancel','dismiss','add']),vol.Optional('name'):str,vol.Optional('seconds'):vol.All(vol.Coerce(int),vol.Range(min=1,max=86400))}),
+                ActionTool(self.runtime,p,'echo_timer','Manage native voice timers on THIS Echo only. Start a named timer with a duration in seconds; status lists running timers with remaining seconds plus any ringing (finished) alarms. Pause, resume, cancel or add one minute using its name (omit only if exactly one exists). A finished timer whose alarm is sounding is no longer running: "stop", "stop the timer", "dismiss" or "cancel" while it rings means dismiss. cancel silences a ringing alarm first and otherwise cancels the running timer; dismiss only silences alarms. Never create or guess timer.* entities.',{vol.Required('operation'):vol.In(['start','status','pause','resume','cancel','dismiss','add']),vol.Optional('name'):str,vol.Optional('seconds'):vol.All(vol.Coerce(int),vol.Range(min=1,max=86400))},value_aliases={'operation':TIMER_OPERATION_ALIASES}),
                 ActionTool(self.runtime,p,'echo_weather','Get the local forecast and display it on THIS Echo. Use for weather and rain questions. Choose today, tomorrow, next_hours (12 hours), or week.',{vol.Optional('period',default='today'):vol.In(['today','tomorrow','next_hours','week'])}),
                 ActionTool(self.runtime,p,'echo_convert','Calculate a unit conversion exactly and display the result. Arguments: value (the number to convert), from_unit and to_unit. Use for temperatures, weights, volumes and length/distance (millimetres, centimetres, metres, kilometres, inches, feet, yards, miles). Both singular and plural unit names are accepted. Plain cups, pints and fluid ounces are taken as metric cup, UK pint and UK fl oz unless a standard is stated; the note in the result says which, so say it. Never assume ingredient density.',{vol.Required('value'):vol.Coerce(float),vol.Required('from_unit'):str,vol.Required('to_unit'):str},aliases={'amount':'value'}),
                 ActionTool(self.runtime,p,'echo_music','Play music/radio or control playback on this Echo. Default is its selected music speaker. Optional speaker must be one of: '+speakers+'. Always set media_type for play/search: track for a song, album for an album, artist only when query is the band/artist name. The artist field is a separate filter; naming a performer does not make a song an artist request. Put only the title in query and the performer in artist. For album requests use query for the album title and omit the album field; album is only a filter for a track. Only set version if the user explicitly requests one. Standard studio releases are preferred automatically; do not ask about remasters or editions before calling this tool. Search resolves a title without playing. Play resolves tracks/artists/albums before queuing. "Play songs by X", "play some X", "play music by X" and "shuffle X" are artist requests: media_type artist, query X. Every play sets shuffle: artists shuffle by default, songs/albums play in order; pass shuffle true or false only when the user says so (e.g. "shuffle the album Y" is play, album, shuffle true). For "shuffle this", "shuffle on" or "stop shuffling" use action shuffle with shuffle true/false; it applies to what is playing now. Report shuffle only from the returned shuffle field. Pause/resume/next/previous/stop/shuffle act on whatever is currently playing on this Echo speaker, including music started from the Sonos app. If status is needs_clarification or not_found, ask a short question using the result; nothing has played. Never guess a URI. volume is 0–100.',{vol.Required('action'):vol.In(['play','search','pause','resume','next','previous','stop','volume','shuffle']),vol.Optional('shuffle'):bool,vol.Optional('query'):str,vol.Optional('media_type'):vol.In(['track','artist','album','playlist','radio','podcast']),vol.Optional('artist'):str,vol.Optional('album'):str,vol.Optional('version'):str,vol.Optional('speaker'):str,vol.Optional('volume'):vol.All(vol.Coerce(float),vol.Range(min=0,max=100))}),

@@ -1,5 +1,10 @@
 # Changes
 
+## 0.12.5 - "Stop the timer" works with models that say stop
+
+- With Gemma 4 12B, "Alexa, stop timer" asked the timer tool for operation "stop", which it does not have. The tool refused, the model tried "dismiss" (which only silences a ringing alarm) and the Echo said "Sorry, I got stuck on that" while the timer kept running. The timer tool now takes "stop", "end", "delete", "remove" and "clear" as cancel, which silences a ringing alarm first and otherwise cancels the running timer. The words are accepted, not advertised to the model.
+- No migration. Restart Core after updating.
+
 ## 0.12.4 - Saved radio stations play by name
 
 - "Play Smooth Relax" was sent to the music tool as a song, which found nothing and said so, although Smooth Relax is a station saved in the Music Assistant library. When a song, artist or album request finds nothing (and no artist was named), a station saved in the library under exactly that name now plays instead.
